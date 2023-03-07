@@ -1,0 +1,46 @@
+OOP:
+
+A Game has 2 players and a Board and an active player
+
+A Board has 
+
+A Player has:
+-Leader effects (not in prototype)
+-HP
+-Curr MP
+-Max MP
+-An array of cards (hand)
+-A Deck
+-stats (e.g. number of LW destroyed, not in prototype)
+
+A Deck has an array of Cards
+A Deck has a shuffle function
+
+A Card is a superclass
+
+A Spell is a subclass
+A Monster is a subclass
+An Amulet is a subclass
+
+A Card has:
+-a cost
+
+A Monster has stats and:
+-battlecry
+-evolve effect
+-evolve stats
+
+A spell has:
+-effect
+
+
+
+BOOLEANS FOR CREATURES:
+EVOLVED
+EVOLVABLE
+RUSH
+CAN_ATTACK
+TAUNT
+
+
+First, we will make a barebones skeleton with only 1/1/1 monsters

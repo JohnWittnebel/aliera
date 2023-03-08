@@ -8,7 +8,6 @@ def main():
   x = Game()
   x.player1.draw()
   x.player2.draw()
-  print(x.player1.deck)
-  print(x.player2.deck)
+  x.printGameState()
 
 main()

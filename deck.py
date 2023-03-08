@@ -13,9 +13,13 @@ class Deck:
       # Swap arr[i] with the element at random index
       self.cards[i], self.cards[j] = self.cards[j], self.cards[i]
 
+  # This actually draws from the end of the deck, important to note
   def draw(self):
-    return 1
+    cardDrawn = self.cards.pop()
+    return cardDrawn
 
+  # This is pretty dumb, but will work for now
   def __str__(self):
     for item in self.cards:
-        print(item.monsterName)
+        print(item)
+    return ""

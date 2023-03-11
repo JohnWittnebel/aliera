@@ -9,6 +9,7 @@ class Board:
     self.player1side = []
     self.player2side = []
     self.maxSize = MAX_BOARD_SIZE
+    self.fullBoard = [self.player1side, self.player2side]
 
   def printBoard(self):
     playerSideString = ""

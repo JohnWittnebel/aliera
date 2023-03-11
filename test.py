@@ -8,6 +8,11 @@ def main():
   x = Game()
   x.player1.draw()
   x.player2.draw()
-  x.printGameState()
 
+  x.board.player1side.append(Fighter())
+  x.board.player2side.append(Fighter())
+  x.board.player2side.append(Fighter())
+  x.printGameState()
+  x.initiateAttack(0,1)
+  x.printGameState()
 main()

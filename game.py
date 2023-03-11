@@ -3,6 +3,7 @@ from player import Player
 #from deckGen import generateDeckFromFile
 from constants import PLAYER_1_MAX_EVOS
 from constants import PLAYER_2_MAX_EVOS
+from constants import ENEMY_FACE
 
 from deck import Deck
 from cardArchive import Goblin
@@ -53,12 +54,85 @@ class Game:
       print(str(self.player2.currHP) + "/" + str(self.player2.maxHP))
       print(self.player2.hand)
 
- # def requestAction(self):
-    #TODO
+  #def requestAction(self):
+  #TODO
 
-  # The way that we will parse a requested action
- # def parseAction(self):
-    #TODO
+  # TODO: this might become very bloated in the future when we start implementing clash, on-attack effects, LW, etc.
+  #       try to make this function as decoupled and fragmentable as possible
+  def initiateAttack(self, allyMonster, enemyMonster):
+    
+    # First, figure out what side is attacking
+    attackingPlayer = 0
+    defendingPlayer = 1
+    if self.activePlayer == self.player1:
+        attackingPlayer = 0
+        defendingPlayer = 1
+    else:
+        attackingPlayer = 1
+        defendingPlayer = 0
 
- # def executeAction(self):
-    #TODO
+    # VALID TARGETS CHECKING
+    # Make sure that the allyMonster attacking a valid target, and that the enemyMonster is a valid target
+    if (allyMonster > len(self.board.fullBoard[attackingPlayer]) - 1):
+        print("ERROR: attempt to use a non-existent monster to attack")
+        return
+    elif (allyMonster < 0):
+        print("ERROR: attempt to use a non-existent monster to attack")
+        return
+    elif (enemyMonster > len(self.board.fullBoard[defendingPlayer]) - 1):
+        print("ERROR: attempt to attack a non-existent target")
+        return
+    elif (enemyMonster < -1):
+        print("ERROR: attempt to attack a non-existent target")
+        return
+
+    # Actual Fuction
+    # We have to implement wards at some point, but for now this is fine as is
+
+    # For when the face is targeted, simply do damage to face. At some point, this will become more complex...
+    if (enemyMonster == ENEMY_FACE):
+        if (attackingPlayer == 0):
+            self.player2.currHP -= self.board.player1side[allyMonster].monsterAttack
+        else:
+            self.player1.currHP -= self.board.player2side[allyMonster].monsterAttack
+
+    # otherwise, we are attacking a monster, deal damage to each other
+    else:
+        monsterDamage1 = self.board.player1side[allyMonster].monsterAttack
+        monsterDamage2 = self.board.player2side[allyMonster].monsterAttack
+        self.board.player2side[enemyMonster].takeCombatDamage(monsterDamage1)
+        self.board.player1side[allyMonster].takeCombatDamage(monsterDamage2)
+  
+    # TODO: this checks if any monsters are dead from the combat, could maybe be done in a better location
+    for mons in self.board.player1side:
+      if mons.initiateDestroy:
+        print("yay")
+    for mons in self.board.player2side:
+      if mons.initiateDestroy:
+        print("double yay")
+
+  # TODO
+  def initiateEvolve(self, evolveTarget, evolveEffTargets):
+    return
+
+  # TODO
+  def playCard(self, action):
+    return
+
+  # TODO
+  def endTurn(self):
+    return
+
+  # Remove magic numbers from this, maybe implement action as a class. Find some better
+  # implementation in any case
+  def initiateAction(self, action):
+    if action[0] == 4:
+      self.endTurn()
+    elif action[0] == 1:
+      self.playCard(action)
+    elif action[0] == 2:
+      self.initiateAttack(action[1], action[2][0])
+    elif action[0] == 3:
+      self.initiateEvolve(action[1], action[2])
+    else:
+      print("ERROR: Invalid action")

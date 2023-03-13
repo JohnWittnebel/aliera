@@ -23,3 +23,6 @@ class Board:
       playerSideString += item.name + " (" + str(item.monsterAttack) + "/" + str(item.monsterCurrHP) + ") [" + str(count) + "], "
       count += 1
     print(playerSideString)
+ 
+  def updateFullBoard(self):
+    self.fullBoard = [self.player1side, self.player2side]

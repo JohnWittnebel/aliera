@@ -10,21 +10,23 @@ from constants import MAX_HAND_SIZE, DEFAULT_MAX_HP, DEFAULT_MAX_PP
 # A Player has a maximum and current HP
 
 class Player:
-  def __init__(self, deck, maxEvos, currEvos, playerNum):
-    self.deck = deck
-    self.maxEvos = maxEvos
-    self.currEvos = currEvos
-    self.playerNum = playerNum
-    self.hand = []
-    self.effects = []
-    self.currHP = DEFAULT_MAX_HP
-    self.maxHP = DEFAULT_MAX_HP
-    self.currPP = DEFAULT_MAX_PP
-    self.maxPP = DEFAULT_MAX_PP
+    def __init__(self, deck, maxEvos, currEvos, playerNum):
+        self.deck = deck
+        self.maxEvos = maxEvos
+        self.currEvos = currEvos
+        self.playerNum = playerNum
+        self.hand = []
+        self.effects = []
+        self.currHP = DEFAULT_MAX_HP
+        self.maxHP = DEFAULT_MAX_HP
+        self.currPP = DEFAULT_MAX_PP
+        self.maxPP = DEFAULT_MAX_PP
 
-  def draw(self):
-    cardToAdd = self.deck.draw()
-    if (self.hand.count == MAX_HAND_SIZE):
-      print("Hand size full")
-    else:
-      self.hand.append(cardToAdd)
+    def draw(self, count = 1):
+        for _ in range(count):
+            cardToAdd = self.deck.draw()
+            if (self.hand.count == MAX_HAND_SIZE):
+                print("Hand size full")
+            else:
+                self.hand.append(cardToAdd)
+      

@@ -13,14 +13,19 @@ class Board:
 
   def printBoard(self):
     playerSideString = ""
-    count = 1
+    count = 0
+
+    # TODO: change this so that each monster/amulet has its own print function at some point
+    # TODO: currently only current hp/attack is displayed, at some point when healing and 
+    #       debuffs exist this will need to be expanded
     for item in self.player2side:
-      playerSideString += item.name + " (" + str(item.monsterAttack) + "/" + str(item.monsterCurrHP) + ") [" + str(count) + "], " 
+      playerSideString += item.name + " (" + str(item.monsterCurrAttack) + "/" + str(item.monsterCurrHP) + ") [" + str(count) + "], " 
       count += 1
     print(playerSideString)
     playerSideString = ""
+    count = 0
     for item in self.player1side:
-      playerSideString += item.name + " (" + str(item.monsterAttack) + "/" + str(item.monsterCurrHP) + ") [" + str(count) + "], "
+      playerSideString += item.name + " (" + str(item.monsterCurrAttack) + "/" + str(item.monsterCurrHP) + ") [" + str(count) + "], "
       count += 1
     print(playerSideString)
  

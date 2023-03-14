@@ -21,6 +21,7 @@ class Player:
         self.maxHP = DEFAULT_MAX_HP
         self.currPP = DEFAULT_MAX_PP
         self.maxPP = DEFAULT_MAX_PP
+        self.canEvolve = 0
 
     def draw(self, count = 1):
         for _ in range(count):
@@ -29,4 +30,13 @@ class Player:
                 print("Hand size full")
             else:
                 self.hand.append(cardToAdd)
+
+    def printHand(self):
+        count = 0
+        printString = ""
+        for item in self.hand:
+            printString += str(item)
+            printString += " [" + str(count) + "], "
+            count += 1
+        print(printString)
       

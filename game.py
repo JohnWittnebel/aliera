@@ -48,12 +48,12 @@ class Game:
             print(str(self.player2.currHP) + "/" + str(self.player2.maxHP))
             self.board.printBoard()
             print(str(self.player1.currHP) + "/" + str(self.player1.maxHP))
-            print(self.player1.hand)
+            self.player1.printHand()
         else:
             print(self.player1.currHP + "/" + self.player1.maxHP)
             # self.board.printReverseBoard()
             print(str(self.player2.currHP) + "/" + str(self.player2.maxHP))
-            print(self.player2.hand)
+            self.player2.printHand()
 
     #def requestAction(self):
     #TODO
@@ -93,14 +93,14 @@ class Game:
         # For when the face is targeted, simply do damage to face. At some point, this will become more complex...
         if (enemyMonster == ENEMY_FACE):
             if (attackingPlayer == 0):
-                self.player2.currHP -= self.board.player1side[allyMonster].monsterAttack
+                self.player2.currHP -= self.board.player1side[allyMonster].monsterCurrAttack
             else:
-                self.player1.currHP -= self.board.player2side[allyMonster].monsterAttack
+                self.player1.currHP -= self.board.player2side[allyMonster].monsterCurrAttack
 
         # otherwise, we are attacking a monster, deal damage to each other
         else:
-            monsterDamage1 = self.board.player1side[allyMonster].monsterAttack
-            monsterDamage2 = self.board.player2side[enemyMonster].monsterAttack
+            monsterDamage1 = self.board.player1side[allyMonster].monsterCurrAttack
+            monsterDamage2 = self.board.player2side[enemyMonster].monsterCurrAttack
             self.board.player2side[enemyMonster].takeCombatDamage(monsterDamage1)
             self.board.player1side[allyMonster].takeCombatDamage(monsterDamage2)
   
@@ -143,7 +143,48 @@ class Game:
 
     # TODO
     def endTurn(self):
-        return
+        # Change the current active player
+        if (self.activePlayer == player1):
+            self.activePlayer = player2
+        else:
+            self.activePlayer = player1
+        
+        # Change the turn number
+        if (self.activePlayer == player1):
+            self.currTurn += 1
+
+        self.startTurn()
+
+    def startTurn(self):
+        # Increase max PP of the current player
+        self.activePlayer.maxPP += 1
+
+        # Set active player current PP equal to their new max
+        self.activePlayer.currPP = self.activePlayer.maxPP
+ 
+        # Set if the player has the ability to evolve or not on this turn
+        if (self.activePlayer == self.player1 and self.currTurn >= 5 and self.activePlayer.currEvos > 0):
+            self.activePlayer.canEvolve = 1
+        elif (self.activePlayer == self.player2 and self.currTurn >= 4 and self.activePlayer.currEvos > 0):
+            self.activePlayer.canEvolve = 1
+        else:
+            self.activePlayer.canEvolve = 0
+
+        # The second player gets to draw 2 cards on their first draw
+        if (self.activePlayer == self.player2 and self.currTurn == 1):
+            self.activePlayer.draw(2)
+        else:
+            self.activePlayer.draw()
+
+    # this function will have the initial drawing and mulligan phase
+    def gameStart(self):
+        self.player1.draw(3)
+        self.player2.draw(3)
+
+        #TODO
+        #mulligan
+
+        self.startTurn()
 
     # Remove magic numbers from this, maybe implement action as a class. Find some better
     # implementation in any case
@@ -153,7 +194,7 @@ class Game:
         elif action[0] == 1:
             self.playCard(action)
         elif action[0] == 2:
-            self.initiateAttack(action[1], action[2][0])
+            self.initiateAttack(action[1][0], action[1][1])
         elif action[0] == 3:
             self.initiateEvolve(action[1], action[2])
         else:

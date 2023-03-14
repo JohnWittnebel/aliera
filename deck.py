@@ -1,4 +1,5 @@
 import random
+from cardArchive import Reaper
 
 class Deck:
   def __init__(self, cards):
@@ -15,8 +16,11 @@ class Deck:
 
   # This actually draws from the end of the deck, important to note
   def draw(self):
-    cardDrawn = self.cards.pop()
-    return cardDrawn
+    if len(self.cards) > 0:
+      cardDrawn = self.cards.pop()
+      return cardDrawn
+    else:
+      return Reaper()
 
   # This is pretty dumb, but will work for now
   def __str__(self):

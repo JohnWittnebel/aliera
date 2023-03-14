@@ -1,5 +1,14 @@
 from monster import Monster
 
+class Reaper(Monster):
+  def __init__(self):
+    monsterName = "Reaper"
+    monsterCost = 0
+    monsterAttack = 0
+    monsterMaxHP = 0
+    monsterCurrHP = 0
+    Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+
 class Goblin(Monster):
   def __init__(self):
     monsterName = "Goblin"

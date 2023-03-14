@@ -8,6 +8,8 @@ from constants import MAX_HAND_SIZE, DEFAULT_MAX_HP, DEFAULT_MAX_PP
 # A Player has a current number of usable Evos
 # A Player has leader effects, that will be used in a later version
 # A Player has a maximum and current HP
+# A Player has a maximum and current PP
+# A Player has a field to indicate if they are able to evolve yet
 
 class Player:
     def __init__(self, deck, maxEvos, currEvos, playerNum):
@@ -26,7 +28,14 @@ class Player:
     def draw(self, count = 1):
         for _ in range(count):
             cardToAdd = self.deck.draw()
-            if (self.hand.count == MAX_HAND_SIZE):
+            # Hacky way to kill you when you draw reaper
+            if (cardToAdd.name == "Reaper"):
+                self.hand = []
+                self.currHP = 0
+                self.maxHP = 0
+                self.maxPP = 0
+                self.currPP = 0
+            elif (self.hand.count == MAX_HAND_SIZE):
                 print("Hand size full")
             else:
                 self.hand.append(cardToAdd)

@@ -1,3 +1,4 @@
+import os
 from board import Board
 from player import Player
 #from deckGen import generateDeckFromFile
@@ -12,6 +13,8 @@ from cardArchive import Fighter
 
 # A Game is the primary class that controls the flow of the game
 # It has 2 players, a board, and keeps track of who is the current player and the current turn
+# It has a winner field that will change to 1 or 2 depending on the winner of the game
+# the winString returns the reason for winning (deckout, hp reached 0, etc.)
 
 class Game:
     def __init__(self, player1, player2):
@@ -20,6 +23,10 @@ class Game:
         self.player2 = player2
         self.board = Board()
         self.currTurn = 1
+
+        # this will become 1 or 2 once the game is over
+        self.winner = 0
+        self.winString = ""
     
     def __init__(self):
         # If we are initializing a board state without players already generated,
@@ -28,7 +35,7 @@ class Game:
         # For this, we will take the cards listed in deck1.deck and deck2.deck local files
         #deck1File = "deck1.deck"
         #deck1 = generateDeckFromFile(deck1File)
-        deck1 = Deck([Goblin(), Goblin(), Goblin(), Fighter(), Fighter(), Fighter(), Goblin(), Goblin(), Goblin()])
+        deck1 = Deck([Goblin(), Goblin(), Goblin(), Fighter()])
         deck1.shuffle()
 
         #deck2File = "deck2.deck"
@@ -42,16 +49,20 @@ class Game:
         self.board = Board()
         self.activePlayer = self.player1
         self.currTurn = 1
+        self.winner = 0
+        self.winString = ""
 
     def printGameState(self):
+        os.system('clear')
         if (self.activePlayer == self.player1):
             print(str(self.player2.currHP) + "/" + str(self.player2.maxHP))
             self.board.printBoard()
             print(str(self.player1.currHP) + "/" + str(self.player1.maxHP))
             self.player1.printHand()
         else:
-            print(self.player1.currHP + "/" + self.player1.maxHP)
-            # self.board.printReverseBoard()
+            print(str(self.player1.currHP) + "/" + str(self.player1.maxHP))
+            #TODO: make this an inverted board for the second player turn
+            self.board.printBoard()
             print(str(self.player2.currHP) + "/" + str(self.player2.maxHP))
             self.player2.printHand()
 
@@ -86,6 +97,9 @@ class Game:
         elif (enemyMonster < -1):
             print("ERROR: attempt to attack a non-existent target")
             return
+        elif (not self.board.fullBoard[attackingPlayer][allyMonster].canAttack):
+            print("ERROR: attempt to attack with a monster that cannot attack")
+            return
 
         # Actual Fuction
         # We have to implement wards at some point, but for now this is fine as is
@@ -94,8 +108,15 @@ class Game:
         if (enemyMonster == ENEMY_FACE):
             if (attackingPlayer == 0):
                 self.player2.currHP -= self.board.player1side[allyMonster].monsterCurrAttack
+                # TODO: this check needs to be in a more universal place
+                if (self.player2.currHP <= 0):
+                    self.winString = "HP reduced to 0"
+                    self.endgame(self.player1)
             else:
                 self.player1.currHP -= self.board.player2side[allyMonster].monsterCurrAttack
+                if (self.player1.currHP <= 0):
+                    self.winString = "HP reduced to 0"
+                    self.endgame(self.player2)
 
         # otherwise, we are attacking a monster, deal damage to each other
         else:
@@ -103,6 +124,9 @@ class Game:
             monsterDamage2 = self.board.player2side[enemyMonster].monsterCurrAttack
             self.board.player2side[enemyMonster].takeCombatDamage(monsterDamage1)
             self.board.player1side[allyMonster].takeCombatDamage(monsterDamage2)
+        
+        # Give summoning sickness to the monster that just attacked
+        self.board.fullBoard[attackingPlayer][allyMonster].canAttack = 0
   
         # This checks if any monsters are dead from the combat, could maybe be done in a better location
         newside1 = []
@@ -119,6 +143,15 @@ class Game:
         self.board.player2side = newside2
         self.board.updateFullBoard()
 
+    def endgame(self, winner):
+        if winner == self.player1:
+            print("The winner is player 1")
+            self.winner = 1
+        else:
+            print("The winner is player 2")
+            self.winner = 2
+        print("Cause of win: " + self.winString)
+
     # TODO
     def initiateEvolve(self, evolveTarget, evolveEffTargets):
         return
@@ -133,24 +166,37 @@ class Game:
             currPlayer = 1
 
         # Check that board is not full
-        if (self.board.fullBoard[currPlayer].count == MAX_BOARD_SIZE):
+        if (len(self.board.fullBoard[currPlayer]) == MAX_BOARD_SIZE):
             print("Attempted to play a follower when the board is full")
+            return
+
+        # Make sure that we have the PP to play the follower
+        if (self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].monsterCost):
+            print("Attempted to play a follower that costs more than our current PP")
+            return
 
         # Here is where we would do battlecries/check targets, but for now this doesn't exist
 
         followerToPlay = self.activePlayer.hand.pop(action[1][0])
         self.board.fullBoard[currPlayer].append(followerToPlay)
+        self.activePlayer.currPP -= followerToPlay.monsterCost
 
     # TODO
     def endTurn(self):
+        # Allow all followers to attack again
+        for mons in self.board.player1side:
+            mons.canAttack = 1
+        for mons in self.board.player2side:
+            mons.canAttack = 1
+
         # Change the current active player
-        if (self.activePlayer == player1):
-            self.activePlayer = player2
+        if (self.activePlayer == self.player1):
+            self.activePlayer = self.player2
         else:
-            self.activePlayer = player1
+            self.activePlayer = self.player1
         
         # Change the turn number
-        if (self.activePlayer == player1):
+        if (self.activePlayer == self.player1):
             self.currTurn += 1
 
         self.startTurn()
@@ -163,6 +209,7 @@ class Game:
         self.activePlayer.currPP = self.activePlayer.maxPP
  
         # Set if the player has the ability to evolve or not on this turn
+        # TODO: make these constants
         if (self.activePlayer == self.player1 and self.currTurn >= 5 and self.activePlayer.currEvos > 0):
             self.activePlayer.canEvolve = 1
         elif (self.activePlayer == self.player2 and self.currTurn >= 4 and self.activePlayer.currEvos > 0):
@@ -175,6 +222,19 @@ class Game:
             self.activePlayer.draw(2)
         else:
             self.activePlayer.draw()
+
+        # Current problem is that only the Game can signal to end itself but the player is the
+        # class that draws cards. This means that the game will have to check with the player
+        # after any draw instance. To fix this, we can create a draw method for the board that
+        # draws for the active player and then checks for reaper, for now this is ok though.
+        # TODO
+        if self.activePlayer.hand == []:
+            self.winString = "Decked out"
+            if self.activePlayer == self.player1:
+                self.endgame(self.player2)
+            else:
+                self.endgame(self.player1)
+
 
     # this function will have the initial drawing and mulligan phase
     def gameStart(self):

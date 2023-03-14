@@ -19,13 +19,21 @@ class Board:
     # TODO: currently only current hp/attack is displayed, at some point when healing and 
     #       debuffs exist this will need to be expanded
     for item in self.player2side:
-      playerSideString += item.name + " (" + str(item.monsterCurrAttack) + "/" + str(item.monsterCurrHP) + ") [" + str(count) + "], " 
+      if item.canAttack:
+          attackStr = "[X]"
+      else:
+          attackStr = "[ ]"
+      playerSideString += item.name + " (" + str(item.monsterCurrAttack) + "/" + str(item.monsterCurrHP) + ") " + attackStr + " [" + str(count) + "], " 
       count += 1
     print(playerSideString)
     playerSideString = ""
     count = 0
     for item in self.player1side:
-      playerSideString += item.name + " (" + str(item.monsterCurrAttack) + "/" + str(item.monsterCurrHP) + ") [" + str(count) + "], "
+      if item.canAttack:
+          attackStr = "[X]"
+      else:
+          attackStr = "[ ]"
+      playerSideString += item.name + " (" + str(item.monsterCurrAttack) + "/" + str(item.monsterCurrHP) + ") " + attackStr + " [" + str(count) + "], "
       count += 1
     print(playerSideString)
  

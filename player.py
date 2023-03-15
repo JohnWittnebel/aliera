@@ -35,7 +35,7 @@ class Player:
                 self.maxHP = 0
                 self.maxPP = 0
                 self.currPP = 0
-            elif (self.hand.count == MAX_HAND_SIZE):
+            elif (len(self.hand) == MAX_HAND_SIZE):
                 print("Hand size full")
             else:
                 self.hand.append(cardToAdd)

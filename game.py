@@ -6,10 +6,10 @@ from constants import PLAYER_1_MAX_EVOS
 from constants import PLAYER_2_MAX_EVOS
 from constants import MAX_BOARD_SIZE
 from constants import ENEMY_FACE
-
+from constants import MAX_EMPTY_PP
+from deck2 import deck2
+from deck1 import deck1
 from deck import Deck
-from cardArchive import Goblin
-from cardArchive import Fighter
 
 # A Game is the primary class that controls the flow of the game
 # It has 2 players, a board, and keeps track of who is the current player and the current turn
@@ -35,12 +35,10 @@ class Game:
         # For this, we will take the cards listed in deck1.deck and deck2.deck local files
         #deck1File = "deck1.deck"
         #deck1 = generateDeckFromFile(deck1File)
-        deck1 = Deck([Goblin(), Goblin(), Goblin(), Fighter()])
         deck1.shuffle()
 
         #deck2File = "deck2.deck"
         #deck2 = generateDeckFromFile(deck2File
-        deck2 = Deck([Fighter(), Fighter(), Fighter(), Goblin(), Goblin(), Goblin(), Fighter(), Fighter(), Fighter()])
         deck2.shuffle()
 
         self.player1 = Player(deck1, PLAYER_1_MAX_EVOS, PLAYER_1_MAX_EVOS, 1)
@@ -55,15 +53,26 @@ class Game:
     def printGameState(self):
         os.system('clear')
         if (self.activePlayer == self.player1):
-            print(str(self.player2.currHP) + "/" + str(self.player2.maxHP))
+            print("HP: " + str(self.player2.currHP) + "/" + str(self.player2.maxHP))
+            print("Cards: " + str(len(self.player2.hand)))
+            print("PP: " + str(self.player2.currPP) + "/" + str(self.player2.maxPP))
+            print("")
             self.board.printBoard()
-            print(str(self.player1.currHP) + "/" + str(self.player1.maxHP))
+            print("")
+            print("HP: " + str(self.player1.currHP) + "/" + str(self.player1.maxHP))
+            print("PP: " + str(self.player1.currPP) + "/" + str(self.player1.maxPP))
+            print("Hand:")
             self.player1.printHand()
         else:
-            print(str(self.player1.currHP) + "/" + str(self.player1.maxHP))
-            #TODO: make this an inverted board for the second player turn
+            print("HP: " + str(self.player1.currHP) + "/" + str(self.player1.maxHP))
+            print("Cards: " + str(len(self.player1.hand)))
+            print("PP: " + str(self.player1.currPP) + "/" + str(self.player1.maxPP))
+            print("")
             self.board.printBoard()
-            print(str(self.player2.currHP) + "/" + str(self.player2.maxHP))
+            print("")
+            print("HP: " + str(self.player2.currHP) + "/" + str(self.player2.maxHP))
+            print("PP: " + str(self.player2.currPP) + "/" + str(self.player2.maxPP))
+            print("Hand:")
             self.player2.printHand()
 
     #def requestAction(self):
@@ -203,7 +212,8 @@ class Game:
 
     def startTurn(self):
         # Increase max PP of the current player
-        self.activePlayer.maxPP += 1
+        if (self.activePlayer.maxPP < MAX_EMPTY_PP):
+          self.activePlayer.maxPP += 1
 
         # Set active player current PP equal to their new max
         self.activePlayer.currPP = self.activePlayer.maxPP

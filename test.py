@@ -18,18 +18,18 @@ def main():
     print("1 = play card")
     print("2 = attack")
     print("4 = end turn")
-    uinput1 = int(raw_input(""))
-    if (uinput1 == 1):
+    uinput1 = raw_input("")
+    if (uinput1 == "1"):
       print("input card:")
       uinput2 = int(raw_input(""))
-      x.initiateAction([uinput1,[uinput2]])
-    if (uinput1 == 2):
+      x.initiateAction([int(uinput1),[uinput2]])
+    if (uinput1 == "2"):
       print("Select attacker:")
       uinput2 = int(raw_input(""))
       print("Select defender:")
       uinput3 = int(raw_input(""))
       x.initiateAttack(uinput2, uinput3)
-    if (uinput1 == 4):
+    if (uinput1 == "4"):
         x.endTurn()
         continue
 #    x.initiateAction([uinput1,[uinput2,uinput3]])

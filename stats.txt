@@ -1,0 +1,13 @@
+[50, 48, 0, 0, 0, 0, 1, 29, 0, 10, 50, 0, 50, 0, 50, 0, 50, 0, 0, 48, 50, 29, 49, 42, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 50, 0, 0, 0, 0, 0, 42, 50, 50, 50, 50, 0]
+[30, 30, 29, 30, 31, 30, 35, 31, 30, 33, 29, 32, 30, 32, 30, 33, 29, 32, 30, 33, 30, 30, 32, 30, 32, 30, 32, 30, 30, 31, 32, 32, 30, 36, 30, 29, 33, 30, 31, 33, 30, 33, 31, 30, 30, 32, 32, 30, 30, 32]
+
+This is a problem, passing is going to become an optimal solution for P1. We can try to train P2 against it but I kind
+of doubt it will work.
+
+Some ideas we can use to get the AI on the right track:
+1. set initial hp lower (like 1), this would make it more feasible that an AI can accidentally win through damage.
+2. give AI some benefit at first from playing creatures (e.g. add cards to deck). This makes it so that playing
+creatures is preferred to passing and going second has a chance to win without reducing P1 to 0 hp.
+3. make the AI do at most 20 or so attempted moves per turn then force a pass instead of reducing HP by 1 on illegal
+move
+4. (questionable) modify the NN output so that it only produces legal moves

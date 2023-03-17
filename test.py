@@ -111,7 +111,7 @@ def singleGame(botGame, bot1, bot2):
 #    z2 = Bot(test3, test4)
 #singleGame(0,0,z2)
 
-tourdata = TourData(10)
+tourdata = TourData(50)
 
 for i in range(10):
     for j in range(10):

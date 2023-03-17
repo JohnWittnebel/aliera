@@ -1,10 +1,13 @@
 import numpy as np
 from random import uniform
 
+hiddennodes = 10
+onodes = 6
+
 def sig(x):
  return 1 / (1 + np.exp(-x))
 
-class bot():
+class Bot():
     def __init__(self, wih=None, who=None, name=None):
         # Right now the bot itself keeps track of the wins and losses it receives,
         # maybe this is not ideal, we should have a separate AI for going first and going second
@@ -42,19 +45,24 @@ class bot():
 
 
 
-x = bot()
+
+
+#test1 = np.random.uniform(-1,1,(hiddennodes,37))
+#test2 = np.random.uniform(-1,1,(onodes,hiddennodes))
+#x = bot(test1, test2)
+#testinput = np.random.uniform(-1,1, (37, 1))
+#print(x.think(testinput))
 #print(np.random.uniform(-1, 1, (4, 3))) # This is code to generate a 4x3 matrix with random values from -1 to 1
                                         # represents one hidden layer
 #print(np.dot(100, np.random.uniform(-1,1,(4,3))))
 
-testinput = np.random.uniform(-1,1, (37, 1))
-hiddennodes = 10
-onodes = 6
+#testinput = np.random.uniform(-1,1, (37, 1))
+#hiddennodes = 10
+#onodes = 6
 
-af = lambda x: sig(x)               # activation function
-test1 = np.random.uniform(-1,1,(hiddennodes,37))
-test2 = np.random.uniform(-1,1,(onodes,hiddennodes))
-middle = af(np.dot(test1, testinput))
-out = af(np.dot(test2, middle))
-print(test1)
-print(out)
+#af = lambda x: sig(x)               # activation function
+
+#middle = af(np.dot(test1, testinput))
+#out = af(np.dot(test2, middle))
+#print(test1)
+#print(out)

@@ -1,5 +1,6 @@
 import random
 from cardArchive import Reaper
+from cardArchive import Goblin, Fighter
 
 class Deck:
   def __init__(self, cards):
@@ -27,3 +28,11 @@ class Deck:
     for item in self.cards:
         print(item)
     return ""
+
+  # This really is only for Fighter/Gob testing
+  def refresh(self):
+      self.cards = []
+      for _ in range(15):
+          self.cards.append(Goblin())
+          self.cards.append(Fighter())
+      self.shuffle()

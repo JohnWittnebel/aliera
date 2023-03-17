@@ -35,10 +35,23 @@ class Game:
         # For this, we will take the cards listed in deck1.deck and deck2.deck local files
         #deck1File = "deck1.deck"
         #deck1 = generateDeckFromFile(deck1File)
-        deck1.shuffle()
+        deck1.refresh()
 
         #deck2File = "deck2.deck"
         #deck2 = generateDeckFromFile(deck2File
+        deck2.refresh()
+
+        self.player1 = Player(deck1, PLAYER_1_MAX_EVOS, PLAYER_1_MAX_EVOS, 1)
+        self.player2 = Player(deck2, PLAYER_2_MAX_EVOS, PLAYER_2_MAX_EVOS, 2)
+
+        self.board = Board()
+        self.activePlayer = self.player1
+        self.currTurn = 1
+        self.winner = 0
+        self.winString = ""
+        
+    def reset(self):    
+        deck1.shuffle()
         deck2.shuffle()
 
         self.player1 = Player(deck1, PLAYER_1_MAX_EVOS, PLAYER_1_MAX_EVOS, 1)
@@ -96,18 +109,44 @@ class Game:
         # Make sure that the allyMonster attacking a valid target, and that the enemyMonster is a valid target
         if (allyMonster > len(self.board.fullBoard[attackingPlayer]) - 1):
             print("ERROR: attempt to use a non-existent monster to attack")
+            # TODO: this is really just here for training purposes
+            self.activePlayer.currHP -= 1
+            if (self.player2.currHP <= 0):
+                self.endgame(self.player1)
+            elif (self.player1.currHP <= 0):
+                self.endgame(self.player2)
             return
         elif (allyMonster < 0):
             print("ERROR: attempt to use a non-existent monster to attack")
+            self.activePlayer.currHP -= 1
+            if (self.player2.currHP <= 0):
+                self.endgame(self.player1)
+            elif (self.player1.currHP <= 0):
+                self.endgame(self.player2)
             return
         elif (enemyMonster > len(self.board.fullBoard[defendingPlayer]) - 1):
             print("ERROR: attempt to attack a non-existent target")
+            self.activePlayer.currHP -= 1
+            if (self.player2.currHP <= 0):
+                self.endgame(self.player1)
+            elif (self.player1.currHP <= 0):
+                self.endgame(self.player2)
             return
         elif (enemyMonster < -1):
             print("ERROR: attempt to attack a non-existent target")
+            self.activePlayer.currHP -= 1
+            if (self.player2.currHP <= 0):
+                self.endgame(self.player1)
+            elif (self.player1.currHP <= 0):
+                self.endgame(self.player2)
             return
         elif (not self.board.fullBoard[attackingPlayer][allyMonster].canAttack):
             print("ERROR: attempt to attack with a monster that cannot attack")
+            self.activePlayer.currHP -= 1
+            if (self.player2.currHP <= 0):
+                self.endgame(self.player1)
+            elif (self.player1.currHP <= 0):
+                self.endgame(self.player2)
             return
 
         # Actual Fuction
@@ -154,12 +193,12 @@ class Game:
 
     def endgame(self, winner):
         if winner == self.player1:
-            print("The winner is player 1")
+            #print("The winner is player 1")
             self.winner = 1
         else:
-            print("The winner is player 2")
+            #print("The winner is player 2")
             self.winner = 2
-        print("Cause of win: " + self.winString)
+        #print("Cause of win: " + self.winString)
 
     # TODO
     def initiateEvolve(self, evolveTarget, evolveEffTargets):
@@ -177,11 +216,21 @@ class Game:
         # Check that board is not full
         if (len(self.board.fullBoard[currPlayer]) == MAX_BOARD_SIZE):
             print("Attempted to play a follower when the board is full")
+            self.activePlayer.currHP -= 1
+            if (self.player2.currHP <= 0):
+                self.endgame(self.player1)
+            elif (self.player1.currHP <= 0):
+                self.endgame(self.player2)
             return
 
         # Make sure that we have the PP to play the follower
-        if (self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].monsterCost):
+        if len(self.activePlayer.hand) == 0 or (self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].monsterCost):
             print("Attempted to play a follower that costs more than our current PP")
+            self.activePlayer.currHP -= 1
+            if (self.player2.currHP <= 0):
+                self.endgame(self.player1)
+            elif (self.player1.currHP <= 0):
+                self.endgame(self.player2)
             return
 
         # Here is where we would do battlecries/check targets, but for now this doesn't exist
@@ -248,9 +297,12 @@ class Game:
 
     # this function will have the initial drawing and mulligan phase
     def gameStart(self):
+        self.winner = 0
         self.player1.draw(3)
         self.player2.draw(3)
-
+       
+        if (len(self.player1.deck.cards) == 0):
+            raise Exception("no cards in deck at start")
         #TODO
         #mulligan
 

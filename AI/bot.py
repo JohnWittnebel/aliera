@@ -1,5 +1,6 @@
 import numpy as np
 from random import uniform
+import math
 
 hiddennodes = 10
 onodes = 6
@@ -9,13 +10,6 @@ def sig(x):
 
 class Bot():
     def __init__(self, wih=None, who=None, name=None):
-        # Right now the bot itself keeps track of the wins and losses it receives,
-        # maybe this is not ideal, we should have a separate AI for going first and going second
-        self.winsFirst = 0
-        self.winsSecond = 0
-        self.lossesFirst = 0
-        self.lossesSecond = 0
-
         self.wih = wih
         self.who = who
 
@@ -23,13 +17,14 @@ class Bot():
 
     def getMove(self, currGameState):
         # Run the NN
-        actionArray = think(currGameState)
+        out = self.think(currGameState)
+        print(out)
         
         # Determine what the highest valued action is, make this have fewer magic numbers in the future
         if out[0] >= out[2] and out[0] >= out[5]:
-            return [1, out[1]]
+            return [1, int(out[1])]
         elif out[2] >= out[5]:
-            return [2, [out[3], out[4]]]
+            return [2, [int(out[3]), int(out[4])]]
         else:
             return [4]
         
@@ -41,6 +36,12 @@ class Bot():
         # TODO: figure out a better activation function
         h1 = af(np.dot(self.wih, currGameState))  # hidden layer
         out = af(np.dot(self.who, h1))          # output layer
+      
+        # fix the outputs to be readable
+        # TODO: put this in a better spot
+        out[1] = int(math.floor(out[1]*2))
+        out[3] = int(math.floor(out[3]*5))
+        out[4] = int(math.floor(out[4]*6)) - 1
         return out
 
 

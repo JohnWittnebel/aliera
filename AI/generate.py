@@ -2,7 +2,7 @@
 import numpy as np
 import pickle
 
-BOTS_TO_GEN = 50
+BOTS_TO_GEN = 30
 NUM_HIDDEN = 10
 NUM_OUTPUT = 6
 NUM_INPUT = 37

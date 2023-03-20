@@ -65,14 +65,13 @@ class Transformer:
         # NOTE: Right now all NN outputs are normalized to [0,1], so we need to find the associated value for thing like
         #       card to play
         if NNoutput[0] == 1:
-            cardIndex = -1
             currIndex = 0
             for item in hand:
                 if item.name == self.mapping[NNoutput[1]]:
-                    cardIndex = currIndex
                     return [1, currIndex]
+                currIndex += 1
             # If we reached here the AI requested an illegal action, so just send it as one
-            return [1, -1]
+            return [1, -5]
         else:
             return NNoutput
 

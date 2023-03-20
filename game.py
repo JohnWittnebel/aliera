@@ -10,11 +10,16 @@ from constants import MAX_EMPTY_PP
 from deck2 import deck2
 from deck1 import deck1
 from deck import Deck
+import random
+
+from cardArchive import Goblin, Fighter
 
 # A Game is the primary class that controls the flow of the game
 # It has 2 players, a board, and keeps track of who is the current player and the current turn
 # It has a winner field that will change to 1 or 2 depending on the winner of the game
 # the winString returns the reason for winning (deckout, hp reached 0, etc.)
+
+TRAINING = 1
 
 class Game:
     def __init__(self, player1, player2):
@@ -190,6 +195,15 @@ class Game:
         self.board.player1side = newside1
         self.board.player2side = newside2
         self.board.updateFullBoard()
+        
+
+        # FOR INITIAL TRAINING TO ENCOURAGE MINIONS ATTACKING
+        if (TRAINING == 1):
+            randInt = random.randint(0,1)
+            if (randInt == 0):
+                self.activePlayer.deck.cards.append(Goblin())
+            else:
+                self.activePlayer.deck.cards.append(Fighter())
 
     def endgame(self, winner):
         if winner == self.player1:
@@ -234,6 +248,14 @@ class Game:
             return
 
         # Here is where we would do battlecries/check targets, but for now this doesn't exist
+
+        # FOR INITIAL TRAINING ONLY: add card to deck after a card is played to encourage card playing
+        if (TRAINING == 1):
+            randInt = random.randint(0,1)
+            if (randInt == 0):
+                self.activePlayer.deck.cards.append(Goblin())
+            else:
+                self.activePlayer.deck.cards.append(Fighter())
 
         followerToPlay = self.activePlayer.hand.pop(action[1][0])
         self.board.fullBoard[currPlayer].append(followerToPlay)

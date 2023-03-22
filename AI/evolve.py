@@ -7,7 +7,7 @@ import random
 import os
 
 # this constant determines how likely it is that a mutation will occur
-MUTATION_RANGE = 0.1
+MUTATION_RANGE = 0.22
 
 # INPUT: Int, Int, Int, [Int]
 # OUTPUT: NULL
@@ -56,7 +56,7 @@ def evolve(topx, totalBots, playerSide, results):
             if mutPick == 0:
                 indexRow = random.randint(0,hiddennodes-1)
                 indexCol = random.randint(0,36)
-                wihNew[indexRow][indexCol] = wihNew[indexRow][indexCol] * random.uniform(0.9, 1.1)
+                wihNew[indexRow][indexCol] = wihNew[indexRow][indexCol] * random.uniform(-1.25, 1.25)
                 if wihNew[indexRow][indexCol] >  1: wihNew[indexRow][indexCol] = 1
                 if wihNew[indexRow][indexCol] < -1: wihNew[indexRow][indexCol] = -1
                 
@@ -64,7 +64,7 @@ def evolve(topx, totalBots, playerSide, results):
             if mutPick == 1:
                 indexRow = random.randint(0,onodes-1)
                 indexCol = random.randint(0,hiddennodes-1)
-                whoNew[indexRow][indexCol] = whoNew[indexRow][indexCol] * random.uniform(0.9, 1.1)
+                whoNew[indexRow][indexCol] = whoNew[indexRow][indexCol] * random.uniform(-1.25, 1.25)
                 if whoNew[indexRow][indexCol] >  1: whoNew[indexRow][indexCol] = 1
                 if whoNew[indexRow][indexCol] < -1: whoNew[indexRow][indexCol] = -1
     

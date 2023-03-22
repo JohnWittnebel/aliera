@@ -39,6 +39,9 @@ def singleGame(botGame, bot1, bot2):
         inputArr = y.gameDataToNN(x.board.player2side, x.board.player1side, x.player2.hand, x.player2.currHP, x.player1.currHP, len(x.player1.hand), x.player2.currPP, x.player2.maxPP)
     
     if (botGame == 1) or (botTurn == 1):
+        print(genRound)
+        print(i)
+        print(j)
         if (x.activePlayer == x.player1):
             botToMove = bot1
         else:
@@ -48,8 +51,9 @@ def singleGame(botGame, bot1, bot2):
             botAction = y.NNtoGame(botoutput, x.player1.hand)
         else:
             botAction = y.NNtoGame(botoutput, x.player2.hand)
+        print(str(botAction) + str(botoutput))
 
-    testing123 = raw_input(str(botAction))
+
     print("Input action:")
     print("1 = play card")
     print("2 = attack")
@@ -83,10 +87,11 @@ def singleGame(botGame, bot1, bot2):
             x.initiateAttack(uinput2, uinput3)
         if (uinput1 == "4"):
             x.endTurn()
-            botTurn = 1
+            #botTurn = 1
             continue
 
-  retVal = x.winner
+  #retVal = x.winner
+  retVal = [x.player1.goodness, x.player2.goodness]
   del x
   return retVal
 
@@ -98,36 +103,40 @@ def singleGame(botGame, bot1, bot2):
 #singleGame(0,0,z2)
 
 # Lets do 3 generations for now, might take some time
-#for _ in range(3):
-#    tourdata = TourData(30)
-#    tourdata.reset()
+for genRound in range(4):
+    tourdata = TourData(30)
+    tourdata.reset()
 
-#    for i in range(30):
-#        for j in range(30):
-#            with open ("AI/bots/P1BOT" + str(i) + ".bot", 'rb') as fp:
-#                test1 = pickle.load(fp)
-#                test2 = pickle.load(fp)
-#                z = Bot(test1, test2)
-#            with open ("AI/bots/P2BOT" + str(j) + ".bot", 'rb') as fp:
-#                test3 = pickle.load(fp)
-#                test4 = pickle.load(fp)
-#                z2 = Bot(test3, test4)
-#            winningPlayer = singleGame(1, z, z2)
-#            if (winningPlayer == 2):
-#                tourdata.p2Wins[j] += 1
-#            else:
-#                tourdata.p1Wins[i] += 1
+    for i in range(30):
+        for j in range(30):
+            with open ("AI/bots/P1BOT" + str(i) + ".bot", 'rb') as fp:
+                test1 = pickle.load(fp)
+                test2 = pickle.load(fp)
+                z = Bot(test1, test2)
+            with open ("AI/bots/P2BOT" + str(j) + ".bot", 'rb') as fp:
+                test3 = pickle.load(fp)
+                test4 = pickle.load(fp)
+                z2 = Bot(test3, test4)
+            goodnessAchieved = singleGame(1, z, z2)
+            tourdata.p1Wins[i] += goodnessAchieved[0]
+            tourdata.p2Wins[j] += goodnessAchieved[1]
 
-#    f = open("stats.txt", "a")
-#    f.write(str(tourdata.p1Wins))
-#    f.write("\n")
-#    f.write(str(tourdata.p2Wins))
-#    f.write("\n")
-#    f.close()
+            #if (winningPlayer == 2):
+            #    tourdata.p2Wins[j] += 1
+            #else:
+            #    tourdata.p1Wins[i] += 1
 
-#    evolve(10, 30, 1, tourdata.p1Wins)
-#    evolve(10, 30, 2, tourdata.p2Wins)
+    f = open("stats.txt", "a")
+    f.write(str(tourdata.p1Wins))
+    f.write("\n")
+    f.write(str(tourdata.p2Wins))
+    f.write("\n")
+    f.close()
 
+    evolve(10, 30, 1, tourdata.p1Wins)
+    evolve(10, 30, 2, tourdata.p2Wins)
+
+"""
 with open ("AI/bots/P1BOT0.bot", 'rb') as fp:
     test1 = pickle.load(fp)
     test2 = pickle.load(fp)
@@ -136,4 +145,5 @@ with open ("AI/bots/P2BOT0.bot", 'rb') as fp:
     test3 = pickle.load(fp)
     test4 = pickle.load(fp)
     z2 = Bot(test3, test4)
-singleGame(1,z,z2)
+singleGame(0,z,z2)
+"""

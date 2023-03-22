@@ -19,7 +19,12 @@ from cardArchive import Goblin, Fighter
 # It has a winner field that will change to 1 or 2 depending on the winner of the game
 # the winString returns the reason for winning (deckout, hp reached 0, etc.)
 
+# training variables
 TRAINING = 1
+PLAY_CARD_GOODNESS = 2
+ATTACK_GOODNESS = 20
+WIN_ATTACK_GOODNESS = 1500
+PASS_GOODNESS = 1
 
 class Game:
     def __init__(self, player1, player2):
@@ -114,44 +119,33 @@ class Game:
         # Make sure that the allyMonster attacking a valid target, and that the enemyMonster is a valid target
         if (allyMonster > len(self.board.fullBoard[attackingPlayer]) - 1):
             print("ERROR: attempt to use a non-existent monster to attack")
-            # TODO: this is really just here for training purposes
-            self.activePlayer.currHP -= 1
-            if (self.player2.currHP <= 0):
-                self.endgame(self.player1)
-            elif (self.player1.currHP <= 0):
-                self.endgame(self.player2)
+            if TRAINING == 1:
+                self.activePlayer.goodness -= PASS_GOODNESS
+                self.endTurn()
             return
         elif (allyMonster < 0):
             print("ERROR: attempt to use a non-existent monster to attack")
-            self.activePlayer.currHP -= 1
-            if (self.player2.currHP <= 0):
-                self.endgame(self.player1)
-            elif (self.player1.currHP <= 0):
-                self.endgame(self.player2)
+            if TRAINING == 1:
+                self.activePlayer.goodness -= PASS_GOODNESS
+                self.endTurn()
             return
         elif (enemyMonster > len(self.board.fullBoard[defendingPlayer]) - 1):
             print("ERROR: attempt to attack a non-existent target")
-            self.activePlayer.currHP -= 1
-            if (self.player2.currHP <= 0):
-                self.endgame(self.player1)
-            elif (self.player1.currHP <= 0):
-                self.endgame(self.player2)
+            if TRAINING == 1:
+                self.activePlayer.goodness -= PASS_GOODNESS
+                self.endTurn()
             return
         elif (enemyMonster < -1):
             print("ERROR: attempt to attack a non-existent target")
-            self.activePlayer.currHP -= 1
-            if (self.player2.currHP <= 0):
-                self.endgame(self.player1)
-            elif (self.player1.currHP <= 0):
-                self.endgame(self.player2)
+            if TRAINING == 1:
+                self.activePlayer.goodness -= PASS_GOODNESS
+                self.endTurn()
             return
         elif (not self.board.fullBoard[attackingPlayer][allyMonster].canAttack):
             print("ERROR: attempt to attack with a monster that cannot attack")
-            self.activePlayer.currHP -= 1
-            if (self.player2.currHP <= 0):
-                self.endgame(self.player1)
-            elif (self.player1.currHP <= 0):
-                self.endgame(self.player2)
+            if TRAINING == 1:
+                self.activePlayer.goodness -= PASS_GOODNESS
+                self.endTurn()
             return
 
         # Actual Fuction
@@ -163,20 +157,31 @@ class Game:
                 self.player2.currHP -= self.board.player1side[allyMonster].monsterCurrAttack
                 # TODO: this check needs to be in a more universal place
                 if (self.player2.currHP <= 0):
+                    if (TRAINING == 1):
+                        self.activePlayer.goodness += WIN_ATTACK_GOODNESS
                     self.winString = "HP reduced to 0"
                     self.endgame(self.player1)
             else:
                 self.player1.currHP -= self.board.player2side[allyMonster].monsterCurrAttack
                 if (self.player1.currHP <= 0):
+                    if (TRAINING == 1):
+                        self.activePlayer.goodness += WIN_ATTACK_GOODNESS
                     self.winString = "HP reduced to 0"
                     self.endgame(self.player2)
 
         # otherwise, we are attacking a monster, deal damage to each other
+        # TODO make this less bad/redundant
         else:
-            monsterDamage1 = self.board.player1side[allyMonster].monsterCurrAttack
-            monsterDamage2 = self.board.player2side[enemyMonster].monsterCurrAttack
-            self.board.player2side[enemyMonster].takeCombatDamage(monsterDamage1)
-            self.board.player1side[allyMonster].takeCombatDamage(monsterDamage2)
+            if (attackingPlayer == 0):
+                monsterDamage1 = self.board.player1side[allyMonster].monsterCurrAttack
+                monsterDamage2 = self.board.player2side[enemyMonster].monsterCurrAttack
+                self.board.player2side[enemyMonster].takeCombatDamage(monsterDamage1)
+                self.board.player1side[allyMonster].takeCombatDamage(monsterDamage2)
+            else:
+                monsterDamage1 = self.board.player2side[allyMonster].monsterCurrAttack
+                monsterDamage2 = self.board.player1side[enemyMonster].monsterCurrAttack
+                self.board.player1side[enemyMonster].takeCombatDamage(monsterDamage1)
+                self.board.player2side[allyMonster].takeCombatDamage(monsterDamage2)
         
         # Give summoning sickness to the monster that just attacked
         self.board.fullBoard[attackingPlayer][allyMonster].canAttack = 0
@@ -204,6 +209,7 @@ class Game:
                 self.activePlayer.deck.cards.append(Goblin())
             else:
                 self.activePlayer.deck.cards.append(Fighter())
+            self.activePlayer.goodness += ATTACK_GOODNESS
 
     def endgame(self, winner):
         if winner == self.player1:
@@ -230,21 +236,24 @@ class Game:
         # Check that board is not full
         if (len(self.board.fullBoard[currPlayer]) == MAX_BOARD_SIZE):
             print("Attempted to play a follower when the board is full")
-            self.activePlayer.currHP -= 1
-            if (self.player2.currHP <= 0):
-                self.endgame(self.player1)
-            elif (self.player1.currHP <= 0):
-                self.endgame(self.player2)
+            if TRAINING == 1:
+                self.activePlayer.goodness -= PASS_GOODNESS
+                self.endTurn()
+            return
+
+        # This is an illegal action that we make the bot throw sometimes
+        if (action[1][0] < 0):
+            if TRAINING == 1:
+                self.activePlayer.goodness -= PASS_GOODNESS
+                self.endTurn()
             return
 
         # Make sure that we have the PP to play the follower
         if len(self.activePlayer.hand) == 0 or (self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].monsterCost):
             print("Attempted to play a follower that costs more than our current PP")
-            self.activePlayer.currHP -= 1
-            if (self.player2.currHP <= 0):
-                self.endgame(self.player1)
-            elif (self.player1.currHP <= 0):
-                self.endgame(self.player2)
+            if TRAINING == 1:
+                self.activePlayer.goodness -= PASS_GOODNESS
+                self.endTurn()
             return
 
         # Here is where we would do battlecries/check targets, but for now this doesn't exist
@@ -256,6 +265,7 @@ class Game:
                 self.activePlayer.deck.cards.append(Goblin())
             else:
                 self.activePlayer.deck.cards.append(Fighter())
+            self.activePlayer.goodness += PLAY_CARD_GOODNESS
 
         followerToPlay = self.activePlayer.hand.pop(action[1][0])
         self.board.fullBoard[currPlayer].append(followerToPlay)
@@ -263,6 +273,9 @@ class Game:
 
     # TODO
     def endTurn(self):
+        if TRAINING == 1:
+            self.activePlayer.goodness += PASS_GOODNESS
+
         # Allow all followers to attack again
         for mons in self.board.player1side:
             mons.canAttack = 1

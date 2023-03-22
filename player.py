@@ -25,6 +25,9 @@ class Player:
         self.maxPP = DEFAULT_MAX_PP
         self.canEvolve = 0
 
+        # This is just used as a metric for how much goodstuff an AI has done
+        self.goodness = 0
+
     def draw(self, count = 1):
         for _ in range(count):
             cardToAdd = self.deck.draw()

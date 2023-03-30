@@ -55,8 +55,8 @@ def evolve(topx, totalBots, playerSide, results):
             # MUTATE: WIH WEIGHTS
             if mutPick == 0:
                 indexRow = random.randint(0,hiddennodes-1)
-                indexCol = random.randint(0,36)
-                wihNew[indexRow][indexCol] = wihNew[indexRow][indexCol] * random.uniform(-1.25, 1.25)
+                indexCol = random.randint(0,39)
+                wihNew[indexRow][indexCol] = wihNew[indexRow][indexCol] + random.uniform(-0.15, 0.15)
                 if wihNew[indexRow][indexCol] >  1: wihNew[indexRow][indexCol] = 1
                 if wihNew[indexRow][indexCol] < -1: wihNew[indexRow][indexCol] = -1
                 
@@ -64,7 +64,7 @@ def evolve(topx, totalBots, playerSide, results):
             if mutPick == 1:
                 indexRow = random.randint(0,onodes-1)
                 indexCol = random.randint(0,hiddennodes-1)
-                whoNew[indexRow][indexCol] = whoNew[indexRow][indexCol] * random.uniform(-1.25, 1.25)
+                whoNew[indexRow][indexCol] = whoNew[indexRow][indexCol] + random.uniform(-0.15, 0.15)
                 if whoNew[indexRow][indexCol] >  1: whoNew[indexRow][indexCol] = 1
                 if whoNew[indexRow][indexCol] < -1: whoNew[indexRow][indexCol] = -1
     

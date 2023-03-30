@@ -9,6 +9,51 @@ class Reaper(Monster):
     monsterCurrHP = 0
     Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
 
+class DeathDragon(Monster):
+  def __init__(self):
+    monsterName = "Death Dragon"
+    monsterCost = 4
+    monsterAttack = 4
+    monsterMaxHP = 4
+    monsterCurrHP = 4
+    Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+
+  #TODO: make this a generic takeCombatDamage function
+  def takeCombatDamage(self, damage):
+    self.monsterCurrHP -= damage
+    if (self.monsterCurrHP <= 0):
+        self.initiateDestroy = 1
+
+class Goliath(Monster):
+  def __init__(self):
+    monsterName = "Goliath"
+    monsterCost = 4
+    monsterAttack = 3
+    monsterMaxHP = 4
+    monsterCurrHP = 4
+    Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+
+  #TODO: make this a generic takeCombatDamage function
+  def takeCombatDamage(self, damage):
+    self.monsterCurrHP -= damage
+    if (self.monsterCurrHP <= 0):
+        self.initiateDestroy = 1
+
+class Mercenary(Monster):
+  def __init__(self):
+    monsterName = "Mercenary"
+    monsterCost = 3
+    monsterAttack = 3
+    monsterMaxHP = 2
+    monsterCurrHP = 2
+    Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+
+  #TODO: make this a generic takeCombatDamage function
+  def takeCombatDamage(self, damage):
+    self.monsterCurrHP -= damage
+    if (self.monsterCurrHP <= 0):
+        self.initiateDestroy = 1
+
 class Goblin(Monster):
   def __init__(self):
     monsterName = "Goblin"

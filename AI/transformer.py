@@ -7,7 +7,7 @@ class Transformer:
     def __init__(self):
         #TODO: this needs access to the array of possible cards that the deck can contain
         #      for now we will just do it like this, but this REALLY needs to be done better
-        self.mapping = ["Goblin", "Fighter"]
+        self.mapping = ["Goblin", "Fighter", "Mercenary", "Goliath", "Death Dragon"]
         return
 
     #For our Fighter+Goblin toy game, we will have:
@@ -45,13 +45,26 @@ class Transformer:
         # TODO: need a more generalizable method to do this
         numGobs = 0
         numFighters = 0
+        numMerc = 0
+        numGoliath = 0
+        numDeathDragon = 0
         for item in hand:
             if item.name == "Fighter":
                 numFighters += 1
-            else:
+            elif item.name == "Goblin":
                 numGobs += 1
+            elif item.name == "Mercenary":
+                numMerc += 1
+            elif item.name == "Goliath":
+                numGoliath += 1
+            else:
+                numDeathDragon += 1
+
         generatedData.append(numGobs)
         generatedData.append(numFighters)
+        generatedData.append(numMerc)
+        generatedData.append(numGoliath)
+        generatedData.append(numDeathDragon)
 
         generatedData.append(currPlayerHP)
         generatedData.append(enemyPlayerHP)

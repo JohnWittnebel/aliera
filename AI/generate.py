@@ -5,7 +5,7 @@ import pickle
 BOTS_TO_GEN = 30
 NUM_HIDDEN = 30
 NUM_OUTPUT = 6
-NUM_INPUT = 37
+NUM_INPUT = 40
 
 for num in range(BOTS_TO_GEN):
     with open("bots/P1BOT" + str(num) + ".bot", 'wb') as fp:

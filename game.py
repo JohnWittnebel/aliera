@@ -22,9 +22,11 @@ from cardArchive import Goblin, Fighter
 # training variables
 TRAINING = 1
 PLAY_CARD_GOODNESS = 2
-ATTACK_GOODNESS = 20
-WIN_ATTACK_GOODNESS = 1500
-PASS_GOODNESS = 1
+ATTACK_GOODNESS = 30
+VALUE_TRADE_GOODNESS = 0
+ANTI_VALUE_TRADE_GOODNESS = 0
+WIN_ATTACK_GOODNESS = 1000
+PASS_GOODNESS = 0
 
 class Game:
     def __init__(self, player1, player2):
@@ -177,11 +179,27 @@ class Game:
                 monsterDamage2 = self.board.player2side[enemyMonster].monsterCurrAttack
                 self.board.player2side[enemyMonster].takeCombatDamage(monsterDamage1)
                 self.board.player1side[allyMonster].takeCombatDamage(monsterDamage2)
+                
+                # FOR INITIAL TRAINING TO ENCOURAGE GOOD TRADES
+                if (TRAINING == 1):
+                    self.activePlayer.goodness += ATTACK_GOODNESS
+                    if (self.board.player1side[allyMonster].initiateDestroy) and (not self.board.player2side[enemyMonster].initiateDestroy):
+                        self.activePlayer.goodness += ANTI_VALUE_TRADE_GOODNESS
+                    if (not self.board.player1side[allyMonster].initiateDestroy) and (self.board.player2side[enemyMonster].initiateDestroy):
+                        self.activePlayer.goodness += VALUE_TRADE_GOODNESS
             else:
                 monsterDamage1 = self.board.player2side[allyMonster].monsterCurrAttack
                 monsterDamage2 = self.board.player1side[enemyMonster].monsterCurrAttack
                 self.board.player1side[enemyMonster].takeCombatDamage(monsterDamage1)
                 self.board.player2side[allyMonster].takeCombatDamage(monsterDamage2)
+        
+                # FOR INITIAL TRAINING TO ENCOURAGE GOOD TRADES
+                if (TRAINING == 1):
+                    self.activePlayer.goodness += ATTACK_GOODNESS
+                    if (self.board.player2side[allyMonster].initiateDestroy) and (not self.board.player1side[enemyMonster].initiateDestroy):
+                        self.activePlayer.goodness += ANTI_VALUE_TRADE_GOODNESS
+                    if (not self.board.player2side[allyMonster].initiateDestroy) and (self.board.player1side[enemyMonster].initiateDestroy):
+                        self.activePlayer.goodness += VALUE_TRADE_GOODNESS
         
         # Give summoning sickness to the monster that just attacked
         self.board.fullBoard[attackingPlayer][allyMonster].canAttack = 0
@@ -202,14 +220,7 @@ class Game:
         self.board.updateFullBoard()
         
 
-        # FOR INITIAL TRAINING TO ENCOURAGE MINIONS ATTACKING
-        if (TRAINING == 1):
-            randInt = random.randint(0,1)
-            if (randInt == 0):
-                self.activePlayer.deck.cards.append(Goblin())
-            else:
-                self.activePlayer.deck.cards.append(Fighter())
-            self.activePlayer.goodness += ATTACK_GOODNESS
+
 
     def endgame(self, winner):
         if winner == self.player1:

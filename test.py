@@ -53,15 +53,13 @@ def singleGame(botGame, bot1, bot2):
             botAction = y.NNtoGame(botoutput, x.player2.hand)
         print(str(botAction) + str(botoutput))
 
-
     print("Input action:")
     print("1 = play card")
     print("2 = attack")
     print("4 = end turn")
 
-
     if (botTurn == 1):
-        #nothing = raw_input("")
+        #nothing = input("")
         if (botAction[0] == 1):
             x.initiateAction([1, [botAction[1]]])
         if (botAction[0] == 2):
@@ -74,16 +72,16 @@ def singleGame(botGame, bot1, bot2):
                 botTurn = 0
                 continue
     else:
-        uinput1 = raw_input("")
+        uinput1 = input("")
         if (uinput1 == "1"):
             print("input card:")
-            uinput2 = int(raw_input(""))
+            uinput2 = int(input(""))
             x.initiateAction([int(uinput1),[uinput2]])
         if (uinput1 == "2"):
             print("Select attacker:")
-            uinput2 = int(raw_input(""))
+            uinput2 = int(input(""))
             print("Select defender:")
-            uinput3 = int(raw_input(""))
+            uinput3 = int(input(""))
             x.initiateAttack(uinput2, uinput3)
         if (uinput1 == "4"):
             x.endTurn()
@@ -103,7 +101,7 @@ def singleGame(botGame, bot1, bot2):
 #singleGame(0,0,z2)
 
 # Lets do 3 generations for now, might take some time
-for genRound in range(4):
+for genRound in range(30):
     tourdata = TourData(30)
     tourdata.reset()
 

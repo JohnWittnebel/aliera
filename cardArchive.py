@@ -23,6 +23,19 @@ class DeathDragon(Monster):
     self.monsterCurrHP -= damage
     if (self.monsterCurrHP <= 0):
         self.initiateDestroy = 1
+  
+  #TODO: make this a generic takeCombatDamage function
+  def evolve(self, gameState):
+      self.monsterCurrAttack += 2
+      self.monsterMaxAttack += 2
+      self.monsterMaxHP += 2
+      self.monsterCurrHP += 2
+      self.monsterName += "(E)"
+
+      self.canEvolve = 0
+      self.isEvolved = 1
+      if (self.hasAttacked == 0):
+          self.canAttack = 1
 
 class Goliath(Monster):
   def __init__(self):
@@ -38,6 +51,19 @@ class Goliath(Monster):
     self.monsterCurrHP -= damage
     if (self.monsterCurrHP <= 0):
         self.initiateDestroy = 1
+  
+  #TODO: make this a generic takeCombatDamage function
+  def evolve(self, gameState):
+      self.monsterCurrAttack += 2
+      self.monsterMaxAttack += 2
+      self.monsterMaxHP += 2
+      self.monsterCurrHP += 2
+      self.monsterName += "(E)"
+
+      self.canEvolve = 0
+      self.isEvolved = 1
+      if (self.hasAttacked == 0):
+          self.canAttack = 1
 
 class Mercenary(Monster):
   def __init__(self):
@@ -53,6 +79,19 @@ class Mercenary(Monster):
     self.monsterCurrHP -= damage
     if (self.monsterCurrHP <= 0):
         self.initiateDestroy = 1
+  
+  #TODO: make this a generic takeCombatDamage function
+  def evolve(self, gameState):
+      self.monsterCurrAttack += 2
+      self.monsterMaxAttack += 2
+      self.monsterMaxHP += 2
+      self.monsterCurrHP += 2
+      self.monsterName += "(E)"
+
+      self.canEvolve = 0
+      self.isEvolved = 1
+      if (self.hasAttacked == 0):
+          self.canAttack = 1
 
 class Goblin(Monster):
   def __init__(self):
@@ -68,6 +107,19 @@ class Goblin(Monster):
     self.monsterCurrHP -= damage
     if (self.monsterCurrHP <= 0):
         self.initiateDestroy = 1
+  
+  #TODO: make this a generic takeCombatDamage function
+  def evolve(self, gameState):
+      self.monsterCurrAttack += 2
+      self.monsterMaxAttack += 2
+      self.monsterMaxHP += 2
+      self.monsterCurrHP += 2
+      self.monsterName += "(E)"
+
+      self.canEvolve = 0
+      self.isEvolved = 1
+      if (self.hasAttacked == 0):
+          self.canAttack = 1
       
 
 class Fighter(Monster):
@@ -83,6 +135,19 @@ class Fighter(Monster):
     self.monsterCurrHP -= damage
     if (self.monsterCurrHP <= 0):
         self.initiateDestroy = 1
+
+  #TODO: make this a generic takeCombatDamage function
+  def evolve(self, gameState):
+      self.monsterCurrAttack += 2
+      self.monsterMaxAttack += 2
+      self.monsterMaxHP += 2
+      self.monsterCurrHP += 2
+      self.monsterName += "(E)"
+
+      self.canEvolve = 0
+      self.isEvolved = 1
+      if (self.hasAttacked == 0):
+          self.canAttack = 1
 
 #class Monster(Card):
 #  def __init__(self, monsterCost, monsterAttack, monsterDefense):

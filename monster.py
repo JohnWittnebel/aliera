@@ -14,6 +14,8 @@ class Monster(Card):
     self.hasStorm = 0
     self.hasRush = 0
     self.canAttack = 0
+    self.hasWard = 0
+    self.hasAttacked = 0
 
     # This is set to true when a monster take damage or effect that will cause it to be destroyed
     # The Game will check this after every move and remove it from play if needed
@@ -22,5 +24,9 @@ class Monster(Card):
   
     #@abstractmethod
     def takeCombatDamage(self, damage):
+        pass
+
+    #@abstractmethod
+    def evolve(self, game):
         pass
 

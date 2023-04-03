@@ -72,6 +72,7 @@ def singleGame(botGame, bot1, bot2):
                 botTurn = 0
                 continue
     else:
+        print(x.generateLegalMoves())
         uinput1 = input("")
         if (uinput1 == "1"):
             print("input card:")
@@ -83,6 +84,10 @@ def singleGame(botGame, bot1, bot2):
             print("Select defender:")
             uinput3 = int(input(""))
             x.initiateAttack(uinput2, uinput3)
+        if (uinput1 == "3"):
+            print("Select target")
+            uinput2 = int(input(""))
+            x.initiateEvolve(uinput2)
         if (uinput1 == "4"):
             x.endTurn()
             #botTurn = 1
@@ -101,6 +106,7 @@ def singleGame(botGame, bot1, bot2):
 #singleGame(0,0,z2)
 
 # Lets do 3 generations for now, might take some time
+"""
 for genRound in range(30):
     tourdata = TourData(30)
     tourdata.reset()
@@ -144,4 +150,4 @@ with open ("AI/bots/P2BOT0.bot", 'rb') as fp:
     test4 = pickle.load(fp)
     z2 = Bot(test3, test4)
 singleGame(0,z,z2)
-"""
+

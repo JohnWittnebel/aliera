@@ -2,11 +2,7 @@ import os
 from board import Board
 from player import Player
 #from deckGen import generateDeckFromFile
-from constants import PLAYER_1_MAX_EVOS
-from constants import PLAYER_2_MAX_EVOS
-from constants import MAX_BOARD_SIZE
-from constants import ENEMY_FACE
-from constants import MAX_EMPTY_PP
+from constants import *
 from deck2 import deck2
 from deck1 import deck1
 from deck import Deck
@@ -89,19 +85,19 @@ class Game:
             print("Hand:")
             self.player1.printHand()
         else:
-            print("HP: " + str(self.player1.currHP) + "/" + str(self.player1.maxHP))
+            print("HP: " + str(self.player2.currHP) + "/" + str(self.player2.maxHP))
             print("Cards: " + str(len(self.player1.hand)))
-            print("PP: " + str(self.player1.currPP) + "/" + str(self.player1.maxPP))
+            print("PP: " + str(self.player2.currPP) + "/" + str(self.player2.maxPP))
             print("")
             self.board.printBoard()
             print("")
-            print("HP: " + str(self.player2.currHP) + "/" + str(self.player2.maxHP))
-            print("PP: " + str(self.player2.currPP) + "/" + str(self.player2.maxPP))
+            print("HP: " + str(self.player1.currHP) + "/" + str(self.player1.maxHP))
+            print("PP: " + str(self.player1.currPP) + "/" + str(self.player1.maxPP))
             print("Hand:")
             self.player2.printHand()
 
-    #def requestAction(self):
-    #TODO
+    def initiateEvolve(self, allyMonster):
+        allyMonster.evolve(self)
 
     # TODO: this might become very bloated in the future when we start implementing clash, on-attack effects, LW, etc.
     #       try to make this function as decoupled and fragmentable as possible
@@ -354,16 +350,66 @@ class Game:
 
         self.startTurn()
 
+    # this function is mostly to deal with ward, but can be expanded to include other specific cards
+    def attackableTargets(self):
+        targets = []
+        if self.activePlayer == self.player1:
+            targetPlayer = 1
+        else:
+            targetPlayer = 0
+
+        # Ward check
+        wards = []
+        wardIndex = 0
+        for follower in self.board.fullBoard[targetPlayer]:
+            if follower.hasWard:
+                wards.append(wardIndex)
+                wardIndex += 1
+        
+        if wards == []:
+            targets.append(-1)
+            targets += range(len(self.board.fullBoard[targetPlayer]))
+        else:
+            targets = wards
+
+        return targets
+
+    def generateLegalMoves(self):
+        moves = [PASS_ACTION]
+
+        if self.activePlayer == self.player1:
+            allyBoard = 0
+        else:
+            allyBoard = 1
+
+        currIndex = 0
+        # Attacking moves available
+        possibleTargets = self.attackableTargets()
+        for card in self.board.fullBoard[allyBoard]:
+            if (card.canAttack):
+                for attackable in possibleTargets:
+                    moves.append([ATTACK_ACTION, [currIndex, attackable]])
+            currIndex += 1
+
+        # Playing card from hand moves available
+        currIndex = 0
+        for card in self.activePlayer.hand:
+            if self.activePlayer.currPP >= card.monsterCost and len(self.board.fullBoard[allyBoard]) < 5:
+                moves.append([PLAY_ACTION, [currIndex]])
+            currIndex += 1
+
+        return moves
+
     # Remove magic numbers from this, maybe implement action as a class. Find some better
     # implementation in any case
     def initiateAction(self, action):
-        if action[0] == 4:
+        if action[0] == PASS_ACTION:
             self.endTurn()
-        elif action[0] == 1:
+        elif action[0] == PLAY_ACTION:
             self.playCard(action)
-        elif action[0] == 2:
+        elif action[0] == ATTACK_ACTION:
             self.initiateAttack(action[1][0], action[1][1])
-        elif action[0] == 3:
-            self.initiateEvolve(action[1], action[2])
+        elif action[0] == EVO_ACTION:
+            self.initiateEvolve(action[1])
         else:
             print("ERROR: Invalid action")

@@ -16,3 +16,6 @@
 # The second index is the indicator number for the card the current player is selecting
 
 # The third index is an array of targets in order
+
+
+

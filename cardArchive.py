@@ -19,6 +19,18 @@ class DeathDragon(Monster):
     monsterCurrHP = 4
     Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
 
+class Maiden(Monster):
+  def __init__(self):  
+    monsterName = "Maiden"
+    monsterCost = 1
+    monsterAttack = 1
+    monsterMaxHP = 1
+    monsterCurrHP = 1
+    Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+
+    self.hasWard = 1
+    
+
 class Goliath(Monster):
   def __init__(self):
     monsterName = "Goliath"

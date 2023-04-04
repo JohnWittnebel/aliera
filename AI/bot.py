@@ -24,15 +24,16 @@ class NeuralNetwork(nn.Module):
         logits = self.linear_relu_stack(x)
         return logits
 
-model = NeuralNetwork().to("cpu")
-print(model)
-X = torch.rand(1, 3, 2)
-print(X)
-logits = model(X)
-print(logits)
-pred_probab = nn.Softmax(dim=1)(logits)
-y_pred = pred_probab.argmax(1)
-print(f"Predicted class: {y_pred}")
+#model = NeuralNetwork().to("cpu")
+#print(model)
+#X = torch.rand(1, 3, 2)
+#print(X)
+#logits = model(X)
+#print(logits)
+#pred_probab = nn.Softmax(dim=1)(logits)
+#y_pred = pred_probab.argmax(1)
+#print(y_pred)
+#print("Predicted class: {y_pred}")
 
 def sig(x):
  return 1 / (1 + np.exp(-x))

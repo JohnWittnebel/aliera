@@ -18,6 +18,7 @@ class Monster(Card):
         self.hasWard = 0
         self.hasAttacked = 0
         self.turnPlayed = 0
+        
 
         # This is set to true when a monster take damage or effect that will cause it to be destroyed
         # The Game will check this after every move and remove it from play if needed

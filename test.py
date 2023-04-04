@@ -142,13 +142,13 @@ for genRound in range(30):
     evolve(10, 30, 2, tourdata.p2Wins)
 
 """
-with open ("AI/bots/P1BOT0.bot", 'rb') as fp:
-    test1 = pickle.load(fp)
-    test2 = pickle.load(fp)
-    z = Bot(test1, test2)
-with open ("AI/bots/P2BOT0.bot", 'rb') as fp:
-    test3 = pickle.load(fp)
-    test4 = pickle.load(fp)
-    z2 = Bot(test3, test4)
-singleGame(0,z,z2)
+#with open ("AI/bots/P1BOT0.bot", 'rb') as fp:
+#    test1 = pickle.load(fp)
+#    test2 = pickle.load(fp)
+#    z = Bot(test1, test2)
+#with open ("AI/bots/P2BOT0.bot", 'rb') as fp:
+#    test3 = pickle.load(fp)
+#    test4 = pickle.load(fp)
+#    z2 = Bot(test3, test4)
+singleGame(0,0,0)
 

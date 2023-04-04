@@ -139,6 +139,15 @@ class Game:
             print("ERROR: attempt to attack with a monster that cannot attack")
             return
 
+        # VALID TARGETS CHECKING FOR WARDS, this might need to become more general
+        wardExists = 0
+        for enem in self.board.fullBoard[defendingPlayer]:
+            if enem.hasWard:
+                wardExists = 1
+        if wardExists and (enemyMonster == ENEMY_FACE or not self.board.fullBoard[defendingPlayer][enemyMonster].hasWard):
+            print("ERROR: attempt to attack through a ward")
+            return
+
         # Actual Fuction
         # We have to implement wards at some point, but for now this is fine as is
 
@@ -146,17 +155,12 @@ class Game:
         if (enemyMonster == ENEMY_FACE):
             if (attackingPlayer == 0):
                 self.player2.currHP -= self.board.player1side[allyMonster].monsterCurrAttack
-                # TODO: this check needs to be in a more universal place
                 if (self.player2.currHP <= 0):
-                    if (TRAINING == 1):
-                        self.activePlayer.goodness += WIN_ATTACK_GOODNESS
                     self.winString = "HP reduced to 0"
                     self.endgame(self.player1)
             else:
                 self.player1.currHP -= self.board.player2side[allyMonster].monsterCurrAttack
                 if (self.player1.currHP <= 0):
-                    if (TRAINING == 1):
-                        self.activePlayer.goodness += WIN_ATTACK_GOODNESS
                     self.winString = "HP reduced to 0"
                     self.endgame(self.player2)
 
@@ -218,9 +222,6 @@ class Game:
         # Check that board is not full
         if (len(self.board.fullBoard[currPlayer]) == MAX_BOARD_SIZE):
             print("Attempted to play a follower when the board is full")
-            if TRAINING == 1:
-                self.activePlayer.goodness -= PASS_GOODNESS
-                self.endTurn()
             return
 
         # Make sure that we have the PP to play the follower

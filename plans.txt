@@ -1,13 +1,13 @@
 Currently implemented:
-Full Basic game
+Full Basic game, Evolves
 
-After above is done, focus on:
--implementation of basic AI
--implement mulligan
+Plans going forward, in order, focus on:
+-refactoring
 -Adding more cards
--Evolves
+-Wards
 -Spells
 -Battlecries
 -Amulets
 -Last Words
 
+-implementing mulligan

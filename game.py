@@ -40,6 +40,7 @@ class Game:
         # If we are initializing a board state without players already generated,
         # we need to generate the players and the decks that they will be using
 
+        #TODO
         # For this, we will take the cards listed in deck1.deck and deck2.deck local files
         #deck1File = "deck1.deck"
         #deck1 = generateDeckFromFile(deck1File)
@@ -96,8 +97,15 @@ class Game:
             print("Hand:")
             self.player2.printHand()
 
-    def initiateEvolve(self, allyMonster):
-        allyMonster.evolve(self)
+    def initiateEvolve(self, allyMonsterIndex):
+        if (not self.activePlayer.canEvolve) or (self.activePlayer.currEvos == 0):
+            print("ERROR: this player cannot evolve")
+            return
+
+        if self.activePlayer == self.player1:
+            evolveTarget = self.board.fullBoard[0][allyMonsterIndex].evolve(self)
+        else:
+            evolveTarget = self.board.fullBoard[1][allyMonsterIndex].evolve(self)
 
     # TODO: this might become very bloated in the future when we start implementing clash, on-attack effects, LW, etc.
     #       try to make this function as decoupled and fragmentable as possible
@@ -117,33 +125,18 @@ class Game:
         # Make sure that the allyMonster attacking a valid target, and that the enemyMonster is a valid target
         if (allyMonster > len(self.board.fullBoard[attackingPlayer]) - 1):
             print("ERROR: attempt to use a non-existent monster to attack")
-            if TRAINING == 1:
-                self.activePlayer.goodness -= PASS_GOODNESS
-                self.endTurn()
             return
         elif (allyMonster < 0):
             print("ERROR: attempt to use a non-existent monster to attack")
-            if TRAINING == 1:
-                self.activePlayer.goodness -= PASS_GOODNESS
-                self.endTurn()
             return
         elif (enemyMonster > len(self.board.fullBoard[defendingPlayer]) - 1):
             print("ERROR: attempt to attack a non-existent target")
-            if TRAINING == 1:
-                self.activePlayer.goodness -= PASS_GOODNESS
-                self.endTurn()
             return
         elif (enemyMonster < -1):
             print("ERROR: attempt to attack a non-existent target")
-            if TRAINING == 1:
-                self.activePlayer.goodness -= PASS_GOODNESS
-                self.endTurn()
             return
         elif (not self.board.fullBoard[attackingPlayer][allyMonster].canAttack):
             print("ERROR: attempt to attack with a monster that cannot attack")
-            if TRAINING == 1:
-                self.activePlayer.goodness -= PASS_GOODNESS
-                self.endTurn()
             return
 
         # Actual Fuction
@@ -176,29 +169,15 @@ class Game:
                 self.board.player2side[enemyMonster].takeCombatDamage(monsterDamage1)
                 self.board.player1side[allyMonster].takeCombatDamage(monsterDamage2)
                 
-                # FOR INITIAL TRAINING TO ENCOURAGE GOOD TRADES
-                if (TRAINING == 1):
-                    self.activePlayer.goodness += ATTACK_GOODNESS
-                    if (self.board.player1side[allyMonster].initiateDestroy) and (not self.board.player2side[enemyMonster].initiateDestroy):
-                        self.activePlayer.goodness += ANTI_VALUE_TRADE_GOODNESS
-                    if (not self.board.player1side[allyMonster].initiateDestroy) and (self.board.player2side[enemyMonster].initiateDestroy):
-                        self.activePlayer.goodness += VALUE_TRADE_GOODNESS
             else:
                 monsterDamage1 = self.board.player2side[allyMonster].monsterCurrAttack
                 monsterDamage2 = self.board.player1side[enemyMonster].monsterCurrAttack
                 self.board.player1side[enemyMonster].takeCombatDamage(monsterDamage1)
                 self.board.player2side[allyMonster].takeCombatDamage(monsterDamage2)
         
-                # FOR INITIAL TRAINING TO ENCOURAGE GOOD TRADES
-                if (TRAINING == 1):
-                    self.activePlayer.goodness += ATTACK_GOODNESS
-                    if (self.board.player2side[allyMonster].initiateDestroy) and (not self.board.player1side[enemyMonster].initiateDestroy):
-                        self.activePlayer.goodness += ANTI_VALUE_TRADE_GOODNESS
-                    if (not self.board.player2side[allyMonster].initiateDestroy) and (self.board.player1side[enemyMonster].initiateDestroy):
-                        self.activePlayer.goodness += VALUE_TRADE_GOODNESS
-        
         # Give summoning sickness to the monster that just attacked
         self.board.fullBoard[attackingPlayer][allyMonster].canAttack = 0
+        self.board.fullBoard[attackingPlayer][allyMonster].hasAttacked = 1
   
         # This checks if any monsters are dead from the combat, could maybe be done in a better location
         newside1 = []
@@ -227,10 +206,6 @@ class Game:
             self.winner = 2
         #print("Cause of win: " + self.winString)
 
-    # TODO
-    def initiateEvolve(self, evolveTarget, evolveEffTargets):
-        return
-
     # Note that function might also become bloated with time, be careful!
     # For now, nothing has a battlecry, so just place it on the field
     # Once spells are implemented, have this split into 2 separate functions
@@ -248,41 +223,20 @@ class Game:
                 self.endTurn()
             return
 
-        # This is an illegal action that we make the bot throw sometimes
-        if (action[1][0] < 0):
-            if TRAINING == 1:
-                self.activePlayer.goodness -= PASS_GOODNESS
-                self.endTurn()
-            return
-
         # Make sure that we have the PP to play the follower
         if len(self.activePlayer.hand) == 0 or (self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].monsterCost):
             print("Attempted to play a follower that costs more than our current PP")
-            if TRAINING == 1:
-                self.activePlayer.goodness -= PASS_GOODNESS
-                self.endTurn()
             return
 
         # Here is where we would do battlecries/check targets, but for now this doesn't exist
 
-        # FOR INITIAL TRAINING ONLY: add card to deck after a card is played to encourage card playing
-        if (TRAINING == 1):
-            randInt = random.randint(0,1)
-            if (randInt == 0):
-                self.activePlayer.deck.cards.append(Goblin())
-            else:
-                self.activePlayer.deck.cards.append(Fighter())
-            self.activePlayer.goodness += PLAY_CARD_GOODNESS
-
         followerToPlay = self.activePlayer.hand.pop(action[1][0])
-        self.board.fullBoard[currPlayer].append(followerToPlay)
-        self.activePlayer.currPP -= followerToPlay.monsterCost
+        followerToPlay.play(self, currPlayer)
+        #self.board.fullBoard[currPlayer].append(followerToPlay)
+        #self.activePlayer.currPP -= followerToPlay.monsterCost
 
     # TODO
     def endTurn(self):
-        if TRAINING == 1:
-            self.activePlayer.goodness += PASS_GOODNESS
-
         # Allow all followers to attack again
         for mons in self.board.player1side:
             mons.canAttack = 1
@@ -298,6 +252,12 @@ class Game:
         # Change the turn number
         if (self.activePlayer == self.player1):
             self.currTurn += 1
+        
+        # Allow evolving if currently late in game
+        if (self.activePlayer == self.player2 and self.currTurn >= 4):
+            self.activePlayer.canEvolve = 1
+        if (self.activePlayer == self.player1 and self.currTurn >= 5):
+            self.activePlayer.canEvolve = 1
 
         self.startTurn()
 
@@ -388,6 +348,12 @@ class Game:
         for card in self.board.fullBoard[allyBoard]:
             if (card.canAttack):
                 for attackable in possibleTargets:
+                    
+                    # TODO: make this more generalized
+                    # This line is just to make sure a follower doesnt get to attack face when they evo, this is a jank
+                    if (attackable == -1) and (card.turnPlayed == self.currTurn):
+                        continue
+
                     moves.append([ATTACK_ACTION, [currIndex, attackable]])
             currIndex += 1
 
@@ -396,6 +362,17 @@ class Game:
         for card in self.activePlayer.hand:
             if self.activePlayer.currPP >= card.monsterCost and len(self.board.fullBoard[allyBoard]) < 5:
                 moves.append([PLAY_ACTION, [currIndex]])
+            currIndex += 1
+
+        # If we cant evolve, we are done
+        if not self.activePlayer.canEvolve:
+            return moves
+
+        # Otherwise, Evolving follower moves available, find them
+        currIndex = 0
+        for card in self.board.fullBoard[allyBoard]:
+            if card.canEvolve:
+                moves.append([EVO_ACTION, [currIndex]])
             currIndex += 1
 
         return moves

@@ -56,6 +56,7 @@ def singleGame(botGame, bot1, bot2):
     print("Input action:")
     print("1 = play card")
     print("2 = attack")
+    print("3 = evolve")
     print("4 = end turn")
 
     if (botTurn == 1):
@@ -87,7 +88,7 @@ def singleGame(botGame, bot1, bot2):
         if (uinput1 == "3"):
             print("Select target")
             uinput2 = int(input(""))
-            x.initiateEvolve(uinput2)
+            x.initiateAction([int(uinput1), uinput2])
         if (uinput1 == "4"):
             x.endTurn()
             #botTurn = 1

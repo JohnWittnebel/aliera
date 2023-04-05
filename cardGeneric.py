@@ -20,6 +20,8 @@ def genericEvolve(mons, gameState):
     mons.isEvolved = 1
     if (mons.hasAttacked == 0):
         mons.canAttack = 1
+    if (mons.turnPlayed == gameState.currTurn):
+        mons.canAttackFace = 0
 
     gameState.activePlayer.canEvolve = 0
     gameState.activePlayer.currEvos -= 1

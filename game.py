@@ -75,6 +75,7 @@ class Game:
     def printGameState(self):
         os.system('clear')
         if (self.activePlayer == self.player1):
+            print("Active player: 1")
             print("HP: " + str(self.player2.currHP) + "/" + str(self.player2.maxHP))
             print("Cards: " + str(len(self.player2.hand)))
             print("PP: " + str(self.player2.currPP) + "/" + str(self.player2.maxPP))
@@ -86,6 +87,7 @@ class Game:
             print("Hand:")
             self.player1.printHand()
         else:
+            print("Active player: 2")
             print("HP: " + str(self.player2.currHP) + "/" + str(self.player2.maxHP))
             print("Cards: " + str(len(self.player1.hand)))
             print("PP: " + str(self.player2.currPP) + "/" + str(self.player2.maxPP))
@@ -137,6 +139,9 @@ class Game:
             return
         elif (not self.board.fullBoard[attackingPlayer][allyMonster].canAttack):
             print("ERROR: attempt to attack with a monster that cannot attack")
+            return
+        elif (enemyMonster == -1 and not self.board.fullBoard[attackingPlayer][allyMonster].canAttackFace):
+            print("ERROR: this monster cannot attack face")
             return
 
         # VALID TARGETS CHECKING FOR WARDS, this might need to become more general
@@ -241,8 +246,10 @@ class Game:
         # Allow all followers to attack again
         for mons in self.board.player1side:
             mons.canAttack = 1
+            mons.canAttackFace = 1
         for mons in self.board.player2side:
             mons.canAttack = 1
+            mons.canAttackFace = 1
 
         # Change the current active player
         if (self.activePlayer == self.player1):
@@ -325,7 +332,7 @@ class Game:
         for follower in self.board.fullBoard[targetPlayer]:
             if follower.hasWard:
                 wards.append(wardIndex)
-                wardIndex += 1
+            wardIndex += 1
         
         if wards == []:
             targets.append(-1)
@@ -336,7 +343,7 @@ class Game:
         return targets
 
     def generateLegalMoves(self):
-        moves = [PASS_ACTION]
+        moves = [[PASS_ACTION]]
 
         if self.activePlayer == self.player1:
             allyBoard = 0
@@ -349,12 +356,8 @@ class Game:
         for card in self.board.fullBoard[allyBoard]:
             if (card.canAttack):
                 for attackable in possibleTargets:
-                    
-                    # TODO: make this more generalized
-                    # This line is just to make sure a follower doesnt get to attack face when they evo, this is a jank
-                    if (attackable == -1) and (card.turnPlayed == self.currTurn):
+                    if (attackable == -1) and not card.canAttackFace:
                         continue
-
                     moves.append([ATTACK_ACTION, [currIndex, attackable]])
             currIndex += 1
 
@@ -388,6 +391,16 @@ class Game:
         elif action[0] == ATTACK_ACTION:
             self.initiateAttack(action[1][0], action[1][1])
         elif action[0] == EVO_ACTION:
-            self.initiateEvolve(action[1])
+            self.initiateEvolve(action[1][0])
         else:
             print("ERROR: Invalid action")
+
+    # This will be used with our MCTS algorithm
+    def runToCompletion(self):
+        while (self.winner == 0):
+            moves = self.generateLegalMoves()
+            selection = random.randrange(len(moves))
+            print(moves[selection])
+            self.initiateAction(moves[selection])
+        return self.winner
+

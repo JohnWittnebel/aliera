@@ -1,5 +1,6 @@
 from monster import Monster
 from cardGeneric import *
+from constants import *
 
 class Reaper(Monster):
   def __init__(self):
@@ -18,10 +19,11 @@ class DeathDragon(Monster):
     monsterMaxHP = 4
     monsterCurrHP = 4
     Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+    self.encoding = DeathDragonVal
 
 class Maiden(Monster):
   def __init__(self):  
-    monsterName = "Maiden"
+    monsterName = "Maiden (W)"
     monsterCost = 1
     monsterAttack = 1
     monsterMaxHP = 1
@@ -29,6 +31,7 @@ class Maiden(Monster):
     Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
 
     self.hasWard = 1
+    self.encoding = MaidenVal
     
 
 class Goliath(Monster):
@@ -39,6 +42,7 @@ class Goliath(Monster):
     monsterMaxHP = 4
     monsterCurrHP = 4
     Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+    self.encoding = GoliathVal
 
 class Mercenary(Monster):
   def __init__(self):
@@ -48,6 +52,7 @@ class Mercenary(Monster):
     monsterMaxHP = 2
     monsterCurrHP = 2
     Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+    self.encoding = MercVal
 
 class Goblin(Monster):
   def __init__(self):
@@ -57,6 +62,7 @@ class Goblin(Monster):
     monsterMaxHP = 2
     monsterCurrHP = 2
     Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+    self.encoding = GoblinVal
 
 class Fighter(Monster):
   def __init__(self):
@@ -66,4 +72,5 @@ class Fighter(Monster):
     monsterMaxHP = 2
     monsterCurrHP = 2
     Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+    self.encoding = FighterVal
   

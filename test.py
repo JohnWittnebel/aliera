@@ -5,11 +5,13 @@ from deck import Deck
 from game import Game
 import numpy as np
 import pickle
+import copy
 
 import sys
 sys.path.insert(0, './AI/')
 
-from transformer import Transformer
+#from transformer import Transformer
+from transformer2 import Transformer
 from bot import Bot
 from tourData import TourData
 from evolve import evolve
@@ -31,12 +33,13 @@ def singleGame(botGame, bot1, bot2):
   
   #print(x.winner)
   #x.reset()
-  while (x.winner == 0): 
+  while (x.winner == 0):
+
     x.printGameState()
     if (x.activePlayer == x.player1):
-        inputArr = y.gameDataToNN(x.board.player1side, x.board.player2side, x.player1.hand, x.player1.currHP, x.player2.currHP, len(x.player2.hand), x.player1.currPP, x.player1.maxPP)
+        inputArr = y.gameDataToNN(x.board.player1side, x.board.player2side, x.player1, x.player2)
     else:
-        inputArr = y.gameDataToNN(x.board.player2side, x.board.player1side, x.player2.hand, x.player2.currHP, x.player1.currHP, len(x.player1.hand), x.player2.currPP, x.player2.maxPP)
+        inputArr = y.gameDataToNN(x.board.player2side, x.board.player1side, x.player2, x.player1)
     
     if (botGame == 1) or (botTurn == 1):
         print(genRound)
@@ -74,6 +77,7 @@ def singleGame(botGame, bot1, bot2):
                 continue
     else:
         print(x.generateLegalMoves())
+        print(inputArr)
         uinput1 = input("")
         if (uinput1 == "1"):
             print("input card:")
@@ -88,11 +92,22 @@ def singleGame(botGame, bot1, bot2):
         if (uinput1 == "3"):
             print("Select target")
             uinput2 = int(input(""))
-            x.initiateAction([int(uinput1), uinput2])
+            x.initiateAction([int(uinput1), [uinput2]])
         if (uinput1 == "4"):
             x.endTurn()
             #botTurn = 1
             continue
+        if (uinput1 == "5"):
+            wins1 = 0
+            wins2 = 0
+            for _ in range(100):
+                z = copy.deepcopy(x)
+                gameWin = z.runToCompletion()
+                if (gameWin == 1):
+                    wins1 += 1
+                else:
+                    wins2 += 1
+            input("wins for p1: " + str(wins1) + ", wins for p2: " + str(wins2))
 
   #retVal = x.winner
   retVal = [x.player1.goodness, x.player2.goodness]

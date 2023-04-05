@@ -28,7 +28,7 @@ class Deck:
         print(item)
     return ""
 
-  # This really is only for Fighter/Gob testing
+  # This really is only for Early testing
   def refresh(self):
       self.cards = []
       for _ in range(8):

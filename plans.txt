@@ -1,13 +1,14 @@
 Currently implemented:
-Full Basic game, Evolves
+Full Basic game, Evolves, Wards
 
 Plans going forward, in order, focus on:
 -refactoring
--Adding more cards
--Wards
+-Evolve effects
 -Spells
 -Battlecries
+
+-AI
+
 -Amulets
 -Last Words
-
 -implementing mulligan

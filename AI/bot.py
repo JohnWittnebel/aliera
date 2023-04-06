@@ -5,38 +5,48 @@ from torch import nn
 import torch
 
 hiddennodes = 10
-onodes = 6
+inodes = 660
+#inodes=6
+onodes = 46
 
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
-        self.flatten = nn.Flatten()
+        #self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(6, 512),
+            nn.Linear(inodes, 512),
             nn.ReLU(),
             nn.Linear(512, 512),
             nn.ReLU(),
-            nn.Linear(512, 10)
+            nn.Linear(512, onodes)
         )
 
     def forward(self, x):
-        x = self.flatten(x)
+        x = torch.flatten(x)
         logits = self.linear_relu_stack(x)
-        return logits
+        valuation = nn.Sigmoid()(logits[onodes-1])
+        logits = logits[0:onodes-1]
+        logits = nn.Softmax(dim=0)(logits)
+        return logits , valuation
 
 #model = NeuralNetwork().to("cpu")
-#print(model)
-#X = torch.rand(1, 3, 2)
+#mytest = []
+#for _ in range(660):
+#    mytest.append(1)
+#X = torch.tensor(mytest, dtype=torch.float32)
+#Y = torch.rand(1,660,1)
+#print(Y.dtype)
 #print(X)
+#print(torch.flatten(X))
+#Y = torch.tensor([1,0,0,1,1,1], dtype=torch.float)
+#print(Y)
 #logits = model(X)
 #print(logits)
-#pred_probab = nn.Softmax(dim=1)(logits)
-#y_pred = pred_probab.argmax(1)
-#print(y_pred)
-#print("Predicted class: {y_pred}")
 
-def sig(x):
- return 1 / (1 + np.exp(-x))
+
+#loss1 = nn.CrossEntropyLoss()
+#loss2 = nn.MSELoss()
+
 
 class Bot():
     def __init__(self, wih=None, who=None, name=None):

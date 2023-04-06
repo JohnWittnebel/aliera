@@ -6,6 +6,7 @@ from game import Game
 import numpy as np
 import pickle
 import copy
+import torch
 
 import sys
 sys.path.insert(0, './AI/')
@@ -13,13 +14,20 @@ sys.path.insert(0, './AI/')
 #from transformer import Transformer
 from transformer2 import Transformer
 from bot import Bot
+from bot import NeuralNetwork
 from tourData import TourData
 from evolve import evolve
+from allmoves import ALLMOVES
 
 def singleGame(botGame, bot1, bot2):
   x = Game()
   x.gameStart()
   y = Transformer()
+
+  model = NeuralNetwork().to("cpu")
+  #X = torch.rand(5, 4, 25)
+  #logits = model(torch.flatten(X))
+  #print(logits)
 
   # This is the hidden layer weights
   #test1 = np.random.uniform(-1,1,(10,37))
@@ -76,8 +84,18 @@ def singleGame(botGame, bot1, bot2):
                 botTurn = 0
                 continue
     else:
+        mytest = model(torch.flatten(inputArr))
+        mytest = y.normalizedVector(mytest[0], x)
+        mymax = 0
+        maxIndex = 0
+        for currIndex in range(len(mytest)):
+            if mytest[currIndex] > mymax:
+                maxIndex = currIndex
+                mymax = mytest[currIndex]
+            currIndex += 1
+        print(mytest)
+        print(ALLMOVES[maxIndex])
         print(x.generateLegalMoves())
-        print(inputArr)
         uinput1 = input("")
         if (uinput1 == "1"):
             print("input card:")

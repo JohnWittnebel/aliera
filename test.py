@@ -18,6 +18,7 @@ from bot import NeuralNetwork
 from tourData import TourData
 from evolve import evolve
 from allmoves import ALLMOVES
+from mcts import MCTS
 
 def singleGame(botGame, bot1, bot2):
   x = Game()
@@ -48,7 +49,7 @@ def singleGame(botGame, bot1, bot2):
         inputArr = y.gameDataToNN(x.board.player1side, x.board.player2side, x.player1, x.player2)
     else:
         inputArr = y.gameDataToNN(x.board.player2side, x.board.player1side, x.player2, x.player1)
-    
+    """ 
     if (botGame == 1) or (botTurn == 1):
         print(genRound)
         print(i)
@@ -63,7 +64,7 @@ def singleGame(botGame, bot1, bot2):
         else:
             botAction = y.NNtoGame(botoutput, x.player2.hand)
         print(str(botAction) + str(botoutput))
-
+    """
     print("Input action:")
     print("1 = play card")
     print("2 = attack")
@@ -71,31 +72,36 @@ def singleGame(botGame, bot1, bot2):
     print("4 = end turn")
 
     if (botTurn == 1):
-        #nothing = input("")
-        if (botAction[0] == 1):
-            x.initiateAction([1, [botAction[1]]])
-        if (botAction[0] == 2):
-            x.initiateAttack(botAction[1][0], botAction[1][1])
-        if (botAction[0] == 4):
-            x.endTurn()
-            if (botGame == 1):
-                continue
-            else:
-                botTurn = 0
-                continue
+        myTree = MCTS(x)
+        if (len(myTree.moveArr) == 1):
+            x.initiateAction([4])
+            continue
+        myTree.initialScan()
+        myTree.runSimulations(500)
+        myTree.printTree()
+        maxSims = 0
+        bestMove = [4]
+        for ele in myTree.moveArr:
+            if ele[2] > maxSims:
+                maxSims = ele[2]
+                bestMove = ele[0]
+        if (bestMove == [4] and botGame == 0):
+            botTurn = 0
+        x.initiateAction(bestMove)
+        
     else:
-        mytest = model(torch.flatten(inputArr))
-        mytest = y.normalizedVector(mytest[0], x)
-        mymax = 0
-        maxIndex = 0
-        for currIndex in range(len(mytest)):
-            if mytest[currIndex] > mymax:
-                maxIndex = currIndex
-                mymax = mytest[currIndex]
-            currIndex += 1
-        print(mytest)
-        print(ALLMOVES[maxIndex])
-        print(x.generateLegalMoves())
+        #mytest = model(torch.flatten(inputArr))
+        #mytest = y.normalizedVector(mytest[0], x)
+        #mymax = 0
+        #maxIndex = 0
+        #for currIndex in range(len(mytest)):
+        #    if mytest[currIndex] > mymax:
+        #        maxIndex = currIndex
+        #        mymax = mytest[currIndex]
+        #    currIndex += 1
+        #print(mytest)
+        #print(ALLMOVES[maxIndex])
+        #print(x.generateLegalMoves())
         uinput1 = input("")
         if (uinput1 == "1"):
             print("input card:")
@@ -110,26 +116,20 @@ def singleGame(botGame, bot1, bot2):
         if (uinput1 == "3"):
             print("Select target")
             uinput2 = int(input(""))
-            x.initiateAction([int(uinput1), [uinput2]])
+            uinput3 = int(input("target:\n"))
+            x.initiateAction([int(uinput1), [uinput2, uinput3]])
         if (uinput1 == "4"):
             x.endTurn()
             #botTurn = 1
             continue
         if (uinput1 == "5"):
-            wins1 = 0
-            wins2 = 0
-            for _ in range(100):
-                z = copy.deepcopy(x)
-                gameWin = z.runToCompletion()
-                if (gameWin == 1):
-                    wins1 += 1
-                else:
-                    wins2 += 1
-            input("wins for p1: " + str(wins1) + ", wins for p2: " + str(wins2))
+            myTree = MCTS(x)
+            myTree.initialScan()
+            myTree.runSimulations(400)
+            myTree.printTree()
+            input("")
 
-  #retVal = x.winner
-  retVal = [x.player1.goodness, x.player2.goodness]
-  del x
+  retVal = x.winner
   return retVal
 
 
@@ -183,5 +183,5 @@ for genRound in range(30):
 #    test3 = pickle.load(fp)
 #    test4 = pickle.load(fp)
 #    z2 = Bot(test3, test4)
-singleGame(0,0,0)
+print(singleGame(0,0,0))
 

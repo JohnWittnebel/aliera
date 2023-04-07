@@ -19,6 +19,8 @@ class Monster(Card):
         self.hasAttacked = 0
         self.turnPlayed = 0
         self.canAttackFace = 1
+        self.evoEnemyFollowerTargets = 0
+        self.evoAllyFollowerTargets = 0
 
         # This is set to true when a monster take damage or effect that will cause it to be destroyed
         # The Game will check this after every move and remove it from play if needed
@@ -30,10 +32,15 @@ class Monster(Card):
         genericPlay(self, board, currPlayer)
   
     #@abstractmethod
-    def takeCombatDamage(self, damage):
-        genericTakeCombatDamage(self, damage)
+    def takeCombatDamage(self, gameState, damage, index, side):
+        genericTakeDamage(self, gameState, damage, index, side)
 
-    #@abstractmethod
-    def evolve(self, gameState):
+    def takeEffectDamage(self, damage):
+        genericTakeDamage(self, damage)
+    
+    #@classmethod
+    def evolve(self, gameState, *args, **kwargs):
         genericEvolve(self, gameState)
 
+    def destroy(self, gameState, index, side, *args, **kwargs):
+        genericDestroy(gameState, index, side)

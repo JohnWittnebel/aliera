@@ -56,7 +56,7 @@ class Maiden(Monster):
         self.evoEnemyFollowerTargets = 1
         self.encoding = MaidenVal
         
-    def evolve(self, gameState, target, *args, **kwargs):
+    def evolve(self, gameState, target, targetSide, *args, **kwargs):
         genericEvolve(self, gameState)
         self.monsterMaxHP -= 1
         self.monsterCurrHP -= 1
@@ -64,7 +64,7 @@ class Maiden(Monster):
             
         enemyPlayer = gameState.activePlayer.playerNum % 2
         if (len(gameState.board.fullBoard[enemyPlayer]) > target[0]):
-            gameState.board.fullBoard[enemyPlayer][target[0]].takeEffectDamage(3)
+            gameState.board.fullBoard[enemyPlayer][target[0]].takeEffectDamage(gameState, 3, target[0], targetSide)
     
 class Goliath(Monster):
   def __init__(self):

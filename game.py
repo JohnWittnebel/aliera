@@ -110,8 +110,7 @@ class Game:
             evolveTarget = self.board.fullBoard[1][allyMonsterIndex[0]]
 
         if evolveTarget.evoEnemyFollowerTargets > 0:
-            print(evolveTarget.evoEnemyFollowerTargets)
-            evolveTarget.evolve(self, allyMonsterIndex[1:])
+            evolveTarget.evolve(self, allyMonsterIndex[1:], self.activePlayer.playerNum % 2)
         else:
             evolveTarget.evolve(self)
 
@@ -326,10 +325,7 @@ class Game:
     def generateLegalMoves(self):
         moves = []
 
-        if self.activePlayer == self.player1:
-            allyBoard = 0
-        else:
-            allyBoard = 1
+        allyBoard = self.activePlayer.playerNum - 1
         
         # Playing card from hand moves available
         currIndex = 0
@@ -358,7 +354,11 @@ class Game:
         currIndex = 0
         for card in self.board.fullBoard[allyBoard]:
             if card.canEvolve:
-                moves.append([EVO_ACTION, [currIndex]])
+                if card.evoEnemyFollowerTargets == 0:
+                    moves.append([EVO_ACTION, [currIndex]])
+                else:
+                    for targetIndex in range(len(self.board.fullBoard[(allyBoard+1) % 2])):
+                        moves.append([EVO_ACTION, [currIndex, targetIndex]])
             currIndex += 1
 
         moves.append([PASS_ACTION])

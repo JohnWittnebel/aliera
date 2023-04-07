@@ -101,7 +101,7 @@ def singleGame(botGame, bot1, bot2):
         #    currIndex += 1
         #print(mytest)
         #print(ALLMOVES[maxIndex])
-        #print(x.generateLegalMoves())
+        print(x.generateLegalMoves())
         uinput1 = input("")
         if (uinput1 == "1"):
             print("input card:")

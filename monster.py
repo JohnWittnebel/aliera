@@ -35,8 +35,8 @@ class Monster(Card):
     def takeCombatDamage(self, gameState, damage, index, side):
         genericTakeDamage(self, gameState, damage, index, side)
 
-    def takeEffectDamage(self, damage):
-        genericTakeDamage(self, damage)
+    def takeEffectDamage(self, gameState, damage, index, side):
+        genericTakeDamage(self, gameState, damage, index, side)
     
     #@classmethod
     def evolve(self, gameState, *args, **kwargs):

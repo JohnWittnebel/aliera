@@ -51,6 +51,10 @@ class MCTS():
 
     def simulateRandomGameAfterAction(self, action):
         z = copy.deepcopy(self.gameState)
+        if (z.activePlayer == z.player1):
+            z.player2.randomHand()
+        else:
+            z.player1.randomHand()
         z.initiateAction(action)
         gameWin = z.runToCompletion()
         return gameWin

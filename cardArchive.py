@@ -1,4 +1,5 @@
 from monster import Monster
+from spell import Spell
 from cardGeneric import *
 from constants import *
 
@@ -105,4 +106,13 @@ class Fighter(Monster):
     monsterCurrHP = 2
     Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
     self.encoding = FighterVal
-  
+
+class DragonBreath(Spell):
+    def __init__(self):
+        spellName = "Dragon's breath"
+        spellCost = 1
+        allyFollowerTargets = 0
+        enemyFollowerTargets = 0
+        Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
+
+        

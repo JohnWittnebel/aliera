@@ -208,9 +208,7 @@ class Game:
     # Once spells are implemented, have this split into 2 separate functions
     def playCard(self, action):
         # First, figure out what side is playing cards
-        currPlayer = 0
-        if self.activePlayer == self.player2:
-            currPlayer = 1
+        currPlayer = self.activePlayer.playerNum - 1
 
         # Check that board is not full
         if (len(self.board.fullBoard[currPlayer]) == MAX_BOARD_SIZE):
@@ -219,15 +217,12 @@ class Game:
 
         # Make sure that we have the PP to play the follower
         if len(self.activePlayer.hand) == 0 or (self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].monsterCost):
+            print(action)
             print("Attempted to play a follower that costs more than our current PP")
             return
 
-        # Here is where we would do battlecries/check targets, but for now this doesn't exist
-
-        followerToPlay = self.activePlayer.hand.pop(action[1][0])
-        followerToPlay.play(self, currPlayer)
-        #self.board.fullBoard[currPlayer].append(followerToPlay)
-        #self.activePlayer.currPP -= followerToPlay.monsterCost
+        cardToPlay = self.activePlayer.hand.pop(action[1][0])
+        cardToPlay.play(self, currPlayer)
 
     def endTurn(self):
         # Allow all followers to attack again

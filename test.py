@@ -19,6 +19,7 @@ from tourData import TourData
 from evolve import evolve
 from allmoves import ALLMOVES
 from mcts import MCTS
+from AZMCTS import AZMCTS
 
 def singleGame(botGame, bot1, bot2):
   x = Game()
@@ -72,22 +73,20 @@ def singleGame(botGame, bot1, bot2):
     print("4 = end turn")
 
     if (botTurn == 1):
-        myTree = MCTS(x)
-        if (len(myTree.moveArr) == 1):
-            x.initiateAction([4])
-            continue
-        myTree.initialScan()
-        myTree.runSimulations(500)
+        myTree = AZMCTS(x)
+        myTree.runSimulations(100)
         myTree.printTree()
         maxSims = 0
-        bestMove = [4]
-        for ele in myTree.moveArr:
-            if ele[2] > maxSims:
-                maxSims = ele[2]
-                bestMove = ele[0]
-        if (bestMove == [4] and botGame == 0):
-            botTurn = 0
-        x.initiateAction(bestMove)
+        return
+        #bestMove = [4]
+        #for ele in myTree.moveArr:
+        #    if ele[2] > maxSims:
+        #        maxSims = ele[2]
+        #        bestMove = ele[0]
+        #if (bestMove == [4] and botGame == 0):
+        #    botTurn = 0
+        #input(bestMove)    
+        #x.initiateAction(bestMove)
         
     else:
         #mytest = model(torch.flatten(inputArr))

@@ -44,6 +44,14 @@ class Player:
             else:
                 self.hand.append(cardToAdd)
 
+    def randomHand(self):
+        numCards = len(self.hand)
+        for item in self.hand:
+            self.deck.cards.append(item)
+        self.hand = []
+        self.deck.shuffle()
+        self.draw(numCards)
+
     def printHand(self):
         count = 0
         printString = ""

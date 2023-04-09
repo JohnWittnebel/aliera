@@ -6,6 +6,8 @@ from allmoves import ALLMOVES
 import random
 import copy
 import math
+from transformer2 import Transformer
+from bot import NeuralNetwork
 
 class AZMCTS():
     def __init__(self, gameState):
@@ -80,8 +82,12 @@ class AZMCTS():
                 else:
                     return 0
             # game is still in progress, return NN eval
-            # TODO
-            return 0.2
+            transformer = Transformer()
+            nnInput = transformer.gameDataToNN(self.gameState)
+            
+            model = NeuralNetwork().to("cpu")
+            logits = model(nnInput)
+            return logits[1]
 
         return self.children[actionIndex].descendTree()
       

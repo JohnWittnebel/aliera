@@ -11,7 +11,6 @@ import torch
 import sys
 sys.path.insert(0, './AI/')
 
-#from transformer import Transformer
 from transformer2 import Transformer
 from bot import Bot
 from bot import NeuralNetwork
@@ -46,26 +45,8 @@ def singleGame(botGame, bot1, bot2):
   while (x.winner == 0):
 
     x.printGameState()
-    if (x.activePlayer == x.player1):
-        inputArr = y.gameDataToNN(x.board.player1side, x.board.player2side, x.player1, x.player2)
-    else:
-        inputArr = y.gameDataToNN(x.board.player2side, x.board.player1side, x.player2, x.player1)
-    """ 
-    if (botGame == 1) or (botTurn == 1):
-        print(genRound)
-        print(i)
-        print(j)
-        if (x.activePlayer == x.player1):
-            botToMove = bot1
-        else:
-            botToMove = bot2
-        botoutput = botToMove.getMove(inputArr)
-        if (x.activePlayer == x.player1):
-            botAction = y.NNtoGame(botoutput, x.player1.hand)
-        else:
-            botAction = y.NNtoGame(botoutput, x.player2.hand)
-        print(str(botAction) + str(botoutput))
-    """
+    #inputArr = y.gameDataToNN(x)
+    
     print("Input action:")
     print("1 = play card")
     print("2 = attack")
@@ -74,19 +55,19 @@ def singleGame(botGame, bot1, bot2):
 
     if (botTurn == 1):
         myTree = AZMCTS(x)
-        myTree.runSimulations(100)
+        myTree.runSimulations(1000)
         myTree.printTree()
         maxSims = 0
-        return
-        #bestMove = [4]
-        #for ele in myTree.moveArr:
-        #    if ele[2] > maxSims:
-        #        maxSims = ele[2]
-        #        bestMove = ele[0]
-        #if (bestMove == [4] and botGame == 0):
-        #    botTurn = 0
+        
+        bestMove = [4]
+        for ele in myTree.moveArr:
+            if ele[2] > maxSims:
+                maxSims = ele[2]
+                bestMove = ele[0]
+        if (bestMove == [4] and botGame == 0):
+            botTurn = 0
         #input(bestMove)    
-        #x.initiateAction(bestMove)
+        x.initiateAction(bestMove)
         
     else:
         #mytest = model(torch.flatten(inputArr))
@@ -122,8 +103,8 @@ def singleGame(botGame, bot1, bot2):
             #botTurn = 1
             continue
         if (uinput1 == "5"):
-            myTree = MCTS(x)
-            myTree.initialScan()
+            myTree = AZMCTS(x)
+            #myTree.initialScan()
             myTree.runSimulations(400)
             myTree.printTree()
             input("")
@@ -182,5 +163,5 @@ for genRound in range(30):
 #    test3 = pickle.load(fp)
 #    test4 = pickle.load(fp)
 #    z2 = Bot(test3, test4)
-print(singleGame(0,0,0))
+print(singleGame(1,0,0))
 

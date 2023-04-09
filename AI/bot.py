@@ -30,17 +30,9 @@ class NeuralNetwork(nn.Module):
         return logits , valuation
 
 #model = NeuralNetwork().to("cpu")
-#mytest = []
-#for _ in range(660):
-#    mytest.append(1)
-#X = torch.tensor(mytest, dtype=torch.float32)
-#Y = torch.rand(1,660,1)
-#print(Y.dtype)
-#print(X)
-#print(torch.flatten(X))
 #Y = torch.tensor([1,0,0,1,1,1], dtype=torch.float)
 #print(Y)
-#logits = model(X)
+#logits = model(Y)
 #print(logits)
 
 

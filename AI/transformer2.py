@@ -28,9 +28,21 @@ class Transformer:
 
     # Current stack, see input.txt for details
     
-    # TODO: change this to take in a Game
     # From the game state, create an input to the NN
-    def gameDataToNN(self, allyBoard, enemyBoard, currPlayer, enemyPlayer):
+    def gameDataToNN(self, gameState):
+
+        # TODO: maybe make this less bad
+        if (gameState.activePlayer.playerNum == 1):
+            currPlayer = gameState.player1
+            enemyPlayer = gameState.player2
+            allyBoard = gameState.board.fullBoard[0]
+            enemyBoard = gameState.board.fullBoard[1]
+        else:
+            currPlayer = gameState.player2
+            enemyPlayer = gameState.player1
+            allyBoard = gameState.board.fullBoard[1]
+            enemyBoard = gameState.board.fullBoard[0]
+
         generatedData = []
 
         # Layer 1, basic data
@@ -97,7 +109,7 @@ class Transformer:
     # then next 5: evolve
     # then last 1: pass
     # We need to determine which moves are legal, and normalize the probabilities of the legal moves
-    # Plan: get the game to generate all legal moves, create a binary tensor representing legal/illegal, dot product
+    # Plan: get the game to generate all legal moves, create a binary tensor representing legal/illegal, element-wise product
     #       with NNoutput tensor, then normalize
     def normalizedVector(self, NNoutput, gameState):
         legalBinaryArray = np.zeros(45)

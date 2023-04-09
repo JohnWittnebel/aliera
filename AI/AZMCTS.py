@@ -6,25 +6,38 @@ from allmoves import ALLMOVES
 import random
 import copy
 import math
+import torch
 from transformer2 import Transformer
 from bot import NeuralNetwork
+
+import sys
+sys.path.insert(0, './botModels/')
+
+#TODO: the training file should handle this
+currNN = NeuralNetwork()
+currNN.load_state_dict(torch.load("./AI/botModels/gen1.bot"))
+currNN.eval()
+#gamePath = []
 
 class AZMCTS():
     def __init__(self, gameState):
         self.gameState = gameState
         self.moveArr = []
         self.totalSims = 0
-        self.exploreParam = 0.14
+        self.exploreParam = 1.4
         moves = gameState.generateLegalMoves()
 
         self.children = []
 
-        childIndex = 0
+        rollIndex = 0
+        # TODO: the bug is here, we are setting the meanValue of everything to 0, which means that we are basically
+        #       never exploring, even when the path we are going down is very negative. We need to actually use moveProb
+        #       so that we actually explore ok
         # each element of moveArr is [move, childIndex, timesTaken, totalValue, meanValue, moveProb (according to NN)]
         for ele in moves:
-            self.moveArr.append([ele, childIndex, 0, 0., 0., 0.])
+            self.moveArr.append([ele, rollIndex, 0, 0., 0., 0.])
             self.children.append(0)
-            childIndex += 1
+            rollIndex += 1
     
     def runSimulations(self, simulations):
         for _ in range(simulations):
@@ -33,10 +46,12 @@ class AZMCTS():
 
     def descendTree(self):
         actionIndex = self.selectAction()
+        #input(self.printTree())
         updateValue = self.takeAction(actionIndex, self.moveArr[actionIndex][1])
         # if the previous action was a pass, then we invert the valuation
         if self.moveArr[actionIndex][0][0] == 4:
             updateValue = 1 - updateValue
+
         # update the action info
         self.moveArr[actionIndex][2] += 1
         self.moveArr[actionIndex][3] += updateValue
@@ -44,14 +59,13 @@ class AZMCTS():
         return updateValue
 
     def selectAction(self):
-        if (len(self.moveArr) == 1) or (self.totalSims == 0):
+        if (len(self.moveArr) == 1): #or (self.totalSims == 0):
             return 0
         currMaxIndex = 0
         currMax = -1
         currActionIndex = 0
         for ele in self.moveArr:
-            #print(ele)
-            currVal = ele[4] + self.exploreParam * math.sqrt(math.log(self.totalSims)/max(0.00001,float(ele[2])))
+            currVal = ele[4] + (self.exploreParam * ele[5] * (1 + self.totalSims) / (1 + ele[2]))
             if currMax < currVal:
                 currMax = currVal
                 currMaxIndex = currActionIndex
@@ -68,8 +82,6 @@ class AZMCTS():
                 return 0
 
         if (self.children[childIndex] == 0):
-            # game has ended
-
             z = copy.deepcopy(self.gameState)
             z.initiateAction(self.moveArr[actionIndex][0])
             self.children[childIndex] = AZMCTS(z)
@@ -85,12 +97,45 @@ class AZMCTS():
             transformer = Transformer()
             nnInput = transformer.gameDataToNN(self.gameState)
             
-            model = NeuralNetwork().to("cpu")
-            logits = model(nnInput)
+            logits = currNN(nnInput)
+            probabilitiesNN = transformer.normalizedVector(logits[0], self.children[childIndex].gameState)
+            self.children[childIndex].setProbabilities(probabilitiesNN)
+            
             return logits[1]
 
         return self.children[actionIndex].descendTree()
       
     def printTree(self):
         for ele in self.moveArr:
+            currVal = ele[4] + (self.exploreParam * ele[5] / (1 + ele[2]))
             print(ele)
+            print(currVal)
+
+    def setProbabilities(self, probabilities):
+        moveInd = 0
+        for ele in probabilities:
+            if ele > 0.0001:
+                self.moveArr[moveInd][5] = ele
+                moveInd += 1
+
+        # This is the more computationally expensive way, but safer, method, above is slightly sketch but much faster
+        #legalMoveIndex = 0
+        #allMoveIndex = 0
+        #totalLegalMoves = len(self.moveArr)
+        #possibleLegalMoves = len(ALLMOVES)
+        #while (legalMoveIndex < totalLegalMoves) and (allMoveIndex < possibleLegalMoves):
+        #    if ALLMOVES[allMoveIndex] == self.moveArr[legalMoveIndex][0]:
+        #        self.moveArr[legalMoveIndex][
+"""
+    def cleanTreeExceptAction(self, action):
+        for move in self.moveArr:
+            if move[0] != action:
+                self.children[move[1]].cleanTree()
+                del self.children[move[1]]
+
+    def cleanTree(self):
+        for child in self.children:
+            if child != 0:
+                child.cleanTree()
+                del child
+"""

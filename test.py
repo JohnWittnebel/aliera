@@ -25,23 +25,12 @@ def singleGame(botGame, bot1, bot2):
   x.gameStart()
   y = Transformer()
 
-  model = NeuralNetwork().to("cpu")
-  #X = torch.rand(5, 4, 25)
-  #logits = model(torch.flatten(X))
-  #print(logits)
-
-  # This is the hidden layer weights
-  #test1 = np.random.uniform(-1,1,(10,37))
-  #test2 = np.random.uniform(-1,1,(6,10))
-  #z = Bot(test1, test2)
-
   if (botGame == 1):
     botTurn = 1
   else:
     botTurn = 0
   
-  #print(x.winner)
-  #x.reset()
+  myTree = AZMCTS(x)
   while (x.winner == 0):
 
     x.printGameState()
@@ -54,19 +43,21 @@ def singleGame(botGame, bot1, bot2):
     print("4 = end turn")
 
     if (botTurn == 1):
-        myTree = AZMCTS(x)
-        myTree.runSimulations(1000)
+        myTree.runSimulations(50)
         myTree.printTree()
-        maxSims = 0
         
+        maxSims = -1
         bestMove = [4]
         for ele in myTree.moveArr:
             if ele[2] > maxSims:
                 maxSims = ele[2]
                 bestMove = ele[0]
+                bestChild = myTree.children[ele[1]]
         if (bestMove == [4] and botGame == 0):
             botTurn = 0
-        #input(bestMove)    
+
+        myTree = bestChild
+        #myTree.cleanTreeExceptAction(bestMove)
         x.initiateAction(bestMove)
         
     else:
@@ -100,7 +91,7 @@ def singleGame(botGame, bot1, bot2):
             x.initiateAction([int(uinput1), [uinput2, uinput3]])
         if (uinput1 == "4"):
             x.endTurn()
-            #botTurn = 1
+            botTurn = 1
             continue
         if (uinput1 == "5"):
             myTree = AZMCTS(x)

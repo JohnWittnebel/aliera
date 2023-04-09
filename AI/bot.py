@@ -29,7 +29,20 @@ class NeuralNetwork(nn.Module):
         logits = nn.Softmax(dim=0)(logits)
         return logits , valuation
 
+#Saving code
 #model = NeuralNetwork().to("cpu")
+#for name, param in model.named_parameters():
+#    print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]} \n")
+#torch.save(model.state_dict(), "test.bot")
+
+#Loading code
+#model = NeuralNetwork()
+#model.load_state_dict(torch.load("test.bot"))
+#model.eval()
+#for name, param in model.named_parameters():
+#    print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]} \n")
+
+#print(model.parameters())
 #Y = torch.tensor([1,0,0,1,1,1], dtype=torch.float)
 #print(Y)
 #logits = model(Y)

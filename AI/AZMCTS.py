@@ -58,13 +58,20 @@ class AZMCTS():
         return currMaxIndex
 
     def takeAction(self, actionIndex, childIndex):
-        # We are at a leaf node, time to create a new leaf then climb
+        # We are at a leaf node, time to create a new leaf then climb, unless we are already at a game end state
+        if self.gameState.winner != 0:
+            if self.gameState.winner == self.gameState.activePlayer.playerNum:
+                return 1
+            else:
+                return 0
+
         if (self.children[childIndex] == 0):
-            #TODO: bug here, we are continuing to expand when the game is over
+            # game has ended
+
             z = copy.deepcopy(self.gameState)
             z.initiateAction(self.moveArr[actionIndex][0])
             self.children[childIndex] = AZMCTS(z)
-            self.children[childIndex].gameState.printGameState()
+            #self.children[childIndex].gameState.printGameState()
   
             # game has ended
             if self.children[childIndex].gameState.winner != 0:

@@ -106,23 +106,26 @@ class Transformer:
     # The NN output is defined by 46 outputs, 45 being move probabilities and the last being the valuation.
     # first 9: play associated card
     # then next 30: attack
-    # then next 5: evolve
+    # then next 30: evolve
     # then last 1: pass
     # We need to determine which moves are legal, and normalize the probabilities of the legal moves
     # Plan: get the game to generate all legal moves, create a binary tensor representing legal/illegal, element-wise product
     #       with NNoutput tensor, then normalize
     def normalizedVector(self, NNoutput, gameState):
-        legalBinaryArray = np.zeros(45)
+        legalBinaryArray = np.zeros(70)
         legalMoves = gameState.generateLegalMoves()
         for move in legalMoves:
             if move[0] == 4:
-                legalBinaryArray[44] = 1
+                legalBinaryArray[69] = 1
             elif move[0] == 1:
                 legalBinaryArray[move[1][0]] = 1
             elif move[0] == 2:
                 legalBinaryArray[10 + 6*move[1][0] + move[1][1]] = 1
             elif move[0] == 3:
-                legalBinaryArray[39 + move[1][0]] = 1
+                if (len(move[1]) == 1):                    
+                    legalBinaryArray[39 + 6*move[1][0]] = 1
+                else:
+                    legalBinaryArray[39 + 6*move[1][0] + move[1][1] + 1] = 1
 
         binaryTensor = torch.Tensor(legalBinaryArray)
         legalMoveProbs = binaryTensor * NNoutput

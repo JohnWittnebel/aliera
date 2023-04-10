@@ -18,6 +18,7 @@ currNN = NeuralNetwork()
 currNN.load_state_dict(torch.load("./AI/botModels/gen1.bot"))
 currNN.eval()
 #gamePath = []
+transformer = Transformer()
 
 
 class AZMCTS():
@@ -39,8 +40,12 @@ class AZMCTS():
     
     # the moveProbs are generated when the node is created during tree descent, but this doesnt occur for the root
     # so we do it manually here
-    # TODO
     def rootInit(self):
+        nnInput = transformer.gameDataToNN(self.gameState)
+            
+        logits = currNN(nnInput)
+        probabilitiesNN = transformer.normalizedVector(logits[0], self.gameState)
+        self.setProbabilities(probabilitiesNN)
         return
 
     def runSimulations(self, simulations):
@@ -70,7 +75,7 @@ class AZMCTS():
         currMax = -1
         currActionIndex = 0
         for ele in self.moveArr:
-            currVal = ele[4] + (self.exploreParam * ele[5] * (1 + float(self.totalSims)) / (1 + float(ele[2])))
+            currVal = ele[4] + (self.exploreParam * ele[5] * (math.sqrt(1 + float(self.totalSims)) / (1 + float(ele[2]))))
             if currMax < currVal:
                 currMax = currVal
                 currMaxIndex = currActionIndex
@@ -99,7 +104,6 @@ class AZMCTS():
                 else:
                     return 0
             # game is still in progress, return NN eval
-            transformer = Transformer()
             nnInput = transformer.gameDataToNN(self.gameState)
             
             logits = currNN(nnInput)
@@ -112,7 +116,7 @@ class AZMCTS():
       
     def printTree(self):
         for ele in self.moveArr:
-            currVal = ele[4] + (self.exploreParam * ele[5] * (1 + float(self.totalSims)) / (1 + float(ele[2])))
+            currVal = ele[4] + (self.exploreParam * ele[5] * (math.sqrt(1 + float(self.totalSims)) / (1 + float(ele[2]))))
             print(ele)
             print(currVal)
             print(self.totalSims)
@@ -123,6 +127,10 @@ class AZMCTS():
             if ele > 0.0001:
                 self.moveArr[moveInd][5] = ele
                 moveInd += 1
+        if (self.moveArr[len(self.moveArr) - 1] == 0):
+            print("ERROR")
+            self.printTree()
+            input(probabilities)
 
         # This is the more computationally expensive way, but safer, method, above is slightly sketch but much faster
         #legalMoveIndex = 0
@@ -132,16 +140,15 @@ class AZMCTS():
         #while (legalMoveIndex < totalLegalMoves) and (allMoveIndex < possibleLegalMoves):
         #    if ALLMOVES[allMoveIndex] == self.moveArr[legalMoveIndex][0]:
         #        self.moveArr[legalMoveIndex][
-"""
+
     def cleanTreeExceptAction(self, action):
         for move in self.moveArr:
             if move[0] != action:
                 self.children[move[1]].cleanTree()
-                del self.children[move[1]]
+                self.children[move[1]] = None
 
     def cleanTree(self):
         for child in self.children:
             if child != 0:
                 child.cleanTree()
-                del child
-"""
+                child = None

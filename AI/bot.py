@@ -7,7 +7,7 @@ import torch
 hiddennodes = 10
 inodes = 660
 #inodes=6
-onodes = 46
+onodes = 71
 
 class NeuralNetwork(nn.Module):
     def __init__(self):
@@ -24,7 +24,8 @@ class NeuralNetwork(nn.Module):
     def forward(self, x):
         x = torch.flatten(x)
         logits = self.linear_relu_stack(x)
-        valuation = nn.Sigmoid()(logits[onodes-1])
+        valuation = (logits[onodes-1] + 1) / 2
+        #nn.Sigmoid()(logits[onodes-1])
         logits = logits[0:onodes-1]
         logits = nn.Softmax(dim=0)(logits)
         return logits , valuation
@@ -36,14 +37,15 @@ class NeuralNetwork(nn.Module):
 #torch.save(model.state_dict(), "test.bot")
 
 #Loading code
-#model = NeuralNetwork()
-#model.load_state_dict(torch.load("test.bot"))
+model = NeuralNetwork()
+#model.load_state_dict(torch.load("./botModels/gen1.bot"))
 #model.eval()
 #for name, param in model.named_parameters():
 #    print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]} \n")
 
 #print(model.parameters())
 #Y = torch.tensor([1,0,0,1,1,1], dtype=torch.float)
+#Y = torch.tensor(torch.rand(660))
 #print(Y)
 #logits = model(Y)
 #print(logits)

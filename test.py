@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 import copy
 import torch
+import cProfile
 
 import sys
 sys.path.insert(0, './AI/')
@@ -31,6 +32,7 @@ def singleGame(botGame, bot1, bot2):
     botTurn = 0
   
   myTree = AZMCTS(x)
+  myTree.rootInit()
   while (x.winner == 0):
 
     x.printGameState()
@@ -43,7 +45,7 @@ def singleGame(botGame, bot1, bot2):
     print("4 = end turn")
 
     if (botTurn == 1):
-        myTree.runSimulations(50)
+        myTree.runSimulations(400)
         myTree.printTree()
         
         maxSims = -1
@@ -56,8 +58,8 @@ def singleGame(botGame, bot1, bot2):
         if (bestMove == [4] and botGame == 0):
             botTurn = 0
 
+        myTree.cleanTreeExceptAction(bestMove)
         myTree = bestChild
-        #myTree.cleanTreeExceptAction(bestMove)
         x.initiateAction(bestMove)
         
     else:
@@ -91,7 +93,7 @@ def singleGame(botGame, bot1, bot2):
             x.initiateAction([int(uinput1), [uinput2, uinput3]])
         if (uinput1 == "4"):
             x.endTurn()
-            botTurn = 1
+        #    botTurn = 1
             continue
         if (uinput1 == "5"):
             myTree = AZMCTS(x)

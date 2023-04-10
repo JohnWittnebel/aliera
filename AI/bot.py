@@ -2,12 +2,14 @@ import numpy as np
 from random import uniform
 import math
 from torch import nn
+from torch.masked import masked_tensor
 import torch
 
 hiddennodes = 10
 inodes = 660
 #inodes=6
 onodes = 71
+#onodes=7
 
 class NeuralNetwork(nn.Module):
     def __init__(self):
@@ -27,7 +29,7 @@ class NeuralNetwork(nn.Module):
         valuation = (logits[onodes-1] + 1) / 2
         #nn.Sigmoid()(logits[onodes-1])
         logits = logits[0:onodes-1]
-        logits = nn.Softmax(dim=0)(logits)
+        #logits = nn.Softmax(dim=0)(logits)
         return logits , valuation
 
 #Saving code
@@ -36,8 +38,14 @@ class NeuralNetwork(nn.Module):
 #    print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]} \n")
 #torch.save(model.state_dict(), "test.bot")
 
+#Mask
+#Y = torch.tensor([0.1,-0.1,0.5,-0.2,0.2,-0.3], dtype=torch.float)
+#model = NeuralNetwork().to("cpu")
+#mask = torch.tensor([0,0,1,0,0,1], dtype=torch.bool)
+#mt = masked_tensor(Y,mask)
+#print(nn.Softmax(dim=0)(mt))
+
 #Loading code
-model = NeuralNetwork()
 #model.load_state_dict(torch.load("./botModels/gen1.bot"))
 #model.eval()
 #for name, param in model.named_parameters():

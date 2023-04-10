@@ -10,6 +10,8 @@ MAX_HAND_SIZE = 9
 MAX_BOARD_SIZE = 5
 
 import torch
+from torch.masked import masked_tensor
+from torch import nn
 import numpy as np
 from allmoves import ALLMOVES
 
@@ -101,7 +103,7 @@ class Transformer:
         generatedData.append(currLayer)
        
         #return generatedData
-        return int_to_bits(torch.tensor(generatedData), bits=6, dtype=torch.float32)
+        return int_to_bits(torch.tensor(generatedData, requires_grad=False), bits=6, dtype=torch.float32)
 
     # The NN output is defined by 46 outputs, 45 being move probabilities and the last being the valuation.
     # first 9: play associated card
@@ -112,28 +114,31 @@ class Transformer:
     # Plan: get the game to generate all legal moves, create a binary tensor representing legal/illegal, element-wise product
     #       with NNoutput tensor, then normalize
     def normalizedVector(self, NNoutput, gameState):
-        legalBinaryArray = np.zeros(70)
+        legalBinaryMask = torch.zeros(70, dtype=bool)
         legalMoves = gameState.generateLegalMoves()
         for move in legalMoves:
             if move[0] == 4:
-                legalBinaryArray[69] = 1
+                legalBinaryMask[69] = 1
             elif move[0] == 1:
-                legalBinaryArray[move[1][0]] = 1
+                legalBinaryMask[move[1][0]] = 1
             elif move[0] == 2:
-                legalBinaryArray[10 + 6*move[1][0] + move[1][1]] = 1
+                legalBinaryMask[10 + 6*move[1][0] + move[1][1]] = 1
             elif move[0] == 3:
                 if (len(move[1]) == 1):                    
-                    legalBinaryArray[39 + 6*move[1][0]] = 1
+                    legalBinaryMask[39 + 6*move[1][0]] = 1
                 else:
-                    legalBinaryArray[39 + 6*move[1][0] + move[1][1] + 1] = 1
+                    legalBinaryMask[39 + 6*move[1][0] + move[1][1] + 1] = 1
 
-        binaryTensor = torch.Tensor(legalBinaryArray)
-        legalMoveProbs = binaryTensor * NNoutput
+        legalMasked = masked_tensor(NNoutput, legalBinaryMask)
+        legalMoveProbs = nn.Softmax(dim=0)(legalMasked)
+        #print(legalMoveProbs)
+        #binaryTensor = torch.Tensor(legalBinaryArray)
+        #legalMoveProbs = legalBinaryArray * NNoutput
         
-        totalWeight = 0
-        for ele in legalMoveProbs:
-            totalWeight += ele
-        for ind in range(len(legalMoveProbs)):
-            legalMoveProbs[ind] /= totalWeight
+        #totalWeight = 0
+        #for ele in legalMoveProbs:
+        #    totalWeight += ele
+        #for ind in range(len(legalMoveProbs)):
+        #    legalMoveProbs[ind] /= totalWeight
         return legalMoveProbs
 

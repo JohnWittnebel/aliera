@@ -9,9 +9,11 @@ import math
 import torch
 from transformer2 import Transformer
 from bot import NeuralNetwork
+from mycopy import trueCopy
 
 import sys
 sys.path.insert(0, './botModels/')
+sys.path.insert(0, './..')
 
 #TODO: the training file should handle this
 currNN = NeuralNetwork()
@@ -123,10 +125,17 @@ class AZMCTS():
 
     def setProbabilities(self, probabilities):
         moveInd = 0
-        for ele in probabilities:
-            if ele > 0.0001:
-                self.moveArr[moveInd][5] = ele
+        allMoveInd = 0
+        while (moveInd < len(self.moveArr)):
+            if ALLMOVES[allMoveInd] == self.moveArr[moveInd][0]:
+                self.moveArr[moveInd][5] = probabilities[allMoveInd]
                 moveInd += 1
+            allMoveInd += 1
+
+        #for ele in probabilities:
+        #    if ele != float('nan'):
+        #        self.moveArr[moveInd][5] = ele
+        #        moveInd += 1
         if (self.moveArr[len(self.moveArr) - 1] == 0):
             print("ERROR")
             self.printTree()

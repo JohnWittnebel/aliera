@@ -16,8 +16,6 @@ class Board:
     count = 0
 
     # TODO: change this so that each monster/amulet has its own print function at some point
-    # TODO: currently only current hp/attack is displayed, at some point when healing and 
-    #       debuffs exist this will need to be expanded
     for item in self.player2side:
       if item.canAttack:
           attackStr = "[X]"

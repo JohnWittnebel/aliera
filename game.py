@@ -6,6 +6,7 @@ from constants import *
 from deck2 import deck2
 from deck1 import deck1
 from deck import Deck
+import copy
 import random
 
 from cardArchive import Goblin, Fighter
@@ -36,19 +37,25 @@ class Game:
         self.winner = 0
         self.winString = ""
     
-    def __init__(self):
+    # This is meant to really only be used by the trueCopy function
+    def update(self, player1, player2, activePlayer, gameBoard, currTurn, winner):
+        self.activePlayer = activePlayer
+        self.player1 = player1
+        self.player2 = player2
+        self.board = gameBoard
+        self.currTurn = currTurn
+
+        # this will become 1 or 2 once the game is over
+        self.winner = winner
+        self.winString = ""
+    
+    def __init__(self, refresh):
         # If we are initializing a board state without players already generated,
         # we need to generate the players and the decks that they will be using
 
-        #TODO
-        # For this, we will take the cards listed in deck1.deck and deck2.deck local files
-        #deck1File = "deck1.deck"
-        #deck1 = generateDeckFromFile(deck1File)
-        deck1.refresh()
-
-        #deck2File = "deck2.deck"
-        #deck2 = generateDeckFromFile(deck2File
-        deck2.refresh()
+        if (refresh == 1):
+            deck1.refresh()
+            deck2.refresh()
 
         self.player1 = Player(deck1, PLAYER_1_MAX_EVOS, PLAYER_1_MAX_EVOS, 1)
         self.player2 = Player(deck2, PLAYER_2_MAX_EVOS, PLAYER_2_MAX_EVOS, 2)
@@ -58,7 +65,7 @@ class Game:
         self.currTurn = 1
         self.winner = 0
         self.winString = ""
-        
+
     def reset(self):    
         deck1.shuffle()
         deck2.shuffle()
@@ -111,6 +118,8 @@ class Game:
         if self.activePlayer == self.player1:
             evolveTarget = self.board.fullBoard[0][allyMonsterIndex[0]]
         else:
+            self.printGameState()
+            input(allyMonsterIndex)
             evolveTarget = self.board.fullBoard[1][allyMonsterIndex[0]]
 
         if evolveTarget.evoEnemyFollowerTargets > 0:
@@ -223,6 +232,8 @@ class Game:
         if len(self.activePlayer.hand) == 0 or (self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].monsterCost):
             print(action)
             print("Attempted to play a follower that costs more than our current PP")
+            self.printGameState()
+            input("")
             return
 
         cardToPlay = self.activePlayer.hand.pop(action[1][0])

@@ -1,4 +1,5 @@
 import random
+import copy
 from cardArchive import *
 
 class Deck:
@@ -27,6 +28,7 @@ class Deck:
     for item in self.cards:
         print(item)
     return ""
+
 
   # This really is only for Early testing
   def refresh(self):

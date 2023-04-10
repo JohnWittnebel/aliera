@@ -22,7 +22,7 @@ from mcts import MCTS
 from AZMCTS import AZMCTS
 
 def singleGame(botGame, bot1, bot2):
-  x = Game()
+  x = Game(1)
   x.gameStart()
   y = Transformer()
 
@@ -45,7 +45,7 @@ def singleGame(botGame, bot1, bot2):
     print("4 = end turn")
 
     if (botTurn == 1):
-        myTree.runSimulations(400)
+        myTree.runSimulations(100)
         myTree.printTree()
         
         maxSims = -1
@@ -156,5 +156,5 @@ for genRound in range(30):
 #    test3 = pickle.load(fp)
 #    test4 = pickle.load(fp)
 #    z2 = Bot(test3, test4)
-print(singleGame(1,0,0))
+cProfile.run("singleGame(1,0,0)")
 

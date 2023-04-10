@@ -19,6 +19,7 @@ currNN.load_state_dict(torch.load("./AI/botModels/gen1.bot"))
 currNN.eval()
 #gamePath = []
 
+
 class AZMCTS():
     def __init__(self, gameState):
         self.gameState = gameState
@@ -30,21 +31,25 @@ class AZMCTS():
         self.children = []
 
         rollIndex = 0
-        # TODO: the bug is here, we are setting the meanValue of everything to 0, which means that we are basically
-        #       never exploring, even when the path we are going down is very negative. We need to actually use moveProb
-        #       so that we actually explore ok
         # each element of moveArr is [move, childIndex, timesTaken, totalValue, meanValue, moveProb (according to NN)]
         for ele in moves:
             self.moveArr.append([ele, rollIndex, 0, 0., 0., 0.])
             self.children.append(0)
             rollIndex += 1
     
+    # the moveProbs are generated when the node is created during tree descent, but this doesnt occur for the root
+    # so we do it manually here
+    # TODO
+    def rootInit(self):
+        return
+
     def runSimulations(self, simulations):
         for _ in range(simulations):
             self.descendTree()
-            self.totalSims += 1
+        #    self.totalSims += 1
 
     def descendTree(self):
+        self.totalSims += 1
         actionIndex = self.selectAction()
         #input(self.printTree())
         updateValue = self.takeAction(actionIndex, self.moveArr[actionIndex][1])
@@ -65,7 +70,7 @@ class AZMCTS():
         currMax = -1
         currActionIndex = 0
         for ele in self.moveArr:
-            currVal = ele[4] + (self.exploreParam * ele[5] * (1 + self.totalSims) / (1 + ele[2]))
+            currVal = ele[4] + (self.exploreParam * ele[5] * (1 + float(self.totalSims)) / (1 + float(ele[2])))
             if currMax < currVal:
                 currMax = currVal
                 currMaxIndex = currActionIndex
@@ -107,9 +112,10 @@ class AZMCTS():
       
     def printTree(self):
         for ele in self.moveArr:
-            currVal = ele[4] + (self.exploreParam * ele[5] / (1 + ele[2]))
+            currVal = ele[4] + (self.exploreParam * ele[5] * (1 + float(self.totalSims)) / (1 + float(ele[2])))
             print(ele)
             print(currVal)
+            print(self.totalSims)
 
     def setProbabilities(self, probabilities):
         moveInd = 0

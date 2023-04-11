@@ -131,31 +131,23 @@ class AZMCTS():
             print(self.totalSims)
 
     def setProbabilities(self, probabilities):
-        moveInd = 0
-        allMoveInd = 0
-        while (moveInd < len(self.moveArr)):
-            if ALLMOVES[allMoveInd] == self.moveArr[moveInd][0]:
-                self.moveArr[moveInd][5] = probabilities[allMoveInd]
-                moveInd += 1
-            allMoveInd += 1
+        currIndex = 0
+        for ele in self.moveArr:
+            ele[currIndex][5] = probabilities[currIndex]
+            currIndex += 1
 
-        #for ele in probabilities:
-        #    if ele != float('nan'):
-        #        self.moveArr[moveInd][5] = ele
+        #moveInd = 0
+        #allMoveInd = 0
+        #while (moveInd < len(self.moveArr)):
+        #    if ALLMOVES[allMoveInd] == self.moveArr[moveInd][0]:
+        #        self.moveArr[moveInd][5] = probabilities[allMoveInd]
         #        moveInd += 1
+        #    allMoveInd += 1
+
         if (self.moveArr[len(self.moveArr) - 1] == 0):
             print("ERROR")
             self.printTree()
             input(probabilities)
-
-        # This is the more computationally expensive way, but safer, method, above is slightly sketch but much faster
-        #legalMoveIndex = 0
-        #allMoveIndex = 0
-        #totalLegalMoves = len(self.moveArr)
-        #possibleLegalMoves = len(ALLMOVES)
-        #while (legalMoveIndex < totalLegalMoves) and (allMoveIndex < possibleLegalMoves):
-        #    if ALLMOVES[allMoveIndex] == self.moveArr[legalMoveIndex][0]:
-        #        self.moveArr[legalMoveIndex][
 
     def recordResults(self, result, posnum):
         MCTSRes = []

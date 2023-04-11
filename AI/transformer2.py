@@ -118,18 +118,18 @@ class Transformer:
         legalMoves = gameState.generateLegalMoves()
         for move in legalMoves:
             if move[0] == 4:
-                legalBinaryMask[69] = 1
+                legalBinaryMask[69] = True
             elif move[0] == 1:
-                legalBinaryMask[move[1][0]] = 1
+                legalBinaryMask[move[1][0]] = True
             elif move[0] == 2:
-                legalBinaryMask[10 + 6*move[1][0] + move[1][1]] = 1
+                legalBinaryMask[10 + 6*move[1][0] + move[1][1]] = True
             elif move[0] == 3:
                 if (len(move[1]) == 1):                    
-                    legalBinaryMask[39 + 6*move[1][0]] = 1
+                    legalBinaryMask[39 + 6*move[1][0]] = True
                 else:
-                    legalBinaryMask[39 + 6*move[1][0] + move[1][1] + 1] = 1
+                    legalBinaryMask[39 + 6*move[1][0] + move[1][1] + 1] = True
 
-        legalMasked = masked_tensor(NNoutput, legalBinaryMask)
+        legalMasked = NNoutput[legalBinaryMask]
         legalMoveProbs = nn.Softmax(dim=0)(legalMasked)
         #print(legalMoveProbs)
         #binaryTensor = torch.Tensor(legalBinaryArray)

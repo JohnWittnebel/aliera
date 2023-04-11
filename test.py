@@ -21,7 +21,7 @@ from allmoves import ALLMOVES
 from mcts import MCTS
 from AZMCTS import AZMCTS
 
-def singleGame(botGame, bot1, bot2):
+def singleGame(botGame, currPosSave):
   x = Game(1)
   x.gameStart()
   y = Transformer()
@@ -45,7 +45,7 @@ def singleGame(botGame, bot1, bot2):
     print("4 = end turn")
 
     if (botTurn == 1):
-        myTree.runSimulations(100)
+        myTree.runSimulations(50)
         myTree.printTree()
         
         maxSims = -1
@@ -102,8 +102,9 @@ def singleGame(botGame, bot1, bot2):
             myTree.printTree()
             input("")
 
-  retVal = x.winner
-  return retVal
+  currPosSave = myTree.recordResults(x.winner, currPosSave)
+  #retVal = x.winner
+  return currPosSave
 
 
 #with open ("AI/bots/P2BOT6.bot", 'rb') as fp:
@@ -155,6 +156,9 @@ for genRound in range(30):
 #with open ("AI/bots/P2BOT0.bot", 'rb') as fp:
 #    test3 = pickle.load(fp)
 #    test4 = pickle.load(fp)
-#    z2 = Bot(test3, test4)
-cProfile.run("singleGame(1,0,0)")
+#    z2 = Bot(test3, test4
+
+currPosSave = 45
+for _ in range(199):
+    currPosSave = singleGame(1,currPosSave)
 

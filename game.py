@@ -118,8 +118,6 @@ class Game:
         if self.activePlayer == self.player1:
             evolveTarget = self.board.fullBoard[0][allyMonsterIndex[0]]
         else:
-            self.printGameState()
-            input(allyMonsterIndex)
             evolveTarget = self.board.fullBoard[1][allyMonsterIndex[0]]
 
         if evolveTarget.evoEnemyFollowerTargets > 0:

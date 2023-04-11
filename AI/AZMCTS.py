@@ -6,6 +6,7 @@ from allmoves import ALLMOVES
 import random
 import copy
 import math
+import pickle
 import torch
 from transformer2 import Transformer
 from bot import NeuralNetwork
@@ -19,22 +20,27 @@ sys.path.insert(0, './..')
 currNN = NeuralNetwork()
 currNN.load_state_dict(torch.load("./AI/botModels/gen1.bot"))
 currNN.eval()
+GAMENUM = 1
+POSNUM = 1
 #gamePath = []
 transformer = Transformer()
 
 
 class AZMCTS():
-    def __init__(self, gameState):
+    def __init__(self, gameState, parent=None):
         self.gameState = gameState
         self.moveArr = []
         self.totalSims = 0
         self.exploreParam = 1.4
+        self.parent = parent
+        self.mask = 0
         moves = gameState.generateLegalMoves()
 
         self.children = []
 
         rollIndex = 0
-        # each element of moveArr is [move, childIndex, timesTaken, totalValue, meanValue, moveProb (according to NN)]
+        # each element of moveArr is [move, childIndex, timesTaken, totalValue, meanValue, moveProb (according to NN),
+        #                             move indices (for training)]
         for ele in moves:
             self.moveArr.append([ele, rollIndex, 0, 0., 0., 0.])
             self.children.append(0)
@@ -46,7 +52,8 @@ class AZMCTS():
         nnInput = transformer.gameDataToNN(self.gameState)
             
         logits = currNN(nnInput)
-        probabilitiesNN = transformer.normalizedVector(logits[0], self.gameState)
+        probabilitiesNN, mask = transformer.normalizedVector(logits[0], self.gameState)
+        self.mask = mask
         self.setProbabilities(probabilitiesNN)
         return
 
@@ -96,7 +103,7 @@ class AZMCTS():
         if (self.children[childIndex] == 0):
             z = copy.deepcopy(self.gameState)
             z.initiateAction(self.moveArr[actionIndex][0])
-            self.children[childIndex] = AZMCTS(z)
+            self.children[childIndex] = AZMCTS(z, self)
             #self.children[childIndex].gameState.printGameState()
   
             # game has ended
@@ -109,9 +116,9 @@ class AZMCTS():
             nnInput = transformer.gameDataToNN(self.gameState)
             
             logits = currNN(nnInput)
-            probabilitiesNN = transformer.normalizedVector(logits[0], self.children[childIndex].gameState)
+            probabilitiesNN, mask = transformer.normalizedVector(logits[0], self.children[childIndex].gameState)
+            self.children[childIndex].mask = mask
             self.children[childIndex].setProbabilities(probabilitiesNN)
-            
             return logits[1]
 
         return self.children[actionIndex].descendTree()
@@ -150,11 +157,30 @@ class AZMCTS():
         #    if ALLMOVES[allMoveIndex] == self.moveArr[legalMoveIndex][0]:
         #        self.moveArr[legalMoveIndex][
 
+    def recordResults(self, result, posnum):
+        MCTSRes = []
+        for ele in self.moveArr:
+            MCTSRes.append(float(ele[2]) / float(self.totalSims))
+
+        if (result == self.gameState.activePlayer.playerNum):
+            gameResult = 1
+        else:
+            gameResult = 0
+        condensedResult = [transformer.gameDataToNN(self.gameState), MCTSRes, self.mask, gameResult]
+        with open("./AI/trainingData/pos" + str(posnum) + ".pickle", "wb") as f:
+            pickle.dump(condensedResult, f)
+
+        if (self.parent != None):
+            return self.parent.recordResults(result, posnum+1)
+        else:
+            return posnum+1
+
     def cleanTreeExceptAction(self, action):
         for move in self.moveArr:
             if move[0] != action:
-                self.children[move[1]].cleanTree()
-                self.children[move[1]] = None
+                if (self.children[move[1]] != 0):
+                    self.children[move[1]].cleanTree()
+                    self.children[move[1]] = None
 
     def cleanTree(self):
         for child in self.children:

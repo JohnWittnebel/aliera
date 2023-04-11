@@ -32,6 +32,14 @@ class NeuralNetwork(nn.Module):
         #logits = nn.Softmax(dim=0)(logits)
         return logits , valuation
 
+    def loss_fn():
+        return
+
+    def train_one_epoch():
+        return
+
+
+
 #Saving code
 #model = NeuralNetwork().to("cpu")
 #for name, param in model.named_parameters():

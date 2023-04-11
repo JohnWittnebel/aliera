@@ -103,7 +103,7 @@ class Transformer:
         generatedData.append(currLayer)
        
         #return generatedData
-        return int_to_bits(torch.tensor(generatedData, requires_grad=False), bits=6, dtype=torch.float32)
+        return int_to_bits(torch.tensor(generatedData), bits=6, dtype=torch.float32)
 
     # The NN output is defined by 46 outputs, 45 being move probabilities and the last being the valuation.
     # first 9: play associated card
@@ -140,5 +140,5 @@ class Transformer:
         #    totalWeight += ele
         #for ind in range(len(legalMoveProbs)):
         #    legalMoveProbs[ind] /= totalWeight
-        return legalMoveProbs
+        return legalMoveProbs, legalBinaryMask
 

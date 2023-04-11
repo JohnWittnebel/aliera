@@ -133,7 +133,7 @@ class AZMCTS():
     def setProbabilities(self, probabilities):
         currIndex = 0
         for ele in self.moveArr:
-            ele[currIndex][5] = probabilities[currIndex]
+            ele[5] = probabilities[currIndex]
             currIndex += 1
 
         #moveInd = 0
@@ -159,7 +159,7 @@ class AZMCTS():
         else:
             gameResult = 0
         condensedResult = [transformer.gameDataToNN(self.gameState), MCTSRes, self.mask, gameResult]
-        with open("./AI/trainingData/pos" + str(posnum) + ".pickle", "wb") as f:
+        with open("./AI/trainingDataTemp/pos" + str(posnum) + ".pickle", "wb") as f:
             pickle.dump(condensedResult, f)
 
         if (self.parent != None):

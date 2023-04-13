@@ -14,7 +14,7 @@ onodes = 71
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
-        #self.flatten = nn.Flatten()
+        self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
             nn.Linear(inodes, 512),
             nn.ReLU(),
@@ -24,13 +24,17 @@ class NeuralNetwork(nn.Module):
         )
 
     def forward(self, x):
-        x = torch.flatten(x)
+        x = self.flatten(x)
         logits = self.linear_relu_stack(x)
-        valuation = (logits[onodes-1] + 1) / 2
-        #nn.Sigmoid()(logits[onodes-1])
-        logits = logits[0:onodes-1]
+        #logits = torch.flatten(logits)
+        #print(logits.size())
+        #valuation = (logits[onodes-1] + 1) / 2
+
+        #valuation = nn.Sigmoid()(logits[1][onodes-1])
+        #valuation = nn.Sigmoid()(valuation)
+        #logits = logits[0:onodes-1]
         #logits = nn.Softmax(dim=0)(logits)
-        return logits , valuation
+        return logits
 
 
 #Saving code

@@ -159,6 +159,6 @@ for genRound in range(30):
 #    z2 = Bot(test3, test4
 
 currPosSave = 45
-for _ in range(199):
+for _ in range(1):
     currPosSave = singleGame(1,currPosSave)
 

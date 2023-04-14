@@ -26,15 +26,10 @@ class NeuralNetwork(nn.Module):
     def forward(self, x):
         x = self.flatten(x)
         logits = self.linear_relu_stack(x)
-        #logits = torch.flatten(logits)
-        #print(logits.size())
-        #valuation = (logits[onodes-1] + 1) / 2
-
-        #valuation = nn.Sigmoid()(logits[1][onodes-1])
-        #valuation = nn.Sigmoid()(valuation)
-        #logits = logits[0:onodes-1]
-        #logits = nn.Softmax(dim=0)(logits)
-        return logits
+        pred, valuation = logits.split(70,dim=1)
+        valuation = nn.Sigmoid()(valuation)
+        pred = nn.Softmax(dim=1)(pred)
+        return pred, valuation
 
 
 #Saving code

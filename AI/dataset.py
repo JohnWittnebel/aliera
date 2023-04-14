@@ -24,7 +24,11 @@ class PositionDataset(Dataset):
         # TODO positions where the opponent is already dead are currently not returning a mask because the game is over
         #      fix this
         if type(posData[2]) == int:
-            return posData[0], torch.zeros(70), torch.zeros(70), posData[3]
+            x = torch.tensor([])
+            for _ in range(69):
+                x.append(False)
+            x.append(True)
+            return posData[0], torch.zeros(70), x, posData[3]
 
         # Code to get the test run MCTS output, this should be done during the test runs for the future
         indexes = posData[2].nonzero(as_tuple = False)

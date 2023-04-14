@@ -25,3 +25,20 @@ FighterVal = 2
 MercVal = 3
 GoliathVal = 4
 DeathDragonVal = 5
+
+GoblinVal = 0
+NightmareVal = 1
+FighterVal = 2
+SweetfangVal = 3
+MercVal = 3
+GoliathVal = 4
+BloodpactVal = 5
+RazoryclawVal = 6
+CrazedexeVal = 7
+DarkgenVal = 8
+AngelmaidenVal = 9
+CrimsonpurgeVal = 10
+ImplancerVal = 11
+AbyssbeastVal = 12
+
+

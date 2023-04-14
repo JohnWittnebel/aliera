@@ -1,6 +1,4 @@
 from monster import Monster
-from cardArchive import Goblin
-from cardArchive import Fighter
 from deck import Deck
 from game import Game
 import numpy as np
@@ -11,7 +9,7 @@ import cProfile
 
 import sys
 sys.path.insert(0, './AI/')
-
+sys.path.insert(0, './cardArchive')
 from transformer import Transformer
 from bot import NeuralNetwork
 from allmoves import ALLMOVES
@@ -97,22 +95,34 @@ def singleGame(botGame, currPosSave):
 
         if (uinput1 == "1"):
             print("input card:")
-            uinput2 = int(input(""))
-            x.initiateAction([int(uinput1),[uinput2]])
+            uinput2 = input("")
+            uinput3 = input("target?\n")
+            if (len(uinput2) > 0):
+                uinput2 = int(uinput2)
+                if (len(uinput3) > 0):
+                    uinput3 = int(uinput3)
+                    x.initiateAction([int(uinput1),[uinput2, uinput3]])
+                else:
+                    x.initiateAction([int(uinput1),[uinput2]])
         if (uinput1 == "2"):
             print("Select attacker:")
-            uinput2 = int(input(""))
+            uinput2 = input("")
             print("Select defender:")
-            uinput3 = int(input(""))
-            x.initiateAttack(uinput2, uinput3)
+            uinput3 = input("")
+            if (len(uinput2) > 0) and (len(uinput3) > 0):
+                x.initiateAttack(int(uinput2), int(uinput3))
         if (uinput1 == "3"):
             print("Select target")
-            uinput2 = int(input(""))
-            uinput3 = int(input("target:\n"))
-            x.initiateAction([int(uinput1), [uinput2, uinput3]])
+            uinput2 = input("")
+            uinput3 = input("target:\n")
+            if (len(uinput2) > 0):
+                if (len(uinput3) > 0):
+                    x.initiateAction([int(uinput1), [int(uinput2), int(uinput3)]])
+                else:
+                    x.initiateAction([int(uinput1), [int(uinput2)]])
         if (uinput1 == "4"):
             x.endTurn()
-            botTurn = 1
+            #botTurn = 1
             continue
         if (uinput1 == "5"):
             myTree = AZMCTS(x)

@@ -1,15 +1,12 @@
 import os
 from board import Board
 from player import Player
-#from deckGen import generateDeckFromFile
 from constants import *
 from deck2 import deck2
 from deck1 import deck1
 from deck import Deck
 import copy
 import random
-
-from cardArchive import Goblin, Fighter
 
 # A Game is the primary class that controls the flow of the game
 # It has 2 players, a board, and keeps track of who is the current player and the current turn
@@ -220,16 +217,19 @@ class Game:
             print("Attempted to play a follower when the board is full")
             return
 
-        # Make sure that we have the PP to play the follower/sprll
+        # Make sure that we have the PP to play the follower/spell
         if len(self.activePlayer.hand) == 0 or (self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].cost):
             print(action)
             print("Attempted to play a card that costs more than our current PP")
             self.printGameState()
             input("")
             return
-
+        
         cardToPlay = self.activePlayer.hand.pop(action[1][0])
-        cardToPlay.play(self, currPlayer)
+        if (cardToPlay.numTargets == 0):
+            cardToPlay.play(self, currPlayer)
+        else:
+            cardToPlay.play(self, currPlayer, action[1][1:]) 
 
     def endTurn(self):
         # Allow all followers to attack again
@@ -333,7 +333,15 @@ class Game:
         currIndex = 0
         for card in self.activePlayer.hand:
             if self.activePlayer.currPP >= card.cost and len(self.board.fullBoard[allyBoard]) < 5:
-                moves.append([PLAY_ACTION, [currIndex]])
+                if (card.numTargets == 0):
+                    moves.append([PLAY_ACTION, [currIndex]])
+                # For now we only support battlecries that have a single target
+                elif (card.numEnemyFollowerTargets == 1):
+                    for targetIndex in range(len(self.board.fullBoard[(allyBoard+1) % 2])):
+                        moves.append([PLAY_ACTION, [currIndex, targetIndex]])
+                elif (card.numAllyFollowerTargets == 1):
+                    for targetIndex in range(len(self.board.fullBoard[allyBoard])):
+                        moves.append([PLAY_ACTION, [currIndex, targetIndex]])
             currIndex += 1
 
         currIndex = 0

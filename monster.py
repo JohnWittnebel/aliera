@@ -16,9 +16,15 @@ class Monster(Card):
         self.hasRush = 0
         self.canAttack = 0
         self.hasWard = 0
+        self.hasDrain = 0
         self.hasAttacked = 0
         self.turnPlayed = 0
         self.canAttackFace = 1
+        
+        # Battlecry targets
+        self.numTargets = 0
+
+        # Evo targets
         self.evoEnemyFollowerTargets = 0
         self.evoAllyFollowerTargets = 0
 
@@ -28,7 +34,7 @@ class Monster(Card):
         Card.__init__(self, cost, monsterName)
 
     #@abstractmethod
-    def play(self, board, currPlayer):
+    def play(self, board, currPlayer, *args, **kwargs):
         genericPlay(self, board, currPlayer)
   
     #@abstractmethod
@@ -41,6 +47,12 @@ class Monster(Card):
     #@classmethod
     def evolve(self, gameState, *args, **kwargs):
         genericEvolve(self, gameState)
-
+    
+    # called to actually destroy, activate LW, etc.
     def destroy(self, gameState, index, side, *args, **kwargs):
+        genericDestroy(gameState, index, side)
+
+    # called when an effect attempts to destroy (bane, destroy follower, etc.). Might not actually
+    # destroy if the target has protection
+    def effectDestroy(self, gameState, index, side, *args, **kwargs):
         genericDestroy(gameState, index, side)

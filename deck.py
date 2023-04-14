@@ -1,6 +1,8 @@
 import random
 import copy
-from cardArchive import *
+import sys
+sys.path.insert(0, './cardArchive/')
+from cardsSimple import *
 
 class Deck:
   def __init__(self, cards):
@@ -37,6 +39,6 @@ class Deck:
           self.cards.append(Maiden())
           self.cards.append(Fighter())
           self.cards.append(Mercenary())
-          self.cards.append(Goliath())
+          self.cards.append(DragonBreath())
           self.cards.append(DeathDragon())
       self.shuffle()

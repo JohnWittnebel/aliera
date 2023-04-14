@@ -1,6 +1,8 @@
 from deck import Deck
-from cardArchive import Fighter
-from cardArchive import Goblin, Mercenary, Goliath, DeathDragon, Mercenary
+import sys
+sys.path.insert(0, './cardArchive/')
+from cardsSimple import Fighter
+from cardsSimple import Goblin, Mercenary, Goliath, DeathDragon, Mercenary
 
 deck2 = Deck([Fighter(), 
               Fighter(), 

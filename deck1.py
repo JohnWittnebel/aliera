@@ -1,5 +1,9 @@
+import sys
+sys.path.insert(0, './cardArchive/')
+
+
 from deck import Deck
-from cardArchive import *
+from cardsSimple import *
 
 deck1 = Deck([Fighter(), 
               Fighter(), 

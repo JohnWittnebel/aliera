@@ -1,48 +1,20 @@
+import sys
+sys.path.insert(0, '..')
+
 from monster import Monster
 from spell import Spell
 from cardGeneric import *
 from constants import *
 
-class Reaper(Monster):
+class Nightmare(Monster):
     def __init__(self):
-        monsterName = "Reaper"
-        cost = 0
-        monsterAttack = 0
-        monsterMaxHP = 0
-        monsterCurrHP = 0
+        monsterName = "Nightmare"
+        cost = 2
+        monsterAttack = 2
+        monsterMaxHP = 2
+        monsterCurrHP = 2
         Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
-
-class DragonWarrior(Monster):
-    def __init__(self):
-        monsterName = "Dragon Warrior"
-        cost = 4
-        monsterAttack = 3
-        monsterMaxHP = 4
-        monsterCurrHP = 4
-        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
-        self.encoding = MaidenVal
-
-        self.evoEnemyTargets = 1
-
-        def evolve(self, gameState, targets):
-            self.genericEvolve(gameState)
-            self.monsterMaxHP -= 1
-            self.monsterCurrHP -= 1
-            self.monsterCurrAttack -= 1
-            
-            enemyPlayer = (gameState.activePlayer.playerNum + 1) % 2
-            gameState.fullBoard[enemyPlayer][targets[0]].takeEffectDamage(3)
-
-
-class DeathDragon(Monster):
-    def __init__(self):
-        monsterName = "Death Dragon"
-        cost = 4
-        monsterAttack = 4
-        monsterMaxHP = 4
-        monsterCurrHP = 4
-        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
-        self.encoding = DeathDragonVal
+        self.encoding = NightmareVal
 
 class Maiden(Monster):
     def __init__(self):  
@@ -114,7 +86,12 @@ class DragonBreath(Spell):
         allyFollowerTargets = 0
         enemyFollowerTargets = 1
         Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
-
+        self.encoding = 2
         
-    def play(self, gameState, side):
+    def play(self, gameState, currSide, targets):
+        damage = 2
+        enemySide = (currSide + 1) % 2
+        targetIndex = targets[0]
+        gameState.board.fullBoard[enemySide][targetIndex].takeEffectDamage(gameState, damage, targetIndex, enemySide)
+        gameState.activePlayer.currPP -= self.cost
         return

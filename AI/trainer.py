@@ -66,7 +66,7 @@ print(nn.CrossEntropyLoss()(predictedOutput, actOutput))
 training_data = PositionDataset("./trainingData")
 loader = DataLoader(training_data, batch_size=16, shuffle=True)
 model = NeuralNetwork().to("cpu")
-model.load_state_dict(torch.load("./botModels/gen1.bot"))
+model.load_state_dict(torch.load("./botModels/gen3.bot"))
 model.eval()
 
 #a,b,c,d = next(iter(loader))
@@ -79,7 +79,7 @@ def AZLossFcn(predMCTS, actMCTS, predRes, actRes):
     loss2 = nn.MSELoss()(predRes, actRes.unsqueeze(dim=1))
     return (loss1 + loss2).sum()
 
-n_epochs = 1
+n_epochs = 400
 for epoch in range(n_epochs):
     #for name, param in model.named_parameters():
     #    if param.requires_grad:
@@ -89,22 +89,11 @@ for epoch in range(n_epochs):
     NNpred, NNvaluation = model(gamePos)
     myCoolTensor = torch.where(mask, NNpred, float('-inf'))
     predictedOutput = nn.Softmax(dim=1)(myCoolTensor)
-    #loss = nn.MSELoss()(NNvaluation, train_result.to(dtype = torch.float32).unsqueeze(dim=1))
-    #loss = nn.CrossEntropyLoss()(NNpred, train_MCTS)
     loss = AZLossFcn(predictedOutput, train_MCTS, NNvaluation, train_result.float())
+    
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.2)
+    optimizer.zero_grad()
     loss.backward()
-    optimizer = torch.optim.SGD(model.parameters(), lr=2.0, momentum=0.9)
     optimizer.step()
 
-    for name, param in model.named_parameters():
-        if param.requires_grad:
-            print(name, param.data)
-    #print(model.weight.grad)
-    #print(y_pred2)
-    
-
-    #print(nn.CrossEntropyLoss()(y_pred2[0],y[0]))
-        #loss = loss_fn(y_pred, y_batch)
-        #optimizer.zero_grad()
-        #loss.backward()
-        #optimizer.step()
+torch.save(model.state_dict(), "./botModels/gen4.bot")

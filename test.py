@@ -36,7 +36,6 @@ def singleGame(botGame, currPosSave):
   while (x.winner == 0):
 
     x.printGameState()
-    #inputArr = y.gameDataToNN(x)
     
     print("Input action:")
     print("1 = play card")
@@ -44,7 +43,7 @@ def singleGame(botGame, currPosSave):
     print("3 = evolve")
     print("4 = end turn")
 
-    if (botTurn == 1):
+    if (botGame == 1):
         myTree.runSimulations(50)
         myTree.printTree()
         
@@ -61,7 +60,30 @@ def singleGame(botGame, currPosSave):
         myTree.cleanTreeExceptAction(bestMove)
         myTree = bestChild
         x.initiateAction(bestMove)
-        
+    
+    elif (botTurn == 1):
+        model1 = NeuralNetwork().to("cpu")
+        model1.load_state_dict(torch.load("./AI/botModels/gen4.bot"))
+        model1.eval()
+        pos = y.gameDataToNN(x)
+        z = pos.unsqueeze(dim=0)
+        moves = x.generateLegalMoves()
+        pred = model1(z)
+
+        moveProbs = y.normalizedVector(pred[0][0],x)[0]
+        currIndex = 0
+        maxIndex = 0
+        maxProb = 0
+        for _ in range(len(moves)):
+            if maxProb < moveProbs[currIndex]:
+                maxIndex = currIndex
+                maxProb = moveProbs[currIndex]
+            currIndex += 1
+        x.initiateAction(moves[maxIndex])
+
+        if (moves[maxIndex] == [4]):
+            botTurn = 0
+
     else:
         #mytest = model(torch.flatten(inputArr))
         #mytest = y.normalizedVector(mytest[0], x)
@@ -76,6 +98,7 @@ def singleGame(botGame, currPosSave):
         #print(ALLMOVES[maxIndex])
         print(x.generateLegalMoves())
         uinput1 = input("")
+
         if (uinput1 == "1"):
             print("input card:")
             uinput2 = int(input(""))
@@ -93,72 +116,91 @@ def singleGame(botGame, currPosSave):
             x.initiateAction([int(uinput1), [uinput2, uinput3]])
         if (uinput1 == "4"):
             x.endTurn()
-        #    botTurn = 1
+            botTurn = 1
             continue
         if (uinput1 == "5"):
             myTree = AZMCTS(x)
             #myTree.initialScan()
-            myTree.runSimulations(400)
+            myTree.runSimulations(50)
             myTree.printTree()
             input("")
 
-  currPosSave = myTree.recordResults(x.winner, currPosSave)
-  #retVal = x.winner
-  return currPosSave
+  return
+  #currPosSave = myTree.recordResults(x.winner, currPosSave)
+  #return currPosSave
 
 
-#with open ("AI/bots/P2BOT6.bot", 'rb') as fp:
-#    test3 = pickle.load(fp)
-#    test4 = pickle.load(fp)
-#    z2 = Bot(test3, test4)
-#singleGame(0,0,z2)
+def botGenerationTest(bot1, bot2):  
+    x = Game(1)
+    x.gameStart()
+    y = Transformer()
 
-# Lets do 3 generations for now, might take some time
+    while (x.winner == 0):
+
+        x.printGameState()
+    
+        print("Input action:")
+        print("1 = play card")
+        print("2 = attack")
+        print("3 = evolve")
+        print("4 = end turn")
+
+        pos = y.gameDataToNN(x)
+        z = pos.unsqueeze(dim=0)
+        moves = x.generateLegalMoves()
+        if (x.activePlayer.playerNum == 1):    
+            pred = bot1(z)
+        else:
+            pred = bot2(z) 
+
+        moveProbs = y.normalizedVector(pred[0][0],x)[0]
+        print(moveProbs)
+        currIndex = 0
+        maxIndex = 0
+        maxProb = 0
+        for _ in range(len(moves)):
+            if maxProb < moveProbs[currIndex]:
+                maxIndex = currIndex
+                maxProb = moveProbs[currIndex]
+            currIndex += 1
+        x.initiateAction(moves[maxIndex])
+
+    return x.winner
+
+
+# FOR GENERATING TRAINING DATA
+currPosSave = 8089
+#for _ in range(100):
+currPosSave = singleGame(0,currPosSave)
+
+# FOR testing bot vs new gen
 """
-for genRound in range(30):
-    tourdata = TourData(30)
-    tourdata.reset()
+model1 = NeuralNetwork().to("cpu")
+model1.load_state_dict(torch.load("./AI/botModels/gen3.bot"))
+model1.eval()
 
-    for i in range(30):
-        for j in range(30):
-            with open ("AI/bots/P1BOT" + str(i) + ".bot", 'rb') as fp:
-                test1 = pickle.load(fp)
-                test2 = pickle.load(fp)
-                z = Bot(test1, test2)
-            with open ("AI/bots/P2BOT" + str(j) + ".bot", 'rb') as fp:
-                test3 = pickle.load(fp)
-                test4 = pickle.load(fp)
-                z2 = Bot(test3, test4)
-            goodnessAchieved = singleGame(1, z, z2)
-            tourdata.p1Wins[i] += goodnessAchieved[0]
-            tourdata.p2Wins[j] += goodnessAchieved[1]
+model2 = NeuralNetwork().to("cpu")
+model2.load_state_dict(torch.load("./AI/botModels/gen4.bot"))
+model2.eval()
 
-            #if (winningPlayer == 2):
-            #    tourdata.p2Wins[j] += 1
-            #else:
-            #    tourdata.p1Wins[i] += 1
+result = [0,0]
+player1wins = 0
+for _ in range(100):
+    winner = botGenerationTest(model1, model2)
+    if winner == 1:
+        result[0] += 1
+        player1wins += 1
+    else:
+        result[1] += 1
 
-    f = open("stats.txt", "a")
-    f.write(str(tourdata.p1Wins))
-    f.write("\n")
-    f.write(str(tourdata.p2Wins))
-    f.write("\n")
-    f.close()
+for _ in range(100):
+    winner = botGenerationTest(model2, model1)
+    if winner == 1:
+        result[1] += 1
+        player1wins += 1
+    else:
+        result[0] += 1
 
-    evolve(10, 30, 1, tourdata.p1Wins)
-    evolve(10, 30, 2, tourdata.p2Wins)
-
+print(result)
+print(player1wins)
 """
-#with open ("AI/bots/P1BOT0.bot", 'rb') as fp:
-#    test1 = pickle.load(fp)
-#    test2 = pickle.load(fp)
-#    z = Bot(test1, test2)
-#with open ("AI/bots/P2BOT0.bot", 'rb') as fp:
-#    test3 = pickle.load(fp)
-#    test4 = pickle.load(fp)
-#    z2 = Bot(test3, test4
-
-currPosSave = 45
-for _ in range(1):
-    currPosSave = singleGame(1,currPosSave)
-

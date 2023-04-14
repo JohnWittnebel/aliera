@@ -28,7 +28,7 @@ class NeuralNetwork(nn.Module):
         logits = self.linear_relu_stack(x)
         pred, valuation = logits.split(70,dim=1)
         valuation = nn.Sigmoid()(valuation)
-        pred = nn.Softmax(dim=1)(pred)
+        #pred = nn.Softmax(dim=1)(pred)
         return pred, valuation
 
 

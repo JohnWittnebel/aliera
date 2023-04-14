@@ -18,7 +18,7 @@ sys.path.insert(0, './..')
 
 #TODO: the training file should handle this
 currNN = NeuralNetwork()
-currNN.load_state_dict(torch.load("./AI/botModels/gen1.bot"))
+currNN.load_state_dict(torch.load("./AI/botModels/gen3.bot"))
 currNN.eval()
 GAMENUM = 1
 POSNUM = 1
@@ -50,8 +50,10 @@ class AZMCTS():
     # so we do it manually here
     def rootInit(self):
         nnInput = transformer.gameDataToNN(self.gameState)
+        nnInput = nnInput.unsqueeze(dim=0)
             
-        logits = currNN(nnInput)
+        logits = currNN(nnInput)[0]
+        print(logits)
         probabilitiesNN, mask = transformer.normalizedVector(logits[0], self.gameState)
         self.mask = mask
         self.setProbabilities(probabilitiesNN)
@@ -114,12 +116,16 @@ class AZMCTS():
                     return 0
             # game is still in progress, return NN eval
             nnInput = transformer.gameDataToNN(self.gameState)
+            nnInput = nnInput.unsqueeze(dim=0)
             
             logits = currNN(nnInput)
-            probabilitiesNN, mask = transformer.normalizedVector(logits[0], self.children[childIndex].gameState)
+            logitsProb = logits[0][0]
+            logitsValuation = logits[1][0]
+
+            probabilitiesNN, mask = transformer.normalizedVector(logitsProb, self.children[childIndex].gameState)
             self.children[childIndex].mask = mask
             self.children[childIndex].setProbabilities(probabilitiesNN)
-            return logits[1]
+            return logitsValuation
 
         return self.children[actionIndex].descendTree()
       
@@ -159,7 +165,7 @@ class AZMCTS():
         else:
             gameResult = 0
         condensedResult = [transformer.gameDataToNN(self.gameState), MCTSRes, self.mask, gameResult]
-        with open("./AI/trainingDataTemp/pos" + str(posnum) + ".pickle", "wb") as f:
+        with open("./AI/trainingData/pos" + str(posnum) + ".pickle", "wb") as f:
             pickle.dump(condensedResult, f)
 
         if (self.parent != None):

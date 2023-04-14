@@ -10,7 +10,7 @@ class PositionDataset(Dataset):
     def __init__(self, positionDir):
         self.positionDir = positionDir
         #TODO: generalize this PLS
-        self.numPos = 11090
+        self.numPos = 10965
 
     def __len__(self):
         return self.numPos
@@ -24,10 +24,12 @@ class PositionDataset(Dataset):
         # TODO positions where the opponent is already dead are currently not returning a mask because the game is over
         #      fix this
         if type(posData[2]) == int:
-            x = torch.tensor([])
-            for _ in range(69):
-                x.append(False)
-            x.append(True)
+            x = torch.zeros(70, dtype=bool)
+            for i in range(70):
+                if i==69:
+                    x[i] = True
+                else:
+                    x[i] = False
             return posData[0], torch.zeros(70), x, posData[3]
 
         # Code to get the test run MCTS output, this should be done during the test runs for the future

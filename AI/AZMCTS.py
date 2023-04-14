@@ -8,7 +8,7 @@ import copy
 import math
 import pickle
 import torch
-from transformer2 import Transformer
+from transformer import Transformer
 from bot import NeuralNetwork
 from mycopy import trueCopy
 

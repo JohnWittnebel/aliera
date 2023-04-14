@@ -13,7 +13,6 @@ import sys
 sys.path.insert(0, './AI/')
 
 from transformer import Transformer
-from bot import Bot
 from bot import NeuralNetwork
 from allmoves import ALLMOVES
 from AZMCTS import AZMCTS

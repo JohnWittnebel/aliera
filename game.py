@@ -18,12 +18,6 @@ from cardArchive import Goblin, Fighter
 
 # training variables
 TRAINING = 1
-PLAY_CARD_GOODNESS = 2
-ATTACK_GOODNESS = 30
-VALUE_TRADE_GOODNESS = 0
-ANTI_VALUE_TRADE_GOODNESS = 0
-WIN_ATTACK_GOODNESS = 1000
-PASS_GOODNESS = 0
 
 class Game:
     def __init__(self, player1, player2):
@@ -226,10 +220,10 @@ class Game:
             print("Attempted to play a follower when the board is full")
             return
 
-        # Make sure that we have the PP to play the follower
-        if len(self.activePlayer.hand) == 0 or (self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].monsterCost):
+        # Make sure that we have the PP to play the follower/sprll
+        if len(self.activePlayer.hand) == 0 or (self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].cost):
             print(action)
-            print("Attempted to play a follower that costs more than our current PP")
+            print("Attempted to play a card that costs more than our current PP")
             self.printGameState()
             input("")
             return
@@ -338,7 +332,7 @@ class Game:
         # Playing card from hand moves available
         currIndex = 0
         for card in self.activePlayer.hand:
-            if self.activePlayer.currPP >= card.monsterCost and len(self.board.fullBoard[allyBoard]) < 5:
+            if self.activePlayer.currPP >= card.cost and len(self.board.fullBoard[allyBoard]) < 5:
                 moves.append([PLAY_ACTION, [currIndex]])
             currIndex += 1
 
@@ -388,7 +382,7 @@ class Game:
             print("ERROR: Invalid action:")
             input(action)
 
-    # This will be used with our MCTS algorithm
+    # This is used for rollouts on a MCTS, but we dont actually do this with our AZ implementation
     def runToCompletion(self):
         while (self.winner == 0):
             moves = self.generateLegalMoves()

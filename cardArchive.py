@@ -6,20 +6,20 @@ from constants import *
 class Reaper(Monster):
     def __init__(self):
         monsterName = "Reaper"
-        monsterCost = 0
+        cost = 0
         monsterAttack = 0
         monsterMaxHP = 0
         monsterCurrHP = 0
-        Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
 
 class DragonWarrior(Monster):
     def __init__(self):
         monsterName = "Dragon Warrior"
-        monsterCost = 4
+        cost = 4
         monsterAttack = 3
         monsterMaxHP = 4
         monsterCurrHP = 4
-        Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
         self.encoding = MaidenVal
 
         self.evoEnemyTargets = 1
@@ -37,21 +37,21 @@ class DragonWarrior(Monster):
 class DeathDragon(Monster):
     def __init__(self):
         monsterName = "Death Dragon"
-        monsterCost = 4
+        cost = 4
         monsterAttack = 4
         monsterMaxHP = 4
         monsterCurrHP = 4
-        Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
         self.encoding = DeathDragonVal
 
 class Maiden(Monster):
     def __init__(self):  
         monsterName = "Maiden (W)"
-        monsterCost = 1
+        cost = 1
         monsterAttack = 1
         monsterMaxHP = 1
         monsterCurrHP = 1
-        Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
 
         self.hasWard = 1
         self.evoEnemyFollowerTargets = 1
@@ -70,41 +70,41 @@ class Maiden(Monster):
 class Goliath(Monster):
   def __init__(self):
     monsterName = "Goliath"
-    monsterCost = 4
+    cost = 4
     monsterAttack = 3
     monsterMaxHP = 4
     monsterCurrHP = 4
-    Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+    Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
     self.encoding = GoliathVal
 
 class Mercenary(Monster):
   def __init__(self):
     monsterName = "Mercenary"
-    monsterCost = 3
+    cost = 3
     monsterAttack = 3
     monsterMaxHP = 2
     monsterCurrHP = 2
-    Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+    Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
     self.encoding = MercVal
 
 class Goblin(Monster):
   def __init__(self):
     monsterName = "Goblin"
-    monsterCost = 1
+    cost = 1
     monsterAttack = 1
     monsterMaxHP = 2
     monsterCurrHP = 2
-    Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+    Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
     self.encoding = GoblinVal
 
 class Fighter(Monster):
   def __init__(self):
     monsterName = "Fighter"
-    monsterCost = 2
+    cost = 2
     monsterAttack = 2
     monsterMaxHP = 2
     monsterCurrHP = 2
-    Monster.__init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+    Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
     self.encoding = FighterVal
 
 class DragonBreath(Spell):
@@ -112,7 +112,9 @@ class DragonBreath(Spell):
         spellName = "Dragon's breath"
         spellCost = 1
         allyFollowerTargets = 0
-        enemyFollowerTargets = 0
+        enemyFollowerTargets = 1
         Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
 
         
+    def play(self, gameState, side):
+        return

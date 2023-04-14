@@ -2,8 +2,8 @@ from card import Card
 from cardGeneric import *
 
 class Monster(Card):
-    def __init__(self, monsterCost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName):
-        self.monsterCost = monsterCost
+    def __init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName):
+        self.cost = cost
         self.monsterCurrAttack = monsterAttack
         self.monsterMaxAttack = monsterAttack
         self.monsterMaxHP = monsterMaxHP
@@ -25,7 +25,7 @@ class Monster(Card):
         # This is set to true when a monster take damage or effect that will cause it to be destroyed
         # The Game will check this after every move and remove it from play if needed
         self.initiateDestroy = 0
-        Card.__init__(self, monsterCost, monsterName)
+        Card.__init__(self, cost, monsterName)
 
     #@abstractmethod
     def play(self, board, currPlayer):

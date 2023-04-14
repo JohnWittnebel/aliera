@@ -32,5 +32,5 @@ def genericEvolve(mons, gameState):
 def genericPlay(mons, gameState, currPlayer):
     mons.turnPlayed = gameState.currTurn
     gameState.board.fullBoard[currPlayer].append(mons)
-    gameState.activePlayer.currPP -= mons.monsterCost
+    gameState.activePlayer.currPP -= mons.cost
 

@@ -12,13 +12,10 @@ import cProfile
 import sys
 sys.path.insert(0, './AI/')
 
-from transformer2 import Transformer
+from transformer import Transformer
 from bot import Bot
 from bot import NeuralNetwork
-from tourData import TourData
-from evolve import evolve
 from allmoves import ALLMOVES
-from mcts import MCTS
 from AZMCTS import AZMCTS
 
 def singleGame(botGame, currPosSave):

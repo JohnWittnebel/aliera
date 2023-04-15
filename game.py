@@ -226,10 +226,13 @@ class Game:
             return
         
         cardToPlay = self.activePlayer.hand.pop(action[1][0])
+
+        self.activePlayer.leaderEffects.activateOnPlayEffects(self, cardToPlay)
+
         if (cardToPlay.numTargets == 0):
             cardToPlay.play(self, currPlayer)
         else:
-            cardToPlay.play(self, currPlayer, action[1][1:]) 
+            cardToPlay.play(self, currPlayer, action[1][1:])
 
     def endTurn(self):
         # Allow all followers to attack again

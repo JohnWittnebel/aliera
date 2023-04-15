@@ -20,6 +20,16 @@ class Monster(Card):
         self.hasAttacked = 0
         self.turnPlayed = 0
         self.canAttackFace = 1
+
+        # Effect Arrays
+        self.fanfareEffects = []
+        self.LWEffects = []
+        self.strikeEffects = []
+        self.clashEffects = []
+        self.onAllyEvoEffects = []
+        self.onPlayEffects = []  # for when an ally follower is played
+
+        self.traits = []
         
         # Battlecry targets
         self.numTargets = 0

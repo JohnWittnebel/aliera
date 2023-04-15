@@ -6,7 +6,9 @@ def genericTakeDamage(mons, gameState, damage, index, side):
         mons.destroy(gameState, index, side)
 
 def genericDestroy(gameState, index, side):
-    gameState.board.fullBoard[side].pop(index)
+    cardDestroyed = gameState.board.fullBoard[side].pop(index)
+    for func in cardDestroyed.LWEffects:
+        func(gameState, side)
 
 def genericEvolve(mons, gameState):
     if (mons.isEvolved):

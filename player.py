@@ -1,5 +1,6 @@
 from deck import Deck
 from constants import MAX_HAND_SIZE, DEFAULT_MAX_HP, DEFAULT_MAX_PP
+from leaderEffect import *
 
 # A Player has an associated deck, that is a Deck type
 # A Player has a hand, and that is simply an array of Cards, we can specify a starting hand if we wish
@@ -24,6 +25,7 @@ class Player:
         self.currPP = DEFAULT_MAX_PP
         self.maxPP = DEFAULT_MAX_PP
         self.canEvolve = 0
+        self.leaderEffects = LeaderEffectManager()
 
     def draw(self, count = 1):
         for _ in range(count):
@@ -57,4 +59,9 @@ class Player:
             printString += " [" + str(count) + "], "
             count += 1
         print(printString)
+
+    def takeEffectDamage(self, gameState, val):
+        self.currHP -= val
+        if self.currHP <= 0:
+            gameState.endGame((self.playerNum + 1) % 2)
       

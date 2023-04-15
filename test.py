@@ -27,6 +27,7 @@ def singleGame(botGame, currPosSave):
   
   myTree = AZMCTS(x)
   myTree.rootInit()
+  actionRecord = []
   while (x.winner == 0):
 
     x.printGameState()
@@ -131,9 +132,8 @@ def singleGame(botGame, currPosSave):
             myTree.printTree()
             input("")
 
-  return
-  #currPosSave = myTree.recordResults(x.winner, currPosSave)
-  #return currPosSave
+  currPosSave = myTree.recordResults(x.winner, currPosSave)
+  return currPosSave
 
 
 def botGenerationTest(bot1, bot2):  
@@ -175,18 +175,18 @@ def botGenerationTest(bot1, bot2):
 
 
 # FOR GENERATING TRAINING DATA
-currPosSave = 8089
+currPosSave = 0
 #for _ in range(100):
 currPosSave = singleGame(0,currPosSave)
 
 # FOR testing bot vs new gen
 """
 model1 = NeuralNetwork().to("cpu")
-model1.load_state_dict(torch.load("./AI/botModels/gen3.bot"))
+model1.load_state_dict(torch.load("./AI/botModels/test.bot"))
 model1.eval()
 
 model2 = NeuralNetwork().to("cpu")
-model2.load_state_dict(torch.load("./AI/botModels/gen4.bot"))
+model2.load_state_dict(torch.load("./AI/botModels/test2.bot"))
 model2.eval()
 
 result = [0,0]

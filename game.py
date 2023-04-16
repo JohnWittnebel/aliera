@@ -56,6 +56,7 @@ class Game:
         self.currTurn = 1
         self.winner = 0
         self.winString = ""
+        self.queue = []
 
     def printGameState(self):
         os.system('clear')
@@ -103,19 +104,11 @@ class Game:
         else:
             evolveTarget.evolve(self)
 
-    # TODO: this might become very bloated in the future when we start implementing clash, on-attack effects, LW, etc.
-    #       try to make this function as decoupled and fragmentable as possible
     def initiateAttack(self, allyMonster, enemyMonster):
     
         # First, figure out what side is attacking
-        attackingPlayer = 0
-        defendingPlayer = 1
-        if self.activePlayer == self.player1:
-            attackingPlayer = 0
-            defendingPlayer = 1
-        else:
-            attackingPlayer = 1
-            defendingPlayer = 0
+        attackingPlayer = self.activePlayer.playerNum - 1
+        defendingPlayer = self.activePlayer.playerNum % 2
 
         # VALID TARGETS CHECKING
         # Make sure that the allyMonster attacking a valid target, and that the enemyMonster is a valid target
@@ -156,32 +149,20 @@ class Game:
         self.board.fullBoard[attackingPlayer][allyMonster].hasAttacked = 1
 
         # For when the face is targeted, simply do damage to face. At some point, this will become more complex...
+        # TODO: make this a monster leader strike
         if (enemyMonster == ENEMY_FACE):
             if (attackingPlayer == 0):
-                self.player2.currHP -= self.board.player1side[allyMonster].monsterCurrAttack
-                if (self.player2.currHP <= 0):
-                    self.winString = "HP reduced to 0"
-                    self.endgame(self.player1)
+                self.player2.takeCombatDamage(self, self.board.player1side[allyMonster].currAttack)
             else:
-                self.player1.currHP -= self.board.player2side[allyMonster].monsterCurrAttack
-                if (self.player1.currHP <= 0):
-                    self.winString = "HP reduced to 0"
-                    self.endgame(self.player2)
+                self.player1.takeCombatDamage(self, self.board.player2side[allyMonster].currAttack)
 
         # otherwise, we are attacking a monster, deal damage to each other
         # TODO make this less bad/redundant
+        # we need to make a generic follower strike function
         else:
-            if (attackingPlayer == 0):
-                monsterDamage1 = self.board.player1side[allyMonster].monsterCurrAttack
-                monsterDamage2 = self.board.player2side[enemyMonster].monsterCurrAttack
-                self.board.player2side[enemyMonster].takeCombatDamage(self, monsterDamage1, enemyMonster, 1)
-                self.board.player1side[allyMonster].takeCombatDamage(self, monsterDamage2, allyMonster, 0)
-                
-            else:
-                monsterDamage1 = self.board.player2side[allyMonster].monsterCurrAttack
-                monsterDamage2 = self.board.player1side[enemyMonster].monsterCurrAttack
-                self.board.player1side[enemyMonster].takeCombatDamage(self, monsterDamage1, enemyMonster, 0)
-                self.board.player2side[allyMonster].takeCombatDamage(self, monsterDamage2, allyMonster, 1)
+            attackingMonster = self.board.fullBoard[attackingPlayer][allyMonster]
+            defMonster = self.board.fullBoard[defendingPlayer][enemyMonster]
+            attackingMonster.followerStrike(self, allyMonster, attackingPlayer, defMonster, enemyMonster)
 
     def endgame(self, winner):
         if winner == self.player1:
@@ -201,16 +182,11 @@ class Game:
 
         card = self.activePlayer.hand[action[1][0]]
 
-        # Check if we are enhancing/acceling
+        # Check if we are acceling
         if (isinstance(card, Monster) and self.activePlayer.currPP < card.cost and card.canAccel and self.activePlayer.currPP >= card.accelCost):
             accelerating = True
-            enhancing = False
-        elif (isinstance(card, Monster) and card.canEnhance and self.activePlayer.currPP >= card.enhanceCost):
-            accelerating = False
-            enhancing = True
         else:
             accelerating = False
-            enhancing = False
 
         # Check that board is not full
         if (len(self.board.fullBoard[currPlayer]) == MAX_BOARD_SIZE and (not isinstance(card,Spell)) and (not accelerating)):
@@ -225,8 +201,6 @@ class Game:
         cardToPlay = self.activePlayer.hand.pop(action[1][0])
         if accelerating:
             cardToPlay = cardToPlay.accelCard
-        elif enhancing:
-            cardToPlay = cardToPlay.enhanceCard
 
         # TODO this should actually be moved
         self.activePlayer.leaderEffects.activateOnPlayEffects(self, cardToPlay)
@@ -237,6 +211,9 @@ class Game:
             cardToPlay.play(self, currPlayer, action[1][1:])
 
     def endTurn(self):
+        # Activate end of turn leader effects
+        # Activate end of turn follower effects
+
         # Allow all followers to attack again
         for mons in self.board.player1side:
             mons.canAttack = 1
@@ -313,17 +290,20 @@ class Game:
         else:
             targetPlayer = 0
 
+        tempTargets = []
         # Ward check
         wards = []
         wardIndex = 0
         for follower in self.board.fullBoard[targetPlayer]:
             if follower.hasWard:
                 wards.append(wardIndex)
+            if follower.isAttackable:
+                tempTargets.append(wardIndex)
             wardIndex += 1
-        
+  
         if wards == []:
             targets.append(-1)
-            targets += range(len(self.board.fullBoard[targetPlayer]))
+            targets += tempTargets
         else:
             targets = wards
 
@@ -350,33 +330,24 @@ class Game:
         # Playing card from hand moves available
         currIndex = 0
         for card in self.activePlayer.hand:
-            # Check for accel/enhance
+            # Check for accel
             if (isinstance(card, Monster) and self.activePlayer.currPP < card.cost and card.canAccel and self.activePlayer.currPP >= card.accelCost):
                 accelerating = True
-                enhancing = False
-            elif (isinstance(card, Monster) and card.canEnhance and self.activePlayer.currPP >= card.enhanceCost):
-                accelerating = False
-                enhancing = True
             else:
                 accelerating = False
-                enhancing = False
              
-            # We are enhancing
-            if (enhancing and ((len(self.board.fullBoard[allyBoard]) < 5) or isinstance(card,Spell))):
-                self.addLegalMovesForCard(card.enhanceCard, moves, currIndex)
-
             # We are accelerating
             if (accelerating):
                 self.addLegalMovesForCard(card.accelCard, moves, currIndex)
 
-            # Not enhancing/acceling, but there is either room for the card, or it is a spell
+            # Not acceling, but there is either room for the card, or it is a spell
             if self.activePlayer.currPP >= card.cost and (len(self.board.fullBoard[allyBoard]) < 5 or isinstance(card,Spell)):
                 self.addLegalMovesForCard(card, moves, currIndex)
 
             currIndex += 1
 
-        currIndex = 0
         # Attacking moves available
+        currIndex = 0
         possibleTargets = self.attackableTargets()
         for card in self.board.fullBoard[allyBoard]:
             if (card.canAttack):
@@ -429,4 +400,5 @@ class Game:
             #print(moves[selection])
             self.initiateAction(moves[selection])
         return self.winner
+
 

@@ -2,12 +2,12 @@ from card import Card
 from cardGeneric import *
 
 class Monster(Card):
-    def __init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName):
+    def __init__(self, cost, monsterAttack, monsterMaxHP, currHP, monsterName):
         self.cost = cost
-        self.monsterCurrAttack = monsterAttack
+        self.currAttack = monsterAttack
         self.monsterMaxAttack = monsterAttack
         self.monsterMaxHP = monsterMaxHP
-        self.monsterCurrHP = monsterCurrHP
+        self.currHP = currHP
 
         # These are various properties that a monster can have, maybe make this a bit more elegant
         self.canEvolve = 1
@@ -20,16 +20,17 @@ class Monster(Card):
         self.hasAttacked = 0
         self.turnPlayed = 0
         self.canAttackFace = 1
+        self.isAttackable = True
 
         #Enhance/accel
         self.canEnhance = False
         self.canAccel = False
         self.accelCost = 0
-        self.enhanceCost = 0
 
         # Effect Arrays
         self.fanfareEffects = []
         self.LWEffects = []
+        self.followerStrikeEffects = []
         self.strikeEffects = []
         self.clashEffects = []
         self.onAllyEvoEffects = []
@@ -71,3 +72,16 @@ class Monster(Card):
     # destroy if the target has protection
     def effectDestroy(self, gameState, index, side, *args, **kwargs):
         genericDestroy(gameState, index, side)
+
+    def followerStrike(self, gameState, allyIndex, activeSide, enemyMonster, enemyIndex, *args, **kwargs):
+        for func in self.strikeEffects:
+            func(gameState, activeSide)
+        for func in self.clashEffects:
+            func(gameState, activeSide, enemyMonster)
+        for func in self.followerStrikeEffects:
+            func(gameState, activeSide, enemyMonster)
+        for func in enemyMonster.clashEffects:
+            func(gameState, (activeSide+1)%2, self)
+        combatDamageToTake = enemyMonster.currAttack
+        enemyMonster.takeCombatDamage(gameState, self.currAttack, enemyIndex, (activeSide+1)%2)
+        self.takeCombatDamage(gameState, combatDamageToTake, allyIndex, activeSide)

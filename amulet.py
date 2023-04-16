@@ -10,6 +10,7 @@ class Amulet(Card):
         self.numTargets = self.numAllyFollowerTargets + self.numEnemyFollowerTargets
         self.isCountdown = isCountdown
         self.countdown = countdown
+        self.isAttackable = False
 
         # Effect Arrays
         self.fanfareEffects = []

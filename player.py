@@ -60,8 +60,13 @@ class Player:
             count += 1
         print(printString)
 
+    def takeCombatDamage(self, gameState, val):
+        self.currHP -= val
+        if self.currHP <= 0:
+            gameState.endgame((self.playerNum + 1) % 2)
+
     def takeEffectDamage(self, gameState, val):
         self.currHP -= val
         if self.currHP <= 0:
-            gameState.endGame((self.playerNum + 1) % 2)
+            gameState.endgame((self.playerNum + 1) % 2)
       

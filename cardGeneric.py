@@ -1,8 +1,8 @@
 # For generic card functions
 
 def genericTakeDamage(mons, gameState, damage, index, side):
-    mons.monsterCurrHP -= damage
-    if (mons.monsterCurrHP <= 0):
+    mons.currHP -= damage
+    if (mons.currHP <= 0):
         mons.destroy(gameState, index, side)
 
 def genericDestroy(gameState, index, side):
@@ -15,10 +15,10 @@ def genericEvolve(mons, gameState):
         print("ERROR: monster is already evolved")
         return
         
-    mons.monsterCurrAttack += 2
+    mons.currAttack += 2
     mons.monsterMaxAttack += 2
     mons.monsterMaxHP += 2
-    mons.monsterCurrHP += 2
+    mons.currHP += 2
     mons.name += "(E)"
 
     mons.canEvolve = 0

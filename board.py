@@ -21,7 +21,7 @@ class Board:
           attackStr = "[X]"
       else:
           attackStr = "[ ]"
-      playerSideString += item.name + " (" + str(item.monsterCurrAttack) + "/" + str(item.monsterCurrHP) + ") " + attackStr + " [" + str(count) + "], " 
+      playerSideString += item.name + " (" + str(item.currAttack) + "/" + str(item.currHP) + ") " + attackStr + " [" + str(count) + "], " 
       count += 1
     print(playerSideString)
     playerSideString = ""
@@ -31,7 +31,7 @@ class Board:
           attackStr = "[X]"
       else:
           attackStr = "[ ]"
-      playerSideString += item.name + " (" + str(item.monsterCurrAttack) + "/" + str(item.monsterCurrHP) + ") " + attackStr + " [" + str(count) + "], "
+      playerSideString += item.name + " (" + str(item.currAttack) + "/" + str(item.currHP) + ") " + attackStr + " [" + str(count) + "], "
       count += 1
     print(playerSideString)
  

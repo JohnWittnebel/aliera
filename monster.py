@@ -21,6 +21,12 @@ class Monster(Card):
         self.turnPlayed = 0
         self.canAttackFace = 1
 
+        #Enhance/accel
+        self.canEnhance = False
+        self.canAccel = False
+        self.accelCost = 0
+        self.enhanceCost = 0
+
         # Effect Arrays
         self.fanfareEffects = []
         self.LWEffects = []
@@ -28,6 +34,8 @@ class Monster(Card):
         self.clashEffects = []
         self.onAllyEvoEffects = []
         self.onPlayEffects = []  # for when an ally follower is played
+        self.turnEndEffects = []
+        self.turnStartEffects = []
 
         self.traits = []
         
@@ -38,9 +46,6 @@ class Monster(Card):
         self.evoEnemyFollowerTargets = 0
         self.evoAllyFollowerTargets = 0
 
-        # This is set to true when a monster take damage or effect that will cause it to be destroyed
-        # The Game will check this after every move and remove it from play if needed
-        self.initiateDestroy = 0
         Card.__init__(self, cost, monsterName)
 
     #@abstractmethod

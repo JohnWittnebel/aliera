@@ -1,6 +1,9 @@
 import os
 from board import Board
 from player import Player
+from spell import Spell
+from monster import Monster
+from amulet import Amulet
 from constants import *
 from deck import Deck
 import copy
@@ -196,21 +199,36 @@ class Game:
         # First, figure out what side is playing cards
         currPlayer = self.activePlayer.playerNum - 1
 
+        card = self.activePlayer.hand[action[1][0]]
+
+        # Check if we are enhancing/acceling
+        if (isinstance(card, Monster) and self.activePlayer.currPP < card.cost and card.canAccel and self.activePlayer.currPP >= card.accelCost):
+            accelerating = True
+            enhancing = False
+        elif (isinstance(card, Monster) and card.canEnhance and self.activePlayer.currPP >= card.enhanceCost):
+            accelerating = False
+            enhancing = True
+        else:
+            accelerating = False
+            enhancing = False
+
         # Check that board is not full
-        if (len(self.board.fullBoard[currPlayer]) == MAX_BOARD_SIZE):
+        if (len(self.board.fullBoard[currPlayer]) == MAX_BOARD_SIZE and (not isinstance(card,Spell)) and (not accelerating)):
             print("Attempted to play a follower when the board is full")
             return
 
         # Make sure that we have the PP to play the follower/spell
-        if len(self.activePlayer.hand) == 0 or (self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].cost):
-            print(action)
+        if self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].cost and not accelerating:
             print("Attempted to play a card that costs more than our current PP")
-            self.printGameState()
-            input("")
             return
         
         cardToPlay = self.activePlayer.hand.pop(action[1][0])
+        if accelerating:
+            cardToPlay = cardToPlay.accelCard
+        elif enhancing:
+            cardToPlay = cardToPlay.enhanceCard
 
+        # TODO this should actually be moved
         self.activePlayer.leaderEffects.activateOnPlayEffects(self, cardToPlay)
 
         if (cardToPlay.numTargets == 0):
@@ -311,6 +329,19 @@ class Game:
 
         return targets
 
+    # Helper function for generating legal moves for playing cards
+    def addLegalMovesForCard(self, card, moves, currIndex):
+        allyBoard = self.activePlayer.playerNum - 1
+        if (card.numTargets == 0):
+            moves.append([PLAY_ACTION, [currIndex]])
+            # For now we only support battlecries that have a single target
+        elif (card.numEnemyFollowerTargets == 1):
+            for targetIndex in range(len(self.board.fullBoard[(allyBoard+1) % 2])):
+                moves.append([PLAY_ACTION, [currIndex, targetIndex]])
+        elif (card.numAllyFollowerTargets == 1):
+            for targetIndex in range(len(self.board.fullBoard[allyBoard])):
+                 moves.append([PLAY_ACTION, [currIndex, targetIndex]])
+
     def generateLegalMoves(self):
         moves = []
 
@@ -319,16 +350,29 @@ class Game:
         # Playing card from hand moves available
         currIndex = 0
         for card in self.activePlayer.hand:
-            if self.activePlayer.currPP >= card.cost and len(self.board.fullBoard[allyBoard]) < 5:
-                if (card.numTargets == 0):
-                    moves.append([PLAY_ACTION, [currIndex]])
-                # For now we only support battlecries that have a single target
-                elif (card.numEnemyFollowerTargets == 1):
-                    for targetIndex in range(len(self.board.fullBoard[(allyBoard+1) % 2])):
-                        moves.append([PLAY_ACTION, [currIndex, targetIndex]])
-                elif (card.numAllyFollowerTargets == 1):
-                    for targetIndex in range(len(self.board.fullBoard[allyBoard])):
-                        moves.append([PLAY_ACTION, [currIndex, targetIndex]])
+            # Check for accel/enhance
+            if (isinstance(card, Monster) and self.activePlayer.currPP < card.cost and card.canAccel and self.activePlayer.currPP >= card.accelCost):
+                accelerating = True
+                enhancing = False
+            elif (isinstance(card, Monster) and card.canEnhance and self.activePlayer.currPP >= card.enhanceCost):
+                accelerating = False
+                enhancing = True
+            else:
+                accelerating = False
+                enhancing = False
+             
+            # We are enhancing
+            if (enhancing and ((len(self.board.fullBoard[allyBoard]) < 5) or isinstance(card,Spell))):
+                self.addLegalMovesForCard(card.enhanceCard, moves, currIndex)
+
+            # We are accelerating
+            if (accelerating):
+                self.addLegalMovesForCard(card.accelCard, moves, currIndex)
+
+            # Not enhancing/acceling, but there is either room for the card, or it is a spell
+            if self.activePlayer.currPP >= card.cost and (len(self.board.fullBoard[allyBoard]) < 5 or isinstance(card,Spell)):
+                self.addLegalMovesForCard(card, moves, currIndex)
+
             currIndex += 1
 
         currIndex = 0

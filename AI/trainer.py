@@ -66,7 +66,7 @@ print(nn.CrossEntropyLoss()(predictedOutput, actOutput))
 training_data = PositionDataset("./trainingData")
 loader = DataLoader(training_data, batch_size=16, shuffle=True)
 model = NeuralNetwork().to("cpu")
-model.load_state_dict(torch.load("./botModels/gen3.bot"))
+model.load_state_dict(torch.load("./botModels/test.bot"))
 model.eval()
 
 #a,b,c,d = next(iter(loader))
@@ -91,9 +91,9 @@ for epoch in range(n_epochs):
     predictedOutput = nn.Softmax(dim=1)(myCoolTensor)
     loss = AZLossFcn(predictedOutput, train_MCTS, NNvaluation, train_result.float())
     
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.2)
+    optimizer = torch.optim.SGD(model.parameters(), lr=2.0)
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
 
-torch.save(model.state_dict(), "./botModels/gen4.bot")
+torch.save(model.state_dict(), "./botModels/test2.bot")

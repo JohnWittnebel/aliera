@@ -1,5 +1,4 @@
-
-
+# This is owned by Player
 class LeaderEffectManager():
     def __init__(self):
         self.onPlayEffects = []

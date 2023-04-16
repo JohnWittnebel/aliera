@@ -8,7 +8,7 @@ import torch
 hiddennodes = 10
 inodes = 660
 #inodes=6
-onodes = 71
+onodes = 116
 #onodes=7
 
 class NeuralNetwork(nn.Module):
@@ -26,7 +26,7 @@ class NeuralNetwork(nn.Module):
     def forward(self, x):
         x = self.flatten(x)
         logits = self.linear_relu_stack(x)
-        pred, valuation = logits.split(70,dim=1)
+        pred, valuation = logits.split(onodes-1,dim=1)
         valuation = nn.Sigmoid()(valuation)
         #pred = nn.Softmax(dim=1)(pred)
         return pred, valuation
@@ -36,7 +36,7 @@ class NeuralNetwork(nn.Module):
 #model = NeuralNetwork().to("cpu")
 #for name, param in model.named_parameters():
 #    print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]} \n")
-#torch.save(model.state_dict(), "test.bot")
+#torch.save(model.state_dict(), "./botModels/test.bot")
 
 #Mask
 #Y = torch.tensor([0.1,-0.1,0.5,-0.2,0.2,-0.3], dtype=torch.float)

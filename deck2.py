@@ -1,46 +1,17 @@
-from deck import Deck
 import sys
 sys.path.insert(0, './cardArchive/')
-from cardsSimple import Fighter
-from cardsSimple import Goblin, Mercenary, Goliath, DeathDragon, Mercenary
 
-deck2 = Deck([Fighter(), 
-              Fighter(), 
-              Fighter(), 
-              Fighter(), 
-              Fighter(), 
-              Fighter(), 
-              Fighter(), 
-              Fighter(), 
-              Goblin(), 
-              Goblin(), 
-              Goblin(), 
-              Goblin(), 
-              Goblin(), 
-              Goblin(), 
-              Goblin(), 
-              Goblin(), 
-              Mercenary(),
-              Mercenary(),
-              Mercenary(),
-              Mercenary(),
-              Mercenary(),
-              Mercenary(),
-              Mercenary(),
-              Mercenary(),
-              DeathDragon(),
-              DeathDragon(),
-              DeathDragon(),
-              DeathDragon(),
-              DeathDragon(),
-              DeathDragon(),
-              DeathDragon(),
-              DeathDragon(),
-              Goliath(),
-              Goliath(),
-              Goliath(),
-              Goliath(),
-              Goliath(),
-              Goliath(),
-              Goliath(),
-              Goliath()])
+
+import pickle
+from deck import Deck
+from cardsSimple import *
+
+deck1 = [[Fighter, 3],
+         [Maiden, 3],
+         [Goblin, 3], 
+         [Mercenary, 3],
+         [DeathDragon, 3],
+         [DragonBreath, 2]]
+
+with open("deck2.deck", "wb") as f:
+    pickle.dump(deck1, f)

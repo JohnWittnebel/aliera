@@ -18,7 +18,7 @@ sys.path.insert(0, './..')
 
 #TODO: the training file should handle this
 currNN = NeuralNetwork()
-currNN.load_state_dict(torch.load("./AI/botModels/gen3.bot"))
+currNN.load_state_dict(torch.load("./AI/botModels/test.bot"))
 currNN.eval()
 GAMENUM = 1
 POSNUM = 1

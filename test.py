@@ -16,7 +16,7 @@ from allmoves import ALLMOVES
 from AZMCTS import AZMCTS
 
 def singleGame(botGame, currPosSave):
-  x = Game(1)
+  x = Game()
   x.gameStart()
   y = Transformer()
 
@@ -131,6 +131,24 @@ def singleGame(botGame, currPosSave):
             myTree.runSimulations(50)
             myTree.printTree()
             input("")
+        if (uinput1 == "9"):
+            input2 = input("cheat how many cards? ")
+            if (len(input2) > 0):
+                for i in range(int(input2)):
+                    print("Card at position " + str(i) + ":")
+                    deckIndex = 0
+                    for card in x.activePlayer.deck.cards:
+                        print(str(deckIndex) + ": " + str(card))
+                        deckIndex += 1
+                    cheatedCard = input("")
+                    if (len(cheatedCard) > 0):
+                        swap = x.activePlayer.hand[i]
+                        x.activePlayer.hand[i] = x.activePlayer.deck.cards[int(cheatedCard)]
+                        x.activePlayer.deck.cards[int(cheatedCard)] = swap
+        if (uinput1 == "sb"):
+            input2 = input("spellboost what card index?")
+            input3 = input("spellboost how many times?")
+
 
   currPosSave = myTree.recordResults(x.winner, currPosSave)
   return currPosSave

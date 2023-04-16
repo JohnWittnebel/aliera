@@ -2,8 +2,6 @@ import os
 from board import Board
 from player import Player
 from constants import *
-from deck2 import deck2
-from deck1 import deck1
 from deck import Deck
 import copy
 import random
@@ -40,26 +38,12 @@ class Game:
         self.winner = winner
         self.winString = ""
     
-    def __init__(self, refresh):
+    def __init__(self):
         # If we are initializing a board state without players already generated,
         # we need to generate the players and the decks that they will be using
 
-        if (refresh == 1):
-            deck1.refresh()
-            deck2.refresh()
-
-        self.player1 = Player(deck1, PLAYER_1_MAX_EVOS, PLAYER_1_MAX_EVOS, 1)
-        self.player2 = Player(deck2, PLAYER_2_MAX_EVOS, PLAYER_2_MAX_EVOS, 2)
-
-        self.board = Board()
-        self.activePlayer = self.player1
-        self.currTurn = 1
-        self.winner = 0
-        self.winString = ""
-
-    def reset(self):    
-        deck1.shuffle()
-        deck2.shuffle()
+        deck1 = Deck("deck1")
+        deck2 = Deck("deck2")
 
         self.player1 = Player(deck1, PLAYER_1_MAX_EVOS, PLAYER_1_MAX_EVOS, 1)
         self.player2 = Player(deck2, PLAYER_2_MAX_EVOS, PLAYER_2_MAX_EVOS, 2)

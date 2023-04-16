@@ -14,6 +14,7 @@ from torch.masked import masked_tensor
 from torch import nn
 import numpy as np
 from allmoves import ALLMOVES
+from bot import onodes
 
 def int_to_bits(x, bits=None, dtype=torch.int8):
     assert not(x.is_floating_point() or x.is_complex()), "x isn't an integer type"
@@ -114,20 +115,23 @@ class Transformer:
     # Plan: get the game to generate all legal moves, create a binary tensor representing legal/illegal, element-wise product
     #       with NNoutput tensor, then normalize
     def normalizedVector(self, NNoutput, gameState):
-        legalBinaryMask = torch.zeros(70, dtype=bool)
+        legalBinaryMask = torch.zeros(onodes-1, dtype=bool)
         legalMoves = gameState.generateLegalMoves()
         for move in legalMoves:
             if move[0] == 4:
-                legalBinaryMask[69] = True
+                legalBinaryMask[onodes-2] = True
             elif move[0] == 1:
-                legalBinaryMask[move[1][0]] = True
+                if (len(move[1]) == 1):
+                    legalBinaryMask[6*move[1][0]] = True
+                else:
+                    legalBinaryMask[6*move[1][0] + move[1][1] + 1] = True
             elif move[0] == 2:
-                legalBinaryMask[10 + 6*move[1][0] + move[1][1]] = True
+                legalBinaryMask[56 + 6*move[1][0] + move[1][1]] = True
             elif move[0] == 3:
                 if (len(move[1]) == 1):                    
-                    legalBinaryMask[39 + 6*move[1][0]] = True
+                    legalBinaryMask[84 + 6*move[1][0]] = True
                 else:
-                    legalBinaryMask[39 + 6*move[1][0] + move[1][1] + 1] = True
+                    legalBinaryMask[84 + 6*move[1][0] + move[1][1] + 1] = True
 
         legalMasked = NNoutput[legalBinaryMask]
         legalMoveProbs = nn.Softmax(dim=0)(legalMasked)

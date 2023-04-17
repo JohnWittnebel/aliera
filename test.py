@@ -29,10 +29,8 @@ def singleGame(botGame, currPosSave):
   myTree.rootInit()
   actionRecord = []
   while (x.winner == 0):
-    queueIndex = 0
-    while (len(x.queue) > queueIndex):
-        x.queue[queueIndex](x)
-        queueIndex += 1
+    if (x.queue != []):
+        x.clearQueue()
 
     x.queue = []
     x.printGameState()

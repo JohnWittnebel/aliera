@@ -7,6 +7,7 @@ def genericTakeDamage(mons, gameState, damage, index, side):
 
 def genericDestroy(gameState, index, side):
     cardDestroyed = gameState.board.fullBoard[side].pop(index)
+    #TODO: QUEUEIFY
     for func in cardDestroyed.LWEffects:
         func(gameState, side)
 
@@ -16,8 +17,8 @@ def genericEvolve(mons, gameState):
         return
         
     mons.currAttack += 2
-    mons.monsterMaxAttack += 2
-    mons.monsterMaxHP += 2
+    mons.maxAttack += 2
+    mons.maxHP += 2
     mons.currHP += 2
     mons.name += "(E)"
 
@@ -35,4 +36,12 @@ def genericPlay(mons, gameState, currPlayer):
     mons.turnPlayed = gameState.currTurn
     gameState.board.fullBoard[currPlayer].append(mons)
     gameState.activePlayer.currPP -= mons.cost
+    for ele in mons.fanfareEffects:
+        ele(gameState)
+    gameState.queue.append(gameState.activateOnPlayEffects(mons))
+
+def genericSummon(mons, gameState, side):
+    if (len(gameState.board.fullBoard[side]) < 5):
+        mons.turnPlayed = gameState.currTurn
+        gameState.board.fullBoard[gameState.activePlayer.playerNum - 1].append(mons)
 

@@ -26,6 +26,7 @@ class Player:
         self.canEvolve = 0
         self.damageProtection = 0
         self.effectProtection = 0
+        self.selfPings = 0
         self.immune = False
         self.effectImmune = False
         self.leaderEffects = LeaderEffectManager()
@@ -45,6 +46,13 @@ class Player:
                 return
             else:
                 self.hand.append(cardToAdd)
+
+    def drawCard(self, card):
+        cardToDraw = self.deck.cards.pop(card)
+        if (len(self.hand) == MAX_HAND_SIZE):
+            return
+        else:
+            self.hand.append(cardToDraw)
 
     def randomHand(self):
         numCards = len(self.hand)
@@ -79,6 +87,7 @@ class Player:
     def takeEffectDamage(self, gameState, val):
         if gameState.activePlayer == self:
             gameState.queue.append(gameState.activateSelfPingEffects)
+            self.selfPings += 1
         if not self.effectImmune and not self.immune:
             self.currHP = self.currHP - max(0,val - self.effectProtection)
         if self.currHP <= 0:

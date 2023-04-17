@@ -200,17 +200,13 @@ class Game:
         if accelerating:
             cardToPlay = cardToPlay.accelCard
 
-        # TODO this should actually be moved
-        self.activePlayer.leaderEffects.activateOnPlayEffects(self, cardToPlay)
-
         if (cardToPlay.numTargets == 0):
             cardToPlay.play(self, currPlayer)
         else:
             cardToPlay.play(self, currPlayer, action[1][1:])
 
     def endTurn(self):
-        # Activate end of turn leader effects
-        # Activate end of turn follower effects
+        self.activateTurnEndEffects(None)
 
         # Allow all followers to attack again
         for mons in self.board.player1side:
@@ -399,6 +395,10 @@ class Game:
             self.initiateAction(moves[selection])
         return self.winner
 
+    def activateOnPlayEffects(self, card):
+        self.activePlayer.leaderEffects.activateOnPlayEffects(self, card)
+        #TODO: other ally effects
+
     def activateSelfPingEffects(self, nothing):
         self.activePlayer.leaderEffects.activateSelfPingEffects(self)
         for card in self.board.fullBoard[self.activePlayer.playerNum - 1]:
@@ -410,10 +410,17 @@ class Game:
         for card in self.board.fullBoard[self.activePlayer.playerNum - 1]:
             for eff in card.selfHealEffects:
                 eff(self)
+    
+    def activateTurnEndEffects(self, placholder):
+        self.activePlayer.leaderEffects.activateTurnEndEffects(self)
+        for card in self.board.fullBoard[self.activePlayer.playerNum - 1]:
+            for eff in card.turnEndEffects:
+                eff(self)
 
     def clearQueue(self):
         queueIndex = 0
         while queueIndex < len(self.queue):
-            self.queue[queueIndex](self)
+            if self.queue[queueIndex] != None:
+                self.queue[queueIndex](self)
             queueIndex += 1
         queue = []

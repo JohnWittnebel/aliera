@@ -12,13 +12,14 @@ class Deck:
         self.deckFromFile()
 
     def shuffle(self):
-        for i in range(len(self.cards)-1, 0, -1):
-     
-            # Pick a random index from 0 to i
-            j = random.randint(0, i)
-   
-            # Swap arr[i] with the element at random index
-            self.cards[i], self.cards[j] = self.cards[j], self.cards[i]
+        # For training purposes, we use a seed so that MCTS works
+        seed = 0
+        if (len(self.cards) >= 5):
+            for i in range(5):
+                seed += self.cards[i].encoding
+        else:
+            seed = 123
+        random.Random(seed).shuffle(self.cards)
 
     # This actually draws from the end of the deck, important to note
     def draw(self):

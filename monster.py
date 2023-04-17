@@ -5,8 +5,8 @@ class Monster(Card):
     def __init__(self, cost, monsterAttack, monsterMaxHP, currHP, monsterName):
         self.cost = cost
         self.currAttack = monsterAttack
-        self.monsterMaxAttack = monsterAttack
-        self.monsterMaxHP = monsterMaxHP
+        self.maxAttack = monsterAttack
+        self.maxHP = monsterMaxHP
         self.currHP = currHP
 
         # These are various properties that a monster can have, maybe make this a bit more elegant

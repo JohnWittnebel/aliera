@@ -8,6 +8,7 @@ class Spell(Card):
         self.numAllyFollowerTargets = allyFollowerTargets
         self.numEnemyFollowerTargets = enemyFollowerTargets
         self.numTargets = self.numAllyFollowerTargets + self.numEnemyFollowerTargets
+        self.traits = []
 
     def play(self, gameState, side, *args, **kwargs):
         # spells dont really have a default action, so just do nothing

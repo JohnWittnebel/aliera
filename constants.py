@@ -41,4 +41,7 @@ CrimsonpurgeVal = 10
 ImplancerVal = 11
 AbyssbeastVal = 12
 
+BatVal = 0
+RCVal = 4
+VeightVal = 5
 

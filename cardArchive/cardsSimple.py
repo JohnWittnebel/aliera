@@ -29,6 +29,9 @@ def dealFaceDamage(val):
     return lambda gameState, side: gameState.player1.takeEffectDamage(gameState, val) if side == 0 \
     else gameState.player2.takeEffectDamage(gameState, val)
 
+def healFace(val):
+    return lambda gameState: gameState.activePlayer.restoreHP(gameState, val)
+
 class Maiden(Monster):
     def __init__(self):  
         monsterName = "Maiden (W)"
@@ -42,6 +45,7 @@ class Maiden(Monster):
         self.evoEnemyFollowerTargets = 1
         self.encoding = MaidenVal
         self.LWEffects.append(dealFaceDamage(2))
+        self.selfPingEffects.append(healFace(1))
         
     def evolve(self, gameState, target, targetSide, *args, **kwargs):
         genericEvolve(self, gameState)
@@ -89,6 +93,9 @@ def givePlusOne(gameState, card):
         card.currHP += 1
         card.monsterMaxHP += 1
 
+def selfPing(val):
+    return lambda gameState, side: gameState.activePlayer.takeEffectDamage(gameState, val)
+
 class Fighter(Monster):
     def __init__(self):
         monsterName = "Fighter"
@@ -98,6 +105,9 @@ class Fighter(Monster):
         monsterCurrHP = 2
         Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
         self.encoding = FighterVal
+
+        self.strikeEffects.append(selfPing(1))
+        self.strikeEffects.append(selfPing(1))
 
     # Giving leader effect
     def play(self, gameState, currSide):
@@ -111,7 +121,7 @@ class Fighter(Monster):
             currPlayer = gameState.player2
         else:
             currPlayer = gameState.player1
-        currPlayer.leaderEffects.onPlayEffects = filter(lambda a: a != givePlusOne, currPlayer.leaderEffects.onPlayEffects)
+        currPlayer.leaderEffects.onPlayEffects = list(filter(lambda a: a != givePlusOne,currPlayer.leaderEffects.onPlayEffects))
         genericDestroy(gameState, index, currSide) 
 
 class DragonBreath(Spell):

@@ -28,3 +28,7 @@ class LeaderEffectManager():
     def activateHealEffects(self, gameState):
         for effect in self.onSelfHealEffects:
             effect(gameState)
+
+    def activateTurnEndEffects(self, gameState):
+        for effect in self.turnEndEffects:
+            effect(gameState)

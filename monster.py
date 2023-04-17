@@ -37,6 +37,8 @@ class Monster(Card):
         self.onPlayEffects = []  # for when an ally follower is played
         self.turnEndEffects = []
         self.turnStartEffects = []
+        self.selfPingEffects = []
+        self.selfHealEffects = []
 
         self.traits = []
         
@@ -73,7 +75,20 @@ class Monster(Card):
     def effectDestroy(self, gameState, index, side, *args, **kwargs):
         genericDestroy(gameState, index, side)
 
+    def leaderStrike(self, gameState, myIndex, *args, **kwargs):
+        if gameState.activePlayer.playerNum == 1:
+            damagePlayer = gameState.player2
+        else:
+            damagePlayer = gameState.player1
+
+        for func in self.strikeEffects:
+            func(gameState, myIndex)
+
+        gameState.clearQueue()
+        damagePlayer.takeCombatDamage(gameState, self.currAttack)
+
     def followerStrike(self, gameState, allyIndex, activeSide, enemyMonster, enemyIndex, *args, **kwargs):
+        #TODO: these should actually just queue instead of activating. Its ok for now tho I think
         for func in self.strikeEffects:
             func(gameState, activeSide)
         for func in self.clashEffects:
@@ -82,6 +97,8 @@ class Monster(Card):
             func(gameState, activeSide, enemyMonster)
         for func in enemyMonster.clashEffects:
             func(gameState, (activeSide+1)%2, self)
-        combatDamageToTake = enemyMonster.currAttack
-        enemyMonster.takeCombatDamage(gameState, self.currAttack, enemyIndex, (activeSide+1)%2)
-        self.takeCombatDamage(gameState, combatDamageToTake, allyIndex, activeSide)
+        gameState.clearQueue()
+        if (enemyMonster.currHP > 0):
+            combatDamageToTake = enemyMonster.currAttack
+            enemyMonster.takeCombatDamage(gameState, self.currAttack, enemyIndex, (activeSide+1)%2)
+            self.takeCombatDamage(gameState, combatDamageToTake, allyIndex, activeSide)

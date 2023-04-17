@@ -145,20 +145,18 @@ class Game:
         # Give summoning sickness to the monster that just attacked, do this here
         # because the monster might stop existing after attacking, and then we would apply
         # summoning sickness to a different monster (or out of index error)
+        # TODO: put these into the followerStrike/leaderStrike functions
         self.board.fullBoard[attackingPlayer][allyMonster].canAttack = 0
         self.board.fullBoard[attackingPlayer][allyMonster].hasAttacked = 1
 
-        # For when the face is targeted, simply do damage to face. At some point, this will become more complex...
-        # TODO: make this a monster leader strike
+        # Face is being attacked
         if (enemyMonster == ENEMY_FACE):
             if (attackingPlayer == 0):
-                self.player2.takeCombatDamage(self, self.board.player1side[allyMonster].currAttack)
+                self.board.player1side[allyMonster].leaderStrike(self, allyMonster)
             else:
-                self.player1.takeCombatDamage(self, self.board.player2side[allyMonster].currAttack)
+                self.board.player2side[allyMonster].leaderStrike(self, allyMonster)
 
         # otherwise, we are attacking a monster, deal damage to each other
-        # TODO make this less bad/redundant
-        # we need to make a generic follower strike function
         else:
             attackingMonster = self.board.fullBoard[attackingPlayer][allyMonster]
             defMonster = self.board.fullBoard[defendingPlayer][enemyMonster]
@@ -401,4 +399,21 @@ class Game:
             self.initiateAction(moves[selection])
         return self.winner
 
+    def activateSelfPingEffects(self, nothing):
+        self.activePlayer.leaderEffects.activateSelfPingEffects(self)
+        for card in self.board.fullBoard[self.activePlayer.playerNum - 1]:
+            for eff in card.selfPingEffects:
+                eff(self)
 
+    def activateHealEffects(self, nothing):
+        self.activePlayer.leaderEffects.activateHealEffects(self)
+        for card in self.board.fullBoard[self.activePlayer.playerNum - 1]:
+            for eff in card.selfHealEffects:
+                eff(self)
+
+    def clearQueue(self):
+        queueIndex = 0
+        while queueIndex < len(self.queue):
+            self.queue[queueIndex](self)
+            queueIndex += 1
+        queue = []

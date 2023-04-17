@@ -19,12 +19,15 @@ class Player:
         self.currEvos = currEvos
         self.playerNum = playerNum
         self.hand = []
-        self.effects = []
         self.currHP = DEFAULT_MAX_HP
         self.maxHP = DEFAULT_MAX_HP
         self.currPP = DEFAULT_MAX_PP
         self.maxPP = DEFAULT_MAX_PP
         self.canEvolve = 0
+        self.damageProtection = 0
+        self.effectProtection = 0
+        self.immune = False
+        self.effectImmune = False
         self.leaderEffects = LeaderEffectManager()
 
     def draw(self, count = 1):
@@ -60,13 +63,24 @@ class Player:
             count += 1
         print(printString)
 
+    def restoreHP(self, gameState, val):
+        gameState.queue.append(gameState.activateHealEffects)
+        if self.currHP + val <= self.maxHP:
+            self.currHP += val
+        else:
+            self.currHP = self.maxHP 
+
     def takeCombatDamage(self, gameState, val):
-        self.currHP -= val
+        if not self.immune:
+            self.currHP = self.currHP - max(0,val - self.damageProtection)
         if self.currHP <= 0:
             gameState.endgame((self.playerNum + 1) % 2)
 
     def takeEffectDamage(self, gameState, val):
-        self.currHP -= val
+        if gameState.activePlayer == self:
+            gameState.queue.append(gameState.activateSelfPingEffects)
+        if not self.effectImmune and not self.immune:
+            self.currHP = self.currHP - max(0,val - self.effectProtection)
         if self.currHP <= 0:
             gameState.endgame((self.playerNum + 1) % 2)
       

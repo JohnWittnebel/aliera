@@ -8,6 +8,7 @@ class Spell(Card):
         self.numAllyFollowerTargets = allyFollowerTargets
         self.numEnemyFollowerTargets = enemyFollowerTargets
         self.numTargets = self.numAllyFollowerTargets + self.numEnemyFollowerTargets
+        self.fanfareTargetFace = False
         self.traits = []
 
     def play(self, gameState, side, *args, **kwargs):

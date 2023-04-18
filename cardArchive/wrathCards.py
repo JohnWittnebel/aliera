@@ -49,7 +49,7 @@ class SummonBloodKin(Spell):
 ##### EFFECT FUNCTIONS
 
 def healFace(val):
-    return lambda gameState, side: gameState.player1.restoreHP(gameState, val) if side == 0 \
+    return lambda gameState, side: gameState.player1.restoreHP(gameState, val) if side == 1 \
     else gameState.player2.restoreHP(gameState, val)
 
 def selfPing(val):
@@ -88,6 +88,10 @@ def drawCondemn(gameState):
 def AoEEnemy(gameState):
     for card in gameState.board.fullBoard[gameState.activePlayer.playerNum % 2]:
         card.takeEffectDamage(gameState, 1)
+
+def AoEEnemy5(gameState):
+    for card in gameState.board.fullBoard[gameState.activePlayer.playerNum % 2]:
+        card.takeEffectDamage(gameState, 5)
 
 ##### MAIN DECK MONSTERS
 
@@ -132,6 +136,7 @@ class Veight(Monster):
                 amuletSummoned = True
                 deckIndex += 1
 
+#TODO: evolve eff
 class RagingCommander(Monster):
     def __init__(self):
         monsterName = "Raging Comm"
@@ -158,12 +163,6 @@ class DrummerAccel(Spell):
         
     def play(self, gameState, currSide):
         genericSummon(Drummer(), gameState, currSide)
-        selfPing(1)(gameState)
-        selfPing(1)(gameState)
-        selfPing(1)(gameState)
-        selfPing(1)(gameState)
-        selfPing(1)(gameState)
-        selfPing(1)(gameState)
         selfPing(1)(gameState)
         genericSummon(Drummer(), gameState, currSide)
         selfPing(1)(gameState)
@@ -249,15 +248,73 @@ class Vampy(Monster):
         
 class HowlingDemon(Monster):
     def __init__(self):
-        monsterName = "Drummer"
+        monsterName = "Howling Demon"
         cost = 5
-        monsterAttack = 1
-        monsterMaxHP = 1
-        monsterCurrHP = 1
+        monsterAttack = 5
+        monsterMaxHP = 5
+        monsterCurrHP = 5
         Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
-        self.encoding = DrummerVal
+        self.encoding = HowlingDemonVal
+        self.fanfareEffects.append(AoEEnemy5)
         
+    def play(self, gameState, currSide):
+        genericPlay(self, gameState, currSide)
+        if (gameState.activePlayer.selfPings < 7):
+            gameState.activePlayer.takeEffectDamage(gameState, 3)
+        else:
+            self.freeEvolve = 1
+            self.evolve(gameState) 
 
+    def evolve(self, gameState):
+        self.hasStorm = 1
+        self.canAttack = 1
+        self.hasDrain = 1
+        genericEvolve(self, gameState)
+        self.maxHP -= 2
+        self.currHP -= 2
+        self.currAttack -= 2
 
+def GaroEvoCon(gameState):
+    if gameState.activePlayer.selfPingsTurn >= 4:
+        for ele in gameState.board.fullBoard[gameState.activePlayer.playerNum-1]:
+            if ele.name == "Garodeth":
+                ele.evolve(gameState)
+                ele.selfPingEffects = []
+
+class Garodeth(Monster):
+    def __init__(self):
+        monsterName = "Garodeth"
+        cost = 4
+        monsterAttack = 4
+        monsterMaxHP = 4
+        monsterCurrHP = 4
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        self.encoding = GarodethVal
+        self.numTargets = 1
+        self.numEnemyFollowerTargets = 1
+        self.fanfareTargetFace = True
+        self.canEvolve = 0
+        self.traits.append("condemn")
+        self.selfPingEffects.append(GaroEvoCon)
+    
+    def play(self, gameState, currSide, targets):
+        genericPlay(self, gameState, currSide)
+        selfPing(1)(gameState)
+        if (targets[0] == -1):
+            if (currSide == 0):
+                gameState.player2.takeEffectDamage(gameState, 3)
+            else:
+                gameState.player1.takeEffectDamage(gameState, 3)
+        else:
+            gameState.board.fullBoard[(currSide+1) % 2][targets[0]].takeEffectDamage(gameState, 3)
+
+    def evolve(self, gameState):
+        self.hasStorm = 1
+        self.canAttack = 1
+        genericEvolve(self, gameState)
+        self.maxHP += 2
+        self.currHP += 2
+        self.currAttack += 2
+       
 ##### MAIN DECK AMULETS
 

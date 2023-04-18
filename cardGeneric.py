@@ -15,7 +15,6 @@ def genericDestroy(mons, gameState):
     # with this implementation, card LWs activate before the follower is removed, and basically before anything else, so
     # the 0/1/1 ward might heal before infiniflame deals face damage
     for func in mons.LWEffects:
-        # TODO: 0 doesnt work here
         func(gameState, mons.side)
 
 def genericEvolve(mons, gameState):
@@ -33,7 +32,7 @@ def genericEvolve(mons, gameState):
     mons.isEvolved = 1
     if (mons.hasAttacked == 0):
         mons.canAttack = 1
-    if (mons.turnPlayed == gameState.currTurn):
+    if (mons.turnPlayed == gameState.currTurn) and (mons.hasStorm == 0):
         mons.canAttackFace = 0
 
     gameState.activePlayer.canEvolve = 0

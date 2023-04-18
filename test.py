@@ -17,12 +17,67 @@ from AZMCTS import AZMCTS
 
 def singleGame(botGame, currPosSave):
   x = Game()
+  y = Transformer()
   x.gameStart()
 
   # mulligan phase
+  if botGame == 0:
+      index = 0
+      for item in x.player1.hand:
+          print(str(index) + ": " + str(item))
+          index += 1
+      mull1 = int(input("mulligan card 0? "))
+      mull2 = int(input("mulligan card 1? "))
+      mull3 = int(input("mulligan card 2? "))
+      x.player1.mulligan(mull1,mull2,mull3)
+      
+      index = 0
+      for item in x.player2.hand:
+          print(str(index) + ": " + str(item))
+          index += 1
+      mull1 = int(input("mulligan card 0? "))
+      mull2 = int(input("mulligan card 1? "))
+      mull3 = int(input("mulligan card 2? "))
+      x.player2.mulligan(mull1,mull2,mull3)
+  else:
+      totals = [[[0,0],[0,0]],[[0,0],[0,0]]]
+      currMax = 0
+      currMaxIndices = [0,0,0]
+      for _ in range(10):
+          for i in range(2):
+              for j in range(2):
+                  for k in range(2):
+                      mull = x.player1.mulliganSample(i,j,k)
+                      myTree = AZMCTS(x)
+                      val = myTree.rootInit()
+                      totals[i][j][k] += val
+                      if totals[i][j][k] > currMax:
+                          currMax = totals[i][j][k]
+                          currMaxIndices = [i,j,k]
+                      x.player1.returnMulliganSample(mull)
 
+      x.player1.mulligan(currMaxIndices[0], currMaxIndices[1], currMaxIndices[2])
+      x.activePlayer = x.player2
+      totals = [[[0,0],[0,0]],[[0,0],[0,0]]]
+      currMax = 0
+      currMaxIndices = [0,0,0]
+      for _ in range(10):
+          for i in range(2):
+              for j in range(2):
+                  for k in range(2):
+                      mull = x.player2.mulliganSample(i,j,k)
+                      myTree = AZMCTS(x)
+                      val = myTree.rootInit()
+                      totals[i][j][k] += val
+                      if totals[i][j][k] > currMax:
+                          currMax = totals[i][j][k]
+                          currMaxIndices = [i,j,k]
+                      x.player2.returnMulliganSample(mull)
+      x.player2.mulligan(currMaxIndices[0], currMaxIndices[1], currMaxIndices[2])
+      x.activePlayer = x.player1
 
-  y = Transformer()
+  # Turn 1 start
+  x.startTurn()
 
   if (botGame == 1):
     botTurn = 1
@@ -139,6 +194,13 @@ def singleGame(botGame, currPosSave):
             input("")
         if (uinput1 == "6"):
             myTree.rootInit()
+        if (uinput1 == "8"):
+            print("Rig RNG for card")
+            uinput2 = input("select card: ")
+            uinput3 = input("rigged RNG: ")
+            if (len(uinput2) > 0) and (len(uinput3) > 0):
+                x.activePlayer.hand[int(uinput2)].rigRNG = True
+                x.activePlayer.hand[int(uinput2)].riggedVal = int(uinput3)
         if (uinput1 == "9"):
             input2 = input("cheat how many cards? ")
             if (len(input2) > 0):

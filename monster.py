@@ -9,6 +9,10 @@ class Monster(Card):
         self.maxHP = monsterMaxHP
         self.currHP = currHP
 
+        # For assist
+        self.rigRNG = False
+        self.riggedVal = 0
+
         # These are various properties that a monster can have, maybe make this a bit more elegant
         self.canEvolve = 1
         self.isEvolved = 0
@@ -48,6 +52,8 @@ class Monster(Card):
         
         # Battlecry targets
         self.numTargets = 0
+        self.numEnemyFollowerTargets = 0
+        self.numAllyFollowerTargets = 0
         self.fanfareTargetFace = False
 
         # Evo targets

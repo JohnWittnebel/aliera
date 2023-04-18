@@ -53,16 +53,14 @@ class AZMCTS():
         nnInput = nnInput.unsqueeze(dim=0)
             
         logits = currNN(nnInput)[0]
+        val = currNN(nnInput)[1]
         #print(logits)
         probabilitiesNN, mask = transformer.normalizedVector(logits[0], self.gameState)
         #print(mask)
         #print(probabilitiesNN)
         self.mask = mask
         self.setProbabilities(probabilitiesNN)
-
-        #### DEBUGGING STARTS HERE
-        #self.descendTree()
-        return
+        return val
 
     def runSimulations(self, simulations):
         for _ in range(simulations):

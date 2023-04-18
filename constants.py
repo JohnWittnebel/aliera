@@ -48,3 +48,5 @@ DrummerVal = 3
 RCVal = 4
 VeightVal = 5
 BloodkinVal = 1
+HowlingDemonVal = 1
+GarodethVal = 2

@@ -207,6 +207,7 @@ class Game:
 
     def endTurn(self):
         self.activateTurnEndEffects(None)
+        self.activePlayer.selfPingsTurn = 0
 
         # Allow all followers to attack again
         for mons in self.board.player1side:
@@ -263,9 +264,9 @@ class Game:
                 self.endgame(self.player1)
 
 
-    def mulligan(self, player):
-        mull = player.mulliganSample(1,1,0)
-        player.returnMulliganSample(mull)
+    #def mulligan(self, player):
+    #    mull = player.mulliganSample(1,1,0)
+    #    player.returnMulliganSample(mull)
 
     # this function will have the initial drawing and mulligan phase
     def gameStart(self):
@@ -276,10 +277,10 @@ class Game:
         if (len(self.player1.deck.cards) == 0):
             raise Exception("no cards in deck at start")
         
-        self.mulligan(self.player1)
-        self.mulligan(self.player2)
+        #self.mulligan(self.player1)
+        #self.mulligan(self.player2)
 
-        self.startTurn()
+        #self.startTurn()
 
     # this function is mostly to deal with ward, but can be expanded to include other specific cards
     def attackableTargets(self):
@@ -314,7 +315,9 @@ class Game:
         if (card.numTargets == 0):
             moves.append([PLAY_ACTION, [currIndex]])
             # For now we only support battlecries that have a single target
-        elif (card.numEnemyFollowerTargets == 1):
+        if (card.fanfareTargetFace):
+            moves.append([PLAY_ACTION, [currIndex, -1]])
+        if (card.numEnemyFollowerTargets == 1):
             for targetIndex in range(len(self.board.fullBoard[(allyBoard+1) % 2])):
                 moves.append([PLAY_ACTION, [currIndex, targetIndex]])
         elif (card.numAllyFollowerTargets == 1):

@@ -7,7 +7,12 @@ from deck import Deck
 from cardsSimple import *
 from wrathCards import *
 
-deck1 = [[Goblin, 3],
+deck1 = [[HarmonicWolf, 3],
+         [Maestro, 3],
+         [HowlingScream, 3],
+         [Tank, 3],
+         [Flautist, 3],
+         [VampireQueenCastle, 3],
          [RagingCommander, 3],
          [Garodeth, 3],
          [Drummer, 3],

@@ -27,7 +27,11 @@ class Monster(Card):
         self.canAttackFace = 1
         self.freeEvolve = 0
         self.isAttackable = True
+        self.isAmulet = False
         self.side = -1
+
+        self.maxEffPerTurn = 8
+        self.effActivations = 0
 
         #Enhance/accel
         self.canEnhance = False
@@ -86,8 +90,8 @@ class Monster(Card):
 
     # called when an effect attempts to destroy (bane, destroy follower, etc.). Might not actually
     # destroy if the target has protection
-    def effectDestroy(self, gameState, index, side, *args, **kwargs):
-        genericDestroy(gameState, index, side)
+    def effectDestroy(self, gameState, *args, **kwargs):
+        genericDestroy(self, gameState)
 
     def leaderStrike(self, gameState, myIndex, *args, **kwargs):
         if gameState.activePlayer.playerNum == 1:
@@ -108,7 +112,7 @@ class Monster(Card):
     def followerStrike(self, gameState, allyIndex, activeSide, enemyMonster, enemyIndex, *args, **kwargs):
         #TODO: these should actually just queue instead of activating. Its ok for now tho I think
         for func in self.strikeEffects:
-            func(gameState, activeSide)
+            func(gameState, allyIndex)
         for func in self.clashEffects:
             func(gameState, activeSide, enemyMonster)
         for func in self.followerStrikeEffects:
@@ -125,4 +129,7 @@ class Monster(Card):
                     gameState.player1.restoreHP(gameState, damageDealt)
                 else:
                     gameState.player2.restoreHP(gameState, damageDealt)
-
+            if self.hasBane:
+                enemyMonster.effectDestroy(gameState)
+            if enemyMonster.hasBane:
+                self.effectDestroy(gameState)

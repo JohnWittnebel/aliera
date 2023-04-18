@@ -1,4 +1,5 @@
 from constants import MAX_BOARD_SIZE
+from amulet import Amulet
 
 # A Board has 2 sides, one for each player
 # On a side there is an ordered array of cards
@@ -17,21 +18,27 @@ class Board:
 
     # TODO: change this so that each monster/amulet has its own print function at some point
     for item in self.player2side:
-      if item.canAttack:
-          attackStr = "[X]"
+      if isinstance(item,Amulet):
+          playerSideString += item.name + "[" + str(item.countdown) + "], "
       else:
+        if item.canAttack:
+          attackStr = "[X]"
+        else:
           attackStr = "[ ]"
-      playerSideString += item.name + " (" + str(item.currAttack) + "/" + str(item.currHP) + ") " + attackStr + " [" + str(count) + "], " 
+        playerSideString += item.name + " (" + str(item.currAttack) + "/" + str(item.currHP) + ") " + attackStr + " [" + str(count) + "], " 
       count += 1
     print(playerSideString)
     playerSideString = ""
     count = 0
     for item in self.player1side:
-      if item.canAttack:
-          attackStr = "[X]"
+      if isinstance(item,Amulet):
+          playerSideString += item.name + "[" + str(item.countdown) + "], "
       else:
+        if item.canAttack:
+          attackStr = "[X]"
+        else:
           attackStr = "[ ]"
-      playerSideString += item.name + " (" + str(item.currAttack) + "/" + str(item.currHP) + ") " + attackStr + " [" + str(count) + "], "
+        playerSideString += item.name + " (" + str(item.currAttack) + "/" + str(item.currHP) + ") " + attackStr + " [" + str(count) + "], "
       count += 1
     print(playerSideString)
  

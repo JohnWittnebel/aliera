@@ -9,7 +9,12 @@ class Spell(Card):
         self.numEnemyFollowerTargets = enemyFollowerTargets
         self.numTargets = self.numAllyFollowerTargets + self.numEnemyFollowerTargets
         self.fanfareTargetFace = False
+        self.isAmulet = False
         self.traits = []
+        
+        # For assist
+        self.rigRNG = False
+        self.riggedVal = 0
 
     def play(self, gameState, side, *args, **kwargs):
         # spells dont really have a default action, so just do nothing

@@ -51,7 +51,7 @@ def genericPlay(mons, gameState, currPlayer):
 def genericSummon(mons, gameState, side):
     if (len(gameState.board.fullBoard[side]) < 5):
         mons.turnPlayed = gameState.currTurn
-        mons.side = side + 1
+        mons.side = side
         gameState.board.fullBoard[side].append(mons)
         gameState.queue.append(gameState.activateOnSummonEffects(mons))
 

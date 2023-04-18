@@ -1,7 +1,9 @@
 from monster import Monster
 from spell import Spell
+from amulet import Amulet
 from cardGeneric import *
 from constants import *
+import random
 
 import sys
 sys.path.insert(0, '..')
@@ -46,10 +48,30 @@ class SummonBloodKin(Spell):
         genericSummon(ForestBat(), gameState, currSide)
         genericSummon(ForestBat(), gameState, currSide)
 
+class Orchestration(Spell):
+    def __init__(self):
+        spellName = "Orchestration"
+        spellCost = 0
+        allyFollowerTargets = 1
+        enemyFollowerTargets = 0
+        Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
+        self.encoding = OrchVal
+        
+    def play(self, gameState, currSide, targets):
+        mons = gameState.board.fullBoard[currSide][targets[0]]
+        mons.maxHP += 1
+        mons.currHP += 1
+        mons.currAttack += 1
+        if mons.hasAttacked == 0:
+            mons.canAttack = 1
+        if (mons.turnPlayed == gameState.currTurn) and (mons.hasStorm == 0):
+            mons.canAttackFace = 0
+        gameState.activePlayer.draw(1)
+
 ##### EFFECT FUNCTIONS
 
 def healFace(val):
-    return lambda gameState, side: gameState.player1.restoreHP(gameState, val) if side == 1 \
+    return lambda gameState, side: gameState.player1.restoreHP(gameState, val) if side == 0 \
     else gameState.player2.restoreHP(gameState, val)
 
 def selfPing(val):
@@ -85,7 +107,7 @@ def drawCondemn(gameState):
             break
         index += 1
 
-def AoEEnemy(gameState):
+def AoEEnemy(placeholder, gameState):
     for card in gameState.board.fullBoard[gameState.activePlayer.playerNum % 2]:
         card.takeEffectDamage(gameState, 1)
 
@@ -115,12 +137,12 @@ class Veight(Monster):
     
         self.turnEndEffects.append(givePlus1Bats)
 
-    def evolve(self, gameState, target, targetSide, *args, **kwargs):
+    def evolve(self, gameState, target, *args, **kwargs):
         genericEvolve(self, gameState)
             
         enemyPlayer = gameState.activePlayer.playerNum % 2
-        if (len(gameState.board.fullBoard[enemyPlayer]) > target[0]):
-            gameState.board.fullBoard[enemyPlayer][target[0]].takeEffectDamage(gameState, 4, target[0], targetSide)
+        if (len(target) > 0) and (len(gameState.board.fullBoard[enemyPlayer]) > target[0]):
+            gameState.board.fullBoard[enemyPlayer][target[0]].takeEffectDamage(gameState, 4)
         
         if (len(gameState.board.fullBoard[gameState.activePlayer.playerNum - 1]) == 5):
             return
@@ -130,13 +152,12 @@ class Veight(Monster):
         for ele in gameState.activePlayer.deck.cards:
             if amuletSummoned:
                 break
-            if isinstance(ele, Amulet):
-                cardToSummon = gameState.deck.cards.pop(deckIndex)
+            if ele.isAmulet:
+                cardToSummon = gameState.activePlayer.deck.cards.pop(deckIndex)
                 genericSummon(cardToSummon, gameState, gameState.activePlayer.playerNum-1)
                 amuletSummoned = True
-                deckIndex += 1
+            deckIndex += 1
 
-#TODO: evolve eff
 class RagingCommander(Monster):
     def __init__(self):
         monsterName = "Raging Comm"
@@ -151,6 +172,14 @@ class RagingCommander(Monster):
         self.selfPingEffects.append(AoEEnemy)
         self.fanfareEffects.append(selfPing(1))
         self.fanfareEffects.append(drawCondemn)
+
+    def evolve(self, gameState):
+        genericEvolve(self, gameState)
+        gameState.activePlayer.takeEffectDamage(gameState, 1)
+        drawCondemn(gameState)
+        if (gameState.activePlayer.currPP < gameState.activePlayer.maxPP):
+            gameState.activePlayer.currPP += 1
+
 
 class DrummerAccel(Spell):
     def __init__(self):
@@ -274,7 +303,7 @@ class HowlingDemon(Monster):
         self.currHP -= 2
         self.currAttack -= 2
 
-def GaroEvoCon(gameState):
+def GaroEvoCon(card, gameState):
     if gameState.activePlayer.selfPingsTurn >= 4:
         for ele in gameState.board.fullBoard[gameState.activePlayer.playerNum-1]:
             if ele.name == "Garodeth":
@@ -315,6 +344,146 @@ class Garodeth(Monster):
         self.maxHP += 2
         self.currHP += 2
         self.currAttack += 2
-       
+
+def flauBuff(gameState, index):
+    if gameState.activePlayer.selfPings >= 7:
+        gameState.board.fullBoard[gameState.activePlayer.playerNum - 1][index].currAttack += 2
+
+class Flautist(Monster):
+    def __init__(self):
+        monsterName = "Flautist"
+        cost = 1
+        monsterAttack = 1
+        monsterMaxHP = 1
+        monsterCurrHP = 1
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        self.encoding = FlautistVal
+        self.strikeEffects.append(flauBuff)
+        self.fanfareEffects.append(selfPing(1))
+        self.hasDrain = 1
+        self.hasRush = 1
+        self.canAttack = 1
+        self.canAttackFace = 0
+
+def tankHeal(card, gameState):
+    if (card.effActivations < card.maxEffPerTurn):
+        gameState.activePlayer.restoreHP(gameState, 1)
+        card.effActivations += 1
+
+class Tank(Monster):
+    def __init__(self):
+        monsterName = "Tank"
+        cost = 1
+        monsterAttack = 0
+        monsterMaxHP = 2
+        monsterCurrHP = 2
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        self.encoding = TankVal
+        self.hasWard = 1
+        self.traits.append("condemn")
+        self.selfPingEffects.append(tankHeal)
+        self.fanfareEffects.append(selfPing(1))
+
+def wolfDraw(val):
+    return lambda gameState, side: gameState.player1.draw(val) if side == 0 \
+    else gameState.player2.draw(val)
+
+class HarmonicWolf(Monster):
+    def __init__(self):
+        monsterName = "Harmonic Wolf"
+        cost = 1
+        monsterAttack = 1
+        monsterMaxHP = 2
+        monsterCurrHP = 2
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        self.encoding = HarmonicVal
+        self.fanfareEffects.append(selfPing(1))
+        self.LWEffects.append(wolfDraw(1))
+
+def maestroLeaderEff(gameState):
+    gameState.activePlayer.takeEffectDamage(gameState, 1)
+    gameState.activePlayer.draw(1)
+
+class Maestro(Monster):
+    def __init__(self):
+        monsterName = "Maestro"
+        cost = 2
+        monsterAttack = 1
+        monsterMaxHP = 1
+        monsterCurrHP = 1
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        self.encoding = MaestroVal
+
+    def play(self, gameState, currSide):
+        genericPlay(self, gameState, currSide)
+        if (gameState.activePlayer.selfPings < 7):
+            gameState.activePlayer.takeEffectDamage(gameState, 1)
+            gameState.activePlayer.draw(1)
+        elif (len(gameState.activePlayer.hand) < 9):
+            gameState.activePlayer.hand.append(Orchestration())
+    
+    def destroy(self, gameState):
+        if (self.side == 0):
+            gameState.player1.leaderEffects.turnStartEffects.append([maestroLeaderEff, 1])
+        else:
+            gameState.player2.leaderEffects.turnStartEffects.append([maestroLeaderEff, 1])
+        genericDestroy(self, gameState)
+
 ##### MAIN DECK AMULETS
+def castleEff(gameState):
+    if gameState.activePlayer.selfPings >= 7:
+        gameState.activePlayer.restoreHP(gameState, 3)
+    else:
+        gameState.activePlayer.takeEffectDamage(gameState, 1)
+
+def summonBatWithWard(card, gameState):
+    if (card.effActivations < card.maxEffPerTurn):
+        newBat = ForestBat()
+        newBat.hasWard = 1
+        genericSummon(newBat, gameState, gameState.activePlayer.playerNum - 1)
+        card.effActivations += 1
+
+class VampireQueenCastle(Amulet):
+    def __init__(self):
+        name = "Castle"
+        cost = 2
+        allyFollowerTargets = 0
+        enemyFollowerTargets = 0
+        isCountdown = True
+        countdown = 2
+        Amulet.__init__(self, name, cost, allyFollowerTargets, enemyFollowerTargets, isCountdown, countdown)
+        self.encoding = CastleVal
+        self.turnEndEffects.append(castleEff)
+        self.selfPingEffects.append(summonBatWithWard)
+        self.maxEffPerTurn = 1
+
+
+###### MAIN DECK SPELLS
+class HowlingScream(Spell):
+    def __init__(self):
+        spellName = "Scream"
+        spellCost = 1
+        allyFollowerTargets = 0
+        enemyFollowerTargets = 0
+        Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
+        self.encoding = ScreamVal
+        
+    def play(self, gameState, currSide):
+        gameState.activePlayer.currPP -= self.cost
+        selfPing(1)(gameState)
+        #TODO: make this a general RNG method
+        if (len(gameState.board.fullBoard[(currSide+1) % 2]) > 0):
+            if self.rigRNG:
+                gameState.board.fullBoard[(currSide+1) % 2][self.riggedVal].takeEffectDamage(gameState, 1)
+            else:
+                myseed = 1223234
+                if (len(gameState.activePlayer.deck.cards) >= 5):
+                    for ind in range(5):
+                        myseed += (1234 * gameState.activePlayer.deck.cards[len(gameState.activePlayer.deck.cards) - 1 - ind].encoding)
+                random.seed(myseed)
+                randomTarget = random.randint(0,len(gameState.board.fullBoard[gameState.activePlayer.playerNum % 2]) - 1)
+                while (isinstance(gameState.board.fullBoard[gameState.activePlayer.playerNum % 2][randomTarget], Amulet)):
+                    randomTarget = random.randint(0,len(gameState.board.fullBoard[gameState.activePlayer.playerNum % 2]) - 1)
+                gameState.board.fullBoard[gameState.activePlayer.playerNum % 2][randomTarget].takeEffectDamage(gameState, 1)
+        gameState.activePlayer.draw(1)
 

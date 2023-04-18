@@ -93,13 +93,13 @@ class Game:
         if (not self.activePlayer.canEvolve) or (self.activePlayer.currEvos == 0):
             input("ERROR: this player cannot evolve")
             return
-
+        
         if self.activePlayer == self.player1:
             evolveTarget = self.board.fullBoard[0][allyMonsterIndex[0]]
         else:
             evolveTarget = self.board.fullBoard[1][allyMonsterIndex[0]]
 
-        if evolveTarget.evoEnemyFollowerTargets > 0:
+        if evolveTarget.evoEnemyFollowerTargets > 0 and len(self.board.fullBoard[(self.activePlayer.playerNum+1) % 2]) > 0:
             evolveTarget.evolve(self, allyMonsterIndex[1:], self.activePlayer.playerNum % 2)
         else:
             evolveTarget.evolve(self)
@@ -207,20 +207,36 @@ class Game:
 
     def endTurn(self):
         self.activateTurnEndEffects(None)
-        self.activePlayer.selfPingsTurn = 0
+        self.clearQueue()
 
         # Allow all followers to attack again
         for mons in self.board.player1side:
-            mons.canAttack = 1
-            mons.canAttackFace = 1
+            mons.effActivations = 0
+            if (mons.isAmulet) and (mons.isCountdown) and (self.activePlayer.playerNum == 1):
+                mons.countdown -= 1
+                if mons.countdown == 0:
+                    mons.destroy(self)
+            else:
+                mons.canAttack = 1
+                mons.canAttackFace = 1
         for mons in self.board.player2side:
-            mons.canAttack = 1
-            mons.canAttackFace = 1
+            mons.effActivations = 0
+            if (mons.isAmulet) and (mons.isCountdown) and (self.activePlayer.playerNum == 2):
+                mons.countdown -= 1
+                if mons.countdown == 0:
+                    mons.destroy(self)
+            else:
+                mons.canAttack = 1
+                mons.canAttackFace = 1
+
+        #self.clearQueue()
 
         # Change the current active player
         if (self.activePlayer == self.player1):
+            self.activePlayer.selfPingsTurn = 0
             self.activePlayer = self.player2
         else:
+            self.activePlayer.selfPingsTurn = 0
             self.activePlayer = self.player1
         
         # Change the turn number
@@ -230,6 +246,8 @@ class Game:
         self.startTurn()
 
     def startTurn(self):
+        self.activateTurnStartEffects(None)
+        self.clearQueue()
         # Increase max PP of the current player
         if (self.activePlayer.maxPP < MAX_EMPTY_PP):
           self.activePlayer.maxPP += 1
@@ -319,7 +337,8 @@ class Game:
             moves.append([PLAY_ACTION, [currIndex, -1]])
         if (card.numEnemyFollowerTargets == 1):
             for targetIndex in range(len(self.board.fullBoard[(allyBoard+1) % 2])):
-                moves.append([PLAY_ACTION, [currIndex, targetIndex]])
+                if isinstance(self.board.fullBoard[(allyBoard+1) % 2][targetIndex], Monster):
+                    moves.append([PLAY_ACTION, [currIndex, targetIndex]])
         elif (card.numAllyFollowerTargets == 1):
             for targetIndex in range(len(self.board.fullBoard[allyBoard])):
                  moves.append([PLAY_ACTION, [currIndex, targetIndex]])
@@ -371,6 +390,8 @@ class Game:
                 # TODO: ally targeting at some point
                 if card.evoEnemyFollowerTargets == 0:
                     moves.append([EVO_ACTION, [currIndex]])
+                elif card.evoEnemyFace == 0 and len(self.board.fullBoard[(allyBoard+1) % 2]) == 0:
+                    moves.append([EVO_ACTION, [currIndex]])
                 else:
                     if card.evoEnemyFace == True:
                         moves.append([EVO_ACTION, [currIndex, -1]])
@@ -417,14 +438,12 @@ class Game:
 
     def activateOnPlayEffects(self, card):
         self.activePlayer.leaderEffects.activateOnPlayEffects(self, card)
-        #TODO: other ally effects
 
     def activateOnSummonEffects(self, card):
         if card.side == 1:
             self.player1.leaderEffects.activateOnSummonEffects(self, card)
         else:
             self.player2.leaderEffects.activateOnSummonEffects(self, card)
-        # TODO: enemy onsummon effects? idk if these exist tbh. Vampy vs Vampy, is a problem
         for item in self.board.fullBoard[card.side - 1]:
             for eff in item.onSummonEffects:
                 eff(self, card)
@@ -433,7 +452,7 @@ class Game:
         self.activePlayer.leaderEffects.activateSelfPingEffects(self)
         for card in self.board.fullBoard[self.activePlayer.playerNum - 1]:
             for eff in card.selfPingEffects:
-                eff(self)
+                eff(card, self)
 
     def activateHealEffects(self, nothing):
         self.activePlayer.leaderEffects.activateHealEffects(self)
@@ -446,6 +465,12 @@ class Game:
         for card in self.board.fullBoard[self.activePlayer.playerNum - 1]:
             for eff in card.turnEndEffects:
                 eff(self)
+    
+    def activateTurnStartEffects(self, placholder):
+        self.activePlayer.leaderEffects.activateTurnStartEffects(self)
+        for card in self.board.fullBoard[self.activePlayer.playerNum - 1]:
+            for eff in card.turnStartEffects:
+                eff(self)
 
     def clearQueue(self):
         queueIndex = 0
@@ -453,4 +478,4 @@ class Game:
             if self.queue[queueIndex] != None:
                 self.queue[queueIndex](self)
             queueIndex += 1
-        queue = []
+        self.queue = []

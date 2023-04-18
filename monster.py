@@ -14,18 +14,22 @@ class Monster(Card):
         self.isEvolved = 0
         self.hasStorm = 0
         self.hasRush = 0
+        self.hasBane = 0
         self.canAttack = 0
         self.hasWard = 0
         self.hasDrain = 0
         self.hasAttacked = 0
         self.turnPlayed = 0
         self.canAttackFace = 1
+        self.freeEvolve = 0
         self.isAttackable = True
+        self.side = -1
 
         #Enhance/accel
         self.canEnhance = False
         self.canAccel = False
         self.accelCost = 0
+        self.accelCard = None
 
         # Effect Arrays
         self.fanfareEffects = []
@@ -34,7 +38,7 @@ class Monster(Card):
         self.strikeEffects = []
         self.clashEffects = []
         self.onAllyEvoEffects = []
-        self.onPlayEffects = []  # for when an ally follower is played
+        self.onSummonEffects = [] # for when an ally follower is summoned (not played)
         self.turnEndEffects = []
         self.turnStartEffects = []
         self.selfPingEffects = []
@@ -44,10 +48,13 @@ class Monster(Card):
         
         # Battlecry targets
         self.numTargets = 0
+        self.fanfareTargetFace = False
 
         # Evo targets
         self.evoEnemyFollowerTargets = 0
         self.evoAllyFollowerTargets = 0
+        self.evoEnemyFace = False
+        self.evoAllyFace = False
 
         Card.__init__(self, cost, monsterName)
 
@@ -56,19 +63,20 @@ class Monster(Card):
         genericPlay(self, board, currPlayer)
   
     #@abstractmethod
-    def takeCombatDamage(self, gameState, damage, index, side):
-        genericTakeDamage(self, gameState, damage, index, side)
+    def takeCombatDamage(self, gameState, damage):
+        damageTaken = genericTakeDamage(self, gameState, damage)
+        return damageTaken
 
-    def takeEffectDamage(self, gameState, damage, index, side):
-        genericTakeDamage(self, gameState, damage, index, side)
+    def takeEffectDamage(self, gameState, damage):
+        damageTaken = genericTakeDamage(self, gameState, damage)
     
     #@classmethod
     def evolve(self, gameState, *args, **kwargs):
         genericEvolve(self, gameState)
     
     # called to actually destroy, activate LW, etc.
-    def destroy(self, gameState, index, side, *args, **kwargs):
-        genericDestroy(gameState, index, side)
+    def destroy(self, gameState, *args, **kwargs):
+        genericDestroy(self, gameState)
 
     # called when an effect attempts to destroy (bane, destroy follower, etc.). Might not actually
     # destroy if the target has protection
@@ -78,14 +86,18 @@ class Monster(Card):
     def leaderStrike(self, gameState, myIndex, *args, **kwargs):
         if gameState.activePlayer.playerNum == 1:
             damagePlayer = gameState.player2
+            myPlayer = gameState.player1
         else:
             damagePlayer = gameState.player1
+            myPlayer = gameState.player2
 
         for func in self.strikeEffects:
             func(gameState, myIndex)
 
         gameState.clearQueue()
-        damagePlayer.takeCombatDamage(gameState, self.currAttack)
+        damageDealt = damagePlayer.takeCombatDamage(gameState, self.currAttack)
+        if self.hasDrain == 1:
+            myPlayer.restoreHP(gameState, damageDealt)
 
     def followerStrike(self, gameState, allyIndex, activeSide, enemyMonster, enemyIndex, *args, **kwargs):
         #TODO: these should actually just queue instead of activating. Its ok for now tho I think
@@ -100,5 +112,11 @@ class Monster(Card):
         gameState.clearQueue()
         if (enemyMonster.currHP > 0):
             combatDamageToTake = enemyMonster.currAttack
-            enemyMonster.takeCombatDamage(gameState, self.currAttack, enemyIndex, (activeSide+1)%2)
-            self.takeCombatDamage(gameState, combatDamageToTake, allyIndex, activeSide)
+            damageDealt = enemyMonster.takeCombatDamage(gameState, self.currAttack)
+            damageTaken = self.takeCombatDamage(gameState, combatDamageToTake)
+            if self.hasDrain == 1:
+                if activeSide == 0:
+                    gameState.player1.restoreHP(gameState, damageDealt)
+                else:
+                    gameState.player2.restoreHP(gameState, damageDealt)
+

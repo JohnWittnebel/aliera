@@ -8,7 +8,7 @@ import torch
 hiddennodes = 10
 inodes = 660
 #inodes=6
-onodes = 116
+onodes = 130
 #onodes=7
 
 class NeuralNetwork(nn.Module):

@@ -14,7 +14,9 @@ deck1 = [[Fighter, 3],
          [DeathDragon, 3],
          [DragonBreath, 2],
          [RagingCommander, 3],
-         [Veight, 3]]
+         [Veight, 3],
+         [Drummer, 3],
+         [Vampy, 3]]
 
 with open("deck1.deck", "wb") as f:
     pickle.dump(deck1, f)

@@ -53,15 +53,62 @@ class Player:
             return
         else:
             self.hand.append(cardToDraw)
+    
+    # Actual mulligan, draw without replacement, then insert cards and reshuffle
+    def mulligan(self, mull1, mull2, mull3):
+        numCards = mull1+mull2+mull3
+        temp1 = None
+        temp2 = None
+        temp3 = None
+        if (mull3 == 1):
+            temp3 = self.hand.pop(2)
+        if (mull2 == 1):
+            temp2 = self.hand.pop(1)
+        if (mull1 == 1):
+            temp1 = self.hand.pop(0)
 
-    def randomHand(self):
-        numCards = len(self.hand)
-        for item in self.hand:
-            self.deck.cards.append(item)
-        self.hand = []
-        self.deck.shuffle()
+        self.deck.trueShuffle()
         self.draw(numCards)
+        
+        if (mull3 == 1):
+            self.deck.cards.append(temp3)
+        if (mull2 == 1):
+            self.deck.cards.append(temp2)
+        if (mull1 == 1):
+            self.deck.cards.append(temp1)
+        self.deck.cards.trueShuffle()
 
+    # Used to sample different mulligan results to estimate optimal mulligan strat
+    def mulliganSample(self, mull1, mull2, mull3):
+        numCards = mull1+mull2+mull3
+        temp1 = None
+        temp2 = None
+        temp3 = None
+        if (mull3 == 1):
+            temp3 = self.hand.pop(2)
+        if (mull2 == 1):
+            temp2 = self.hand.pop(1)
+        if (mull1 == 1):
+            temp1 = self.hand.pop(0)
+
+        self.deck.trueShuffle()
+        self.draw(numCards)
+        return [temp1, temp2, temp3]
+
+    # Used in conjunction with mulliganSample to return the gameState to the original position
+    def returnMulliganSample(self, mullArr):
+        tempHand = []
+        for i in range(3):
+            if mullArr[i] != None:
+                tempHand.append(mullArr[i])
+            else:
+                keptCard = self.hand.pop(0)
+                tempHand.append(keptCard)
+        for ele in self.hand:
+            self.deck.cards.append(ele)
+        self.hand = tempHand
+        self.deck.trueShuffle()
+       
     def printHand(self):
         count = 0
         printString = ""
@@ -81,8 +128,10 @@ class Player:
     def takeCombatDamage(self, gameState, val):
         if not self.immune:
             self.currHP = self.currHP - max(0,val - self.damageProtection)
+            return max(0, val - self.damageProtection)
         if self.currHP <= 0:
             gameState.endgame((self.playerNum + 1) % 2)
+        return 0
 
     def takeEffectDamage(self, gameState, val):
         if gameState.activePlayer == self:
@@ -92,4 +141,9 @@ class Player:
             self.currHP = self.currHP - max(0,val - self.effectProtection)
         if self.currHP <= 0:
             gameState.endgame((self.playerNum + 1) % 2)
-      
+     
+    def printHand(self):
+        index = 0
+        for ele in self.hand:
+            print(str(index) + ": " + str(ele))
+            index += 1

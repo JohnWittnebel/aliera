@@ -42,6 +42,9 @@ ImplancerVal = 11
 AbyssbeastVal = 12
 
 BatVal = 0
+VampyVal = 1
+GiftVal = 2
+DrummerVal = 3
 RCVal = 4
 VeightVal = 5
-
+BloodkinVal = 1

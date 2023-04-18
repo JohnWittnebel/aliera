@@ -81,8 +81,8 @@ class Transformer:
             if loopIndex < len(allyBoard):
                 currMon = allyBoard[loopIndex]
                 currLayer[0] = pow(2, currMon.encoding)
-                currLayer[1] = currMon.monsterCurrAttack
-                currLayer[2] = currMon.monsterCurrHP
+                currLayer[1] = currMon.currAttack
+                currLayer[2] = currMon.currHP
                 currLayer[3] = 8*currMon.canAttackFace + 4*currMon.isEvolved + 2*currMon.hasWard + currMon.canAttack
             generatedData.append(currLayer)
         
@@ -91,8 +91,8 @@ class Transformer:
             if loopIndex < len(enemyBoard):
                 currMon = enemyBoard[loopIndex]
                 currLayer[0] = pow(2, currMon.encoding)
-                currLayer[1] = currMon.monsterCurrAttack
-                currLayer[2] = currMon.monsterCurrHP
+                currLayer[1] = currMon.currAttack
+                currLayer[2] = currMon.currHP
                 currLayer[3] = 8*currMon.canAttackFace + 4*currMon.isEvolved + 2*currMon.hasWard + currMon.canAttack
             generatedData.append(currLayer)
 
@@ -122,16 +122,16 @@ class Transformer:
                 legalBinaryMask[onodes-2] = True
             elif move[0] == 1:
                 if (len(move[1]) == 1):
-                    legalBinaryMask[6*move[1][0]] = True
+                    legalBinaryMask[7*move[1][0]] = True
                 else:
-                    legalBinaryMask[6*move[1][0] + move[1][1] + 1] = True
+                    legalBinaryMask[7*move[1][0] + move[1][1] + 2] = True
             elif move[0] == 2:
-                legalBinaryMask[56 + 6*move[1][0] + move[1][1]] = True
+                legalBinaryMask[64 + 6*move[1][0] + move[1][1]] = True
             elif move[0] == 3:
                 if (len(move[1]) == 1):                    
-                    legalBinaryMask[84 + 6*move[1][0]] = True
+                    legalBinaryMask[93 + 7*move[1][0]] = True
                 else:
-                    legalBinaryMask[84 + 6*move[1][0] + move[1][1] + 1] = True
+                    legalBinaryMask[93 + 7*move[1][0] + move[1][1] + 2] = True
 
         legalMasked = NNoutput[legalBinaryMask]
         legalMoveProbs = nn.Softmax(dim=0)(legalMasked)

@@ -18,8 +18,8 @@ sys.path.insert(0, './..')
 
 #TODO: the training file should handle this
 currNN = NeuralNetwork()
-currNN.load_state_dict(torch.load("./AI/botModels/test.bot"))
-currNN.eval()
+#currNN.load_state_dict(torch.load("./AI/botModels/test.bot"))
+#currNN.eval()
 GAMENUM = 1
 POSNUM = 1
 #gamePath = []
@@ -53,10 +53,15 @@ class AZMCTS():
         nnInput = nnInput.unsqueeze(dim=0)
             
         logits = currNN(nnInput)[0]
-        print(logits)
+        #print(logits)
         probabilitiesNN, mask = transformer.normalizedVector(logits[0], self.gameState)
+        #print(mask)
+        #print(probabilitiesNN)
         self.mask = mask
         self.setProbabilities(probabilitiesNN)
+
+        #### DEBUGGING STARTS HERE
+        #self.descendTree()
         return
 
     def runSimulations(self, simulations):
@@ -141,7 +146,6 @@ class AZMCTS():
         for ele in self.moveArr:
             ele[5] = probabilities[currIndex]
             currIndex += 1
-
         #moveInd = 0
         #allMoveInd = 0
         #while (moveInd < len(self.moveArr)):

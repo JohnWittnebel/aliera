@@ -10,6 +10,10 @@ class Deck:
         self.deckName = deckname
         self.cards = []
         self.deckFromFile()
+    
+    # This is between games so that the deck is different
+    def trueShuffle(self):
+        random.shuffle(self.cards)
 
     def shuffle(self):
         # For training purposes, we use a seed so that MCTS works
@@ -49,5 +53,5 @@ class Deck:
         for ele in deckData:
             for _ in range(ele[1]):
                 self.cards.append(ele[0]())
-        self.shuffle()
+        self.trueShuffle()
 

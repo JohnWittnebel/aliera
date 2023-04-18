@@ -263,6 +263,10 @@ class Game:
                 self.endgame(self.player1)
 
 
+    def mulligan(self, player):
+        mull = player.mulliganSample(1,1,0)
+        player.returnMulliganSample(mull)
+
     # this function will have the initial drawing and mulligan phase
     def gameStart(self):
         self.winner = 0
@@ -271,8 +275,9 @@ class Game:
        
         if (len(self.player1.deck.cards) == 0):
             raise Exception("no cards in deck at start")
-        #TODO
-        #mulligan
+        
+        self.mulligan(self.player1)
+        self.mulligan(self.player2)
 
         self.startTurn()
 
@@ -360,9 +365,12 @@ class Game:
         currIndex = 0
         for card in self.board.fullBoard[allyBoard]:
             if card.canEvolve:
+                # TODO: ally targeting at some point
                 if card.evoEnemyFollowerTargets == 0:
                     moves.append([EVO_ACTION, [currIndex]])
                 else:
+                    if card.evoEnemyFace == True:
+                        moves.append([EVO_ACTION, [currIndex, -1]])
                     for targetIndex in range(len(self.board.fullBoard[(allyBoard+1) % 2])):
                         moves.append([EVO_ACTION, [currIndex, targetIndex]])
             currIndex += 1
@@ -395,9 +403,28 @@ class Game:
             self.initiateAction(moves[selection])
         return self.winner
 
+    def removeFollowerLambda(self, mons):
+        for side in self.board.fullBoard:
+            for item in side:
+                if item == mons:
+                    side.remove(mons)
+
+    def removeFollower(self, mons):
+        return lambda gameState: gameState.removeFollowerLambda(mons) 
+
     def activateOnPlayEffects(self, card):
         self.activePlayer.leaderEffects.activateOnPlayEffects(self, card)
         #TODO: other ally effects
+
+    def activateOnSummonEffects(self, card):
+        if card.side == 1:
+            self.player1.leaderEffects.activateOnSummonEffects(self, card)
+        else:
+            self.player2.leaderEffects.activateOnSummonEffects(self, card)
+        # TODO: enemy onsummon effects? idk if these exist tbh. Vampy vs Vampy, is a problem
+        for item in self.board.fullBoard[card.side - 1]:
+            for eff in item.onSummonEffects:
+                eff(self, card)
 
     def activateSelfPingEffects(self, nothing):
         self.activePlayer.leaderEffects.activateSelfPingEffects(self)

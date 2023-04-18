@@ -8,6 +8,7 @@ class LeaderEffectManager():
         self.onSelfPingEffects = []
         self.onCombatDamageEffects = []
         self.onEffectDamageEffects = []
+        self.onSummonEffects = []
         
     def activateOnPlayEffects(self, gameState, card):
         for effect in self.onPlayEffects:
@@ -32,3 +33,8 @@ class LeaderEffectManager():
     def activateTurnEndEffects(self, gameState):
         for effect in self.turnEndEffects:
             effect(gameState)
+
+    def activateOnSummonEffects(self, gameState, card):
+        for effect in self.onSummonEffects:
+            effect(gameState, card)
+

@@ -43,19 +43,25 @@ class Maiden(Monster):
 
         self.hasWard = 1
         self.evoEnemyFollowerTargets = 1
+        self.evoEnemyFace = True
         self.encoding = MaidenVal
         self.LWEffects.append(dealFaceDamage(2))
         self.selfPingEffects.append(healFace(1))
         
     def evolve(self, gameState, target, targetSide, *args, **kwargs):
         genericEvolve(self, gameState)
-        self.monsterMaxHP -= 1
+        self.maxHP -= 1
         self.currHP -= 1
         self.currAttack -= 1
-            
-        enemyPlayer = gameState.activePlayer.playerNum % 2
-        if (len(gameState.board.fullBoard[enemyPlayer]) > target[0]):
-            gameState.board.fullBoard[enemyPlayer][target[0]].takeEffectDamage(gameState, 3, target[0], targetSide)
+        
+        if (target[0] == -1) and targetSide == 1:
+            gameState.player2.takeEffectDamage(gameState, 3)
+        elif (target[0] == -1) and targetSide == 0:
+            gameState.player1.takeEffectDamage(gameState, 3)
+        else:
+            enemyPlayer = gameState.activePlayer.playerNum % 2
+            if (len(gameState.board.fullBoard[enemyPlayer]) > target[0]):
+                gameState.board.fullBoard[enemyPlayer][target[0]].takeEffectDamage(gameState, 3)
 
 class Goliath(Monster):
   def __init__(self):
@@ -91,7 +97,7 @@ def givePlusOne(gameState, card):
     if (isinstance(card, Monster)):
         card.currAttack += 1
         card.currHP += 1
-        card.monsterMaxHP += 1
+        card.maxHP += 1
 
 def selfPing(val):
     return lambda gameState, side: gameState.activePlayer.takeEffectDamage(gameState, val)
@@ -112,17 +118,19 @@ class Fighter(Monster):
     # Giving leader effect
     def play(self, gameState, currSide):
         genericPlay(self, gameState, currSide)
-        if (givePlusOne not in gameState.activePlayer.leaderEffects.onPlayEffects):
-            gameState.activePlayer.leaderEffects.onPlayEffects.append(givePlusOne)
+        if (givePlusOne not in gameState.activePlayer.leaderEffects.onSummonEffects):
+            gameState.activePlayer.leaderEffects.onSummonEffects.append(givePlusOne)
 
     # Remove leader effect when this follower leaves play
-    def destroy(self, gameState, index, currSide):
-        if currSide:
+    def destroy(self, gameState):
+        currPlayer = None
+        for ele in gameState.board.fullBoard[0]:
+            if ele == self:
+                currPlayer = gameState.player1
+        if currPlayer == None:
             currPlayer = gameState.player2
-        else:
-            currPlayer = gameState.player1
-        currPlayer.leaderEffects.onPlayEffects = list(filter(lambda a: a != givePlusOne,currPlayer.leaderEffects.onPlayEffects))
-        genericDestroy(gameState, index, currSide) 
+        currPlayer.leaderEffects.onSummonEffects = list(filter(lambda a: a != givePlusOne,currPlayer.leaderEffects.onSummonEffects))
+        genericDestroy(self, gameState) 
 
 class DragonBreath(Spell):
     def __init__(self):
@@ -137,7 +145,7 @@ class DragonBreath(Spell):
         damage = 2
         enemySide = (currSide + 1) % 2
         targetIndex = targets[0]
-        gameState.board.fullBoard[enemySide][targetIndex].takeEffectDamage(gameState, damage, targetIndex, enemySide)
+        gameState.board.fullBoard[enemySide][targetIndex].takeEffectDamage(gameState, damage)
         gameState.activePlayer.draw(2)
         gameState.activePlayer.currPP -= self.cost
         return

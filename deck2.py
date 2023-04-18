@@ -14,6 +14,8 @@ deck1 = [[Fighter, 3],
          [DeathDragon, 3],
          [DragonBreath, 2],
          [RagingCommander, 3],
+         [Drummer, 3],
+         [Vampy, 3],
          [Veight, 3]]
 
 with open("deck2.deck", "wb") as f:

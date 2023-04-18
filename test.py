@@ -18,16 +18,19 @@ from AZMCTS import AZMCTS
 def singleGame(botGame, currPosSave):
   x = Game()
   x.gameStart()
+
+  # mulligan phase
+
+
   y = Transformer()
 
   if (botGame == 1):
     botTurn = 1
   else:
     botTurn = 0
-  
+
   myTree = AZMCTS(x)
   myTree.rootInit()
-  actionRecord = []
   while (x.winner == 0):
     if (x.queue != []):
         x.clearQueue()
@@ -130,10 +133,12 @@ def singleGame(botGame, currPosSave):
             continue
         if (uinput1 == "5"):
             myTree = AZMCTS(x)
-            #myTree.initialScan()
+            myTree.rootInit()
             myTree.runSimulations(50)
             myTree.printTree()
             input("")
+        if (uinput1 == "6"):
+            myTree.rootInit()
         if (uinput1 == "9"):
             input2 = input("cheat how many cards? ")
             if (len(input2) > 0):

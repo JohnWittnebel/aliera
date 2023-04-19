@@ -63,11 +63,6 @@ print(nn.CrossEntropyLoss()(predictedOutput, actOutput))
 
 #def AZLossFcn(predMTCS, actMTCS, predRes, actRes):
 #    return nn.CrossEntropyLoss()(predMTCS, actMCTS)
-training_data = PositionDataset("./trainingData")
-loader = DataLoader(training_data, batch_size=16, shuffle=True)
-model = NeuralNetwork().to("cpu")
-model.load_state_dict(torch.load("./botModels/test.bot"))
-model.eval()
 
 #a,b,c,d = next(iter(loader))
 
@@ -79,21 +74,24 @@ def AZLossFcn(predMCTS, actMCTS, predRes, actRes):
     loss2 = nn.MSELoss()(predRes, actRes.unsqueeze(dim=1))
     return (loss1 + loss2).sum()
 
-n_epochs = 400
-for epoch in range(n_epochs):
-    #for name, param in model.named_parameters():
-    #    if param.requires_grad:
-    #        print(name, param.data)
-    gamePos, train_MCTS, mask, train_result = next(iter(loader))
-    gamePos.requires_grad = True
-    NNpred, NNvaluation = model(gamePos)
-    myCoolTensor = torch.where(mask, NNpred, float('-inf'))
-    predictedOutput = nn.Softmax(dim=1)(myCoolTensor)
-    loss = AZLossFcn(predictedOutput, train_MCTS, NNvaluation, train_result.float())
+def training(generation, learnRate):
+    training_data = PositionDataset("./AI/trainingData")
+    loader = DataLoader(training_data, batch_size=32, shuffle=True)
+    model = NeuralNetwork().to("cpu")
+    model.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
+    model.eval()
+    n_epochs = 200
+    for epoch in range(n_epochs):
+        gamePos, train_MCTS, mask, train_result = next(iter(loader))
+        gamePos.requires_grad = True
+        NNpred, NNvaluation = model(gamePos)
+        myCoolTensor = torch.where(mask, NNpred, float('-inf'))
+        predictedOutput = nn.Softmax(dim=1)(myCoolTensor)
+        loss = AZLossFcn(predictedOutput, train_MCTS, NNvaluation, train_result.float())
     
-    optimizer = torch.optim.SGD(model.parameters(), lr=2.0)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+        optimizer = torch.optim.SGD(model.parameters(), lr=learnRate)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
-torch.save(model.state_dict(), "./botModels/test2.bot")
+    torch.save(model.state_dict(), "./AI/botModels/gen" + str(generation+1) + ".bot")

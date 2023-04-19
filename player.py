@@ -129,9 +129,11 @@ class Player:
     def takeCombatDamage(self, gameState, val):
         if not self.immune:
             self.currHP = self.currHP - max(0,val - self.damageProtection)
+            if self.currHP <= 0:
+                gameState.endgame((self.playerNum % 2) + 1)
             return max(0, val - self.damageProtection)
         if self.currHP <= 0:
-            gameState.endgame((self.playerNum + 1) % 2)
+            gameState.endgame((self.playerNum % 2) + 1)
         return 0
 
     def takeEffectDamage(self, gameState, val):
@@ -142,7 +144,7 @@ class Player:
         if not self.effectImmune and not self.immune:
             self.currHP = self.currHP - max(0,val - self.effectProtection)
         if self.currHP <= 0:
-            gameState.endgame((self.playerNum + 1) % 2)
+            gameState.endgame((self.playerNum % 2) + 1)
      
     def printHand(self):
         index = 0

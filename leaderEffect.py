@@ -36,9 +36,10 @@ class LeaderEffectManager():
 
     def activateTurnStartEffects(self, gameState):
         for effect in self.turnStartEffects:
-            if (effect[1] > 0):
-                effect[0](gameState)
-                effect[1] -= 1
+            effect[0](gameState)
+            effect[1] -= 1
+            if (effect[1] == 0):
+                self.turnStartEffects.remove(effect)
 
     def activateOnSummonEffects(self, gameState, card):
         for effect in self.onSummonEffects:

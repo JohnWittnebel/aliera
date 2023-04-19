@@ -5,12 +5,12 @@ import pickle
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from bot import onodes
+import fnmatch
 
 class PositionDataset(Dataset):
     def __init__(self, positionDir):
         self.positionDir = positionDir
-        #TODO: generalize this PLS
-        self.numPos = 7763
+        self.numPos = len(fnmatch.filter(os.listdir("./AI/trainingData/"), '*.pickle'))
 
     def __len__(self):
         return self.numPos

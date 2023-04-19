@@ -56,55 +56,93 @@ class Transformer:
         currLayer.append(currPlayer.maxPP)
         #currLayer.append(0) #turn number, implement later
         currLayer.append(currPlayer.canEvolve)
+        currLayer.append(currPlayer.selfPings)
+        currLayer.append(currPlayer.selfPingsTurn)
         generatedData.append(currLayer)
 
         # Layer 2, basic data
         currLayer = []
         currLayer.append(enemyPlayer.maxPP)
         currLayer.append(len(enemyPlayer.hand))
+        currLayer.append(len(currPlayer.leaderEffects.turnStartEffects))
+        currLayer.append(len(enemyPlayer.leaderEffects.turnStartEffects))
         currLayer.append(currPlayer.currEvos)
         currLayer.append(enemyPlayer.currEvos)
-        #currLayer.append(0)
+        currLayer.append(enemyPlayer.selfPings)
+        generatedData.append(currLayer)
+
+        # Layer 3, basic data
+        currLayer = []
+        currLayer.append(len(currPlayer.deck.cards))
+        currLayer.append(len(enemyPlayer.deck.cards))
+        currLayer.append(0)
+        currLayer.append(0)
+        currLayer.append(0)
+        currLayer.append(0)
         currLayer.append(0)
         generatedData.append(currLayer)
         
-        # Layers 3-11, hand contents
+        # Layers 4-12, hand contents
         for loopIndex in range(MAX_HAND_SIZE):
-            currLayer = [0,0,0,0,0]
+            currLayer = [0,0,0,0,0,0,0]
             if loopIndex < len(currPlayer.hand):
-                currLayer[0] = pow(2, currPlayer.hand[loopIndex].encoding)
+                currLayer[currPlayer.hand[loopIndex].encoding // 7] = pow(2, (currPlayer.hand[loopIndex].encoding % 7))
             generatedData.append(currLayer)
 
-        # Layers 12-22, board contents
+        # Layers 13-20, played contents, note that this is always in order P1 then P2, not active player, inactive player
+        # TODO: this can be done a LOT better
+        for i in range(4):
+            currLayer = [0,0,0,0,0,0,0]
+            for loopIndex in range(len(currLayer)):
+                currLayer[loopIndex] = gameState.p1played[i*len(currLayer) + loopIndex]
+            generatedData.append(currLayer)
+        
+        for i in range(4):
+            currLayer = [0,0,0,0,0,0,0]
+            for loopIndex in range(len(currLayer)):
+                currLayer[loopIndex] = gameState.p2played[i*len(currLayer) + loopIndex]
+            generatedData.append(currLayer)    
+  
+        # Layers 21-30, board contents
         for loopIndex in range(MAX_BOARD_SIZE):
-            currLayer = [0,0,0,0,0]
+            currLayer = [0,0,0,0,0,0,0]
             if loopIndex < len(allyBoard):
                 currMon = allyBoard[loopIndex]
-                currLayer[0] = pow(2, currMon.encoding)
-                currLayer[1] = currMon.currAttack
-                currLayer[2] = currMon.currHP
-                currLayer[3] = 8*currMon.canAttackFace + 4*currMon.isEvolved + 2*currMon.hasWard + currMon.canAttack
+                currMonEncIndex = currMon.encoding // 7
+                currLayer[currMonEncIndex] = pow(2, (currMon.encoding % 7))
+                if (not currMon.isAmulet):
+                    currLayer[4] = currMon.currAttack
+                    currLayer[5] = currMon.currHP
+                    currLayer[6] = 8*currMon.canAttackFace + 4*currMon.isEvolved + 2*currMon.hasWard + currMon.canAttack
+                    currLayer[6] += 32*currMon.hasBane + 16*currMon.hasDrain
+                else:
+                    currLayer[5] = 32*currMon.countdown
             generatedData.append(currLayer)
         
         for loopIndex in range(MAX_BOARD_SIZE):
-            currLayer = [0,0,0,0,0]
+            currLayer = [0,0,0,0,0,0,0]
             if loopIndex < len(enemyBoard):
                 currMon = enemyBoard[loopIndex]
-                currLayer[0] = pow(2, currMon.encoding)
-                currLayer[1] = currMon.currAttack
-                currLayer[2] = currMon.currHP
-                currLayer[3] = 8*currMon.canAttackFace + 4*currMon.isEvolved + 2*currMon.hasWard + currMon.canAttack
+                currMonEncIndex = currMon.encoding // 7
+                currLayer[currMonEncIndex] = pow(2, (currMon.encoding % 7))
+                if (not currMon.isAmulet):
+                    currLayer[4] = currMon.currAttack
+                    currLayer[5] = currMon.currHP
+                    currLayer[6] = 8*currMon.canAttackFace + 4*currMon.isEvolved + 2*currMon.hasWard + currMon.canAttack
+                    currLayer[6] += 32*currMon.hasBane + 16*currMon.hasDrain
+                else:
+                    currLayer[5] = 32*currMon.countdown
             generatedData.append(currLayer)
 
-        # Layer 23, player turn
+        # Layer 31, player turn
         if currPlayer.playerNum == 1:
-            currLayer = [63,63,63,63,63]
+            currLayer = [127,127,127,127,127,127,127]
         else:
-            currLayer = [0,0,0,0,0]
+            currLayer = [0,0,0,0,0,0,0]
         generatedData.append(currLayer)
        
         #return generatedData
-        return int_to_bits(torch.tensor(generatedData), bits=6, dtype=torch.float32)
+        return int_to_bits(torch.tensor(generatedData), bits=7, dtype=torch.float32)
 
     # The NN output is defined by 46 outputs, 45 being move probabilities and the last being the valuation.
     # first 9: play associated card

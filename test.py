@@ -14,6 +14,8 @@ from transformer import Transformer
 from bot import NeuralNetwork
 from allmoves import ALLMOVES
 from AZMCTS import AZMCTS
+from AZMCTS import setCurrNN
+from trainer import training
 
 def singleGame(botGame, currPosSave):
   x = Game()
@@ -187,7 +189,7 @@ def singleGame(botGame, currPosSave):
             #botTurn = 1
             continue
         if (uinput1 == "5"):
-            myTree = AZMCTS(x)
+            myTree = AZMCTS(x, generation)
             myTree.rootInit()
             myTree.runSimulations(50)
             myTree.printTree()
@@ -221,11 +223,12 @@ def singleGame(botGame, currPosSave):
 
 
   currPosSave = myTree.recordResults(x.winner, currPosSave)
-  return currPosSave
+  return currPosSave, x.winner
+  #return x.winner
 
 
 def botGenerationTest(bot1, bot2):  
-    x = Game(1)
+    x = Game()
     x.gameStart()
     y = Transformer()
 
@@ -261,40 +264,60 @@ def botGenerationTest(bot1, bot2):
 
     return x.winner
 
+#currPosSave=0
+#winner = singleGame(0,currPosSave)
+#print(winner)
 
-# FOR GENERATING TRAINING DATA
+learningRate = 2
+generation = 1
 currPosSave = 0
-#for _ in range(100):
-currPosSave = singleGame(0,currPosSave)
+for pepega in range(1):
+    # FOR GENERATING TRAINING DATA
+    currNN = NeuralNetwork()
+    setCurrNN(generation)
+    thisRound = 0
+    startingPoint = currPosSave
+    while thisRound < 10000:
+        currPosSave, recentWinner = singleGame(1,currPosSave)
+        print(recentWinner)
+        thisRound = currPosSave - startingPoint
+    learningRate = 1 / pow(2,pepega)
+    training(generation, learningRate)
+    generation += 1
 
-# FOR testing bot vs new gen
-"""
-model1 = NeuralNetwork().to("cpu")
-model1.load_state_dict(torch.load("./AI/botModels/test.bot"))
-model1.eval()
+    # FOR testing bot vs new gen
+    model1 = NeuralNetwork().to("cpu")
+    model1.load_state_dict(torch.load("./AI/botModels/gen" + str(generation-1) + ".bot"))
+    model1.eval()
 
-model2 = NeuralNetwork().to("cpu")
-model2.load_state_dict(torch.load("./AI/botModels/test2.bot"))
-model2.eval()
+    model2 = NeuralNetwork().to("cpu")
+    model2.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
+    model2.eval()
 
-result = [0,0]
-player1wins = 0
-for _ in range(100):
-    winner = botGenerationTest(model1, model2)
-    if winner == 1:
-        result[0] += 1
-        player1wins += 1
-    else:
-        result[1] += 1
+    result = [0,0]
+    player1wins = 0
+    for _ in range(120):
+        winner = botGenerationTest(model1, model2)
+        if winner == 1:
+            result[0] += 1
+            player1wins += 1
+        else:
+            result[1] += 1
 
-for _ in range(100):
-    winner = botGenerationTest(model2, model1)
-    if winner == 1:
-        result[1] += 1
-        player1wins += 1
-    else:
-        result[0] += 1
+    for _ in range(120):
+        winner = botGenerationTest(model2, model1)
+        if winner == 1:
+            result[1] += 1
+            player1wins += 1
+        else:
+            result[0] += 1
 
-print(result)
-print(player1wins)
-"""
+    print(result)
+    f = open("resultFile.txt", "a")
+    f.write(str(result[0]) + " v " + str(result[1]) + "\n")
+    f.close()
+    
+    if result[1] < 123:
+        generation -= 1
+
+

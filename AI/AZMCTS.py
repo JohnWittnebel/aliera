@@ -13,18 +13,21 @@ from bot import NeuralNetwork
 from mycopy import trueCopy
 
 import sys
-sys.path.insert(0, './botModels/')
+#sys.path.insert(0, './botModels/')
 sys.path.insert(0, './..')
 
 #TODO: the training file should handle this
 currNN = NeuralNetwork()
-#currNN.load_state_dict(torch.load("./AI/botModels/test.bot"))
+#currNN.load_state_dict(torch.load("./AI/botModels/gen0.bot"))
 #currNN.eval()
 GAMENUM = 1
 POSNUM = 1
 #gamePath = []
 transformer = Transformer()
 
+def setCurrNN(generation):
+    currNN.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
+    currNN.eval()
 
 class AZMCTS():
     def __init__(self, gameState, parent=None):
@@ -69,6 +72,13 @@ class AZMCTS():
 
     def descendTree(self):
         self.totalSims += 1
+
+        # dont need to select action if game is over
+        if self.gameState.winner != 0:
+            if self.gameState.winner == self.gameState.activePlayer.playerNum:
+                return 1
+            else:
+                return 0
         actionIndex = self.selectAction()
         #input(self.printTree())
         updateValue = self.takeAction(actionIndex, self.moveArr[actionIndex][1])
@@ -89,7 +99,7 @@ class AZMCTS():
         currMax = -1
         currActionIndex = 0
         for ele in self.moveArr:
-            currVal = ele[4] + (self.exploreParam * ele[5] * (math.sqrt(1 + float(self.totalSims)) / (1 + float(ele[2]))))
+            currVal = ele[4] + (self.exploreParam * ele[5] * (math.sqrt(1 + float(self.totalSims)) / (0.00001 + float(ele[2]))))
             if currMax < currVal:
                 currMax = currVal
                 currMaxIndex = currActionIndex
@@ -120,7 +130,7 @@ class AZMCTS():
             # game is still in progress, return NN eval
             nnInput = transformer.gameDataToNN(self.gameState)
             nnInput = nnInput.unsqueeze(dim=0)
-            
+        
             logits = currNN(nnInput)
             logitsProb = logits[0][0]
             logitsValuation = logits[1][0]

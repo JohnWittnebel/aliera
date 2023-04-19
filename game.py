@@ -47,6 +47,8 @@ class Game:
 
         deck1 = Deck("deck1")
         deck2 = Deck("deck2")
+        self.p1played = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.p2played = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
         self.player1 = Player(deck1, PLAYER_1_MAX_EVOS, PLAYER_1_MAX_EVOS, 1)
         self.player2 = Player(deck2, PLAYER_2_MAX_EVOS, PLAYER_2_MAX_EVOS, 2)
@@ -90,7 +92,7 @@ class Game:
             self.player2.printHand()
 
     def initiateEvolve(self, allyMonsterIndex):
-        if (not self.activePlayer.canEvolve) or (self.activePlayer.currEvos == 0):
+        if (not self.activePlayer.canEvolve): 
             input("ERROR: this player cannot evolve")
             return
         
@@ -98,6 +100,10 @@ class Game:
             evolveTarget = self.board.fullBoard[0][allyMonsterIndex[0]]
         else:
             evolveTarget = self.board.fullBoard[1][allyMonsterIndex[0]]
+            
+        if ((self.activePlayer.currEvos == 0) and evolveTarget.freeEvolve == 0):
+            input("ERROR: not enough evolves")
+            return
 
         if evolveTarget.evoEnemyFollowerTargets > 0 and len(self.board.fullBoard[(self.activePlayer.playerNum+1) % 2]) > 0:
             evolveTarget.evolve(self, allyMonsterIndex[1:], self.activePlayer.playerNum % 2)
@@ -113,18 +119,28 @@ class Game:
         # VALID TARGETS CHECKING
         # Make sure that the allyMonster attacking a valid target, and that the enemyMonster is a valid target
         if (allyMonster > len(self.board.fullBoard[attackingPlayer]) - 1):
+            self.printGameState()
+            print(allyMonster, enemyMonster)
             input("ERROR: attempt to use a non-existent monster to attack")
             return
         elif (allyMonster < 0):
+            self.printGameState()
+            print(allyMonster, enemyMonster)
             input("ERROR: attempt to use a non-existent monster to attack")
             return
         elif (enemyMonster > len(self.board.fullBoard[defendingPlayer]) - 1):
+            self.printGameState()
+            print(allyMonster, enemyMonster)
             input("ERROR: attempt to attack a non-existent target")
             return
         elif (enemyMonster < -1):
+            self.printGameState()
+            print(allyMonster, enemyMonster)
             input("ERROR: attempt to attack a non-existent target")
             return
         elif (not self.board.fullBoard[attackingPlayer][allyMonster].canAttack):
+            self.printGameState()
+            print(allyMonster, enemyMonster)
             input("ERROR: attempt to attack with a monster that cannot attack")
             return
         elif (enemyMonster == -1 and not self.board.fullBoard[attackingPlayer][allyMonster].canAttackFace):
@@ -161,13 +177,14 @@ class Game:
             attackingMonster = self.board.fullBoard[attackingPlayer][allyMonster]
             defMonster = self.board.fullBoard[defendingPlayer][enemyMonster]
             attackingMonster.followerStrike(self, allyMonster, attackingPlayer, defMonster, enemyMonster)
+        self.clearQueue()
 
     def endgame(self, winner):
-        if winner == self.player1:
-            #print("The winner is player 1")
+        if winner == 1:
+            #input("The winner is player 1")
             self.winner = 1
         else:
-            #print("The winner is player 2")
+            #input("The winner is player 2")
             self.winner = 2
         #print("Cause of win: " + self.winString)
 
@@ -179,6 +196,10 @@ class Game:
         currPlayer = self.activePlayer.playerNum - 1
 
         card = self.activePlayer.hand[action[1][0]]
+        if (currPlayer == 0):
+            self.p1played[card.encoding] += 1
+        else:
+            self.p2played[card.encoding] += 1
 
         # Check if we are acceling
         if (isinstance(card, Monster) and self.activePlayer.currPP < card.cost and card.canAccel and self.activePlayer.currPP >= card.accelCost):
@@ -216,7 +237,7 @@ class Game:
                 mons.countdown -= 1
                 if mons.countdown == 0:
                     mons.destroy(self)
-            else:
+            elif (not mons.isAmulet):
                 mons.canAttack = 1
                 mons.canAttackFace = 1
         for mons in self.board.player2side:
@@ -225,7 +246,7 @@ class Game:
                 mons.countdown -= 1
                 if mons.countdown == 0:
                     mons.destroy(self)
-            else:
+            elif (not mons.isAmulet):
                 mons.canAttack = 1
                 mons.canAttackFace = 1
 
@@ -256,9 +277,9 @@ class Game:
         self.activePlayer.currPP = self.activePlayer.maxPP
  
         # Set if the player has the ability to evolve or not on this turn
-        if (self.activePlayer == self.player1 and self.currTurn >= PLAYER_1_EVO_TURN and self.activePlayer.currEvos > 0):
+        if (self.activePlayer == self.player1 and self.currTurn >= PLAYER_1_EVO_TURN):
             self.activePlayer.canEvolve = 1
-        elif (self.activePlayer == self.player2 and self.currTurn >= PLAYER_2_EVO_TURN and self.activePlayer.currEvos > 0):
+        elif (self.activePlayer == self.player2 and self.currTurn >= PLAYER_2_EVO_TURN):
             self.activePlayer.canEvolve = 1
         else:
             self.activePlayer.canEvolve = 0
@@ -277,9 +298,9 @@ class Game:
         if self.activePlayer.hand == []:
             self.winString = "Decked out"
             if self.activePlayer == self.player1:
-                self.endgame(self.player2)
+                self.endgame(2)
             else:
-                self.endgame(self.player1)
+                self.endgame(1)
 
 
     #def mulligan(self, player):
@@ -341,9 +362,11 @@ class Game:
                     moves.append([PLAY_ACTION, [currIndex, targetIndex]])
         elif (card.numAllyFollowerTargets == 1):
             for targetIndex in range(len(self.board.fullBoard[allyBoard])):
-                 moves.append([PLAY_ACTION, [currIndex, targetIndex]])
+                if isinstance(self.board.fullBoard[allyBoard][targetIndex], Monster):
+                    moves.append([PLAY_ACTION, [currIndex, targetIndex]])
 
     def generateLegalMoves(self):
+        self.clearQueue()
         moves = []
 
         allyBoard = self.activePlayer.playerNum - 1
@@ -386,7 +409,7 @@ class Game:
         # Otherwise, Evolving follower moves available, find them
         currIndex = 0
         for card in self.board.fullBoard[allyBoard]:
-            if card.canEvolve:
+            if card.canEvolve and ((self.activePlayer.currEvos > 0) or (card.freeEvolve)):
                 # TODO: ally targeting at some point
                 if card.evoEnemyFollowerTargets == 0:
                     moves.append([EVO_ACTION, [currIndex]])
@@ -444,7 +467,7 @@ class Game:
             self.player1.leaderEffects.activateOnSummonEffects(self, card)
         else:
             self.player2.leaderEffects.activateOnSummonEffects(self, card)
-        for item in self.board.fullBoard[card.side - 1]:
+        for item in self.board.fullBoard[card.side]:
             for eff in item.onSummonEffects:
                 eff(self, card)
 

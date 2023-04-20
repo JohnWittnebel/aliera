@@ -201,7 +201,7 @@ def singleGame(botGame, currPosSave):
                     x.initiateAction([int(uinput1), [int(uinput2)]])
         if (uinput1 == "4"):
             x.endTurn()
-            botTurn = 1
+            #botTurn = 1
             continue
         if (uinput1 == "5"):
             myTree = AZMCTS(x, generation)
@@ -281,26 +281,32 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
 
     return x.winner
 
-#currPosSave=15000
+#currPosSave=0
 #winner = singleGame(0,currPosSave)
 #print(winner)
 
-generation = 0
+generation = 1
 currPosSave = 0
+numFails = 0
 for pepega in range(10):
+    """
     # FOR GENERATING TRAINING DATA
     currNN = NeuralNetwork()
     setCurrNN(generation)
     thisRound = 0
     startingPoint = currPosSave
-    if (pepega < 100):
-        while thisRound < 5000:
+    if (pepega < 1000):
+        while thisRound < 20000:
             currPosSave, recentWinner = singleGame(1,currPosSave)
             print(recentWinner)
             thisRound = currPosSave - startingPoint
-    learningRate = 0.1
+    learningRate = 0.02
+    if (numFails > 1):
+        learningRate *= 0.4
+        numFails = 0
     training(generation, learningRate)
     generation += 1
+    """
 
     # FOR testing bot vs new gen
     model1 = NeuralNetwork().to("cpu")
@@ -363,6 +369,7 @@ for pepega in range(10):
     f.close()
     
     if result[1] < 123:
+        numFails += 1
         generation -= 1
 
-
+    break

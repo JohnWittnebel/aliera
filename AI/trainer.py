@@ -89,11 +89,11 @@ def training(generation, learnRate):
         predictedOutput = nn.Softmax(dim=1)(myCoolTensor)
         loss = AZLossFcn(predictedOutput, train_MCTS, NNvaluation, train_result.float())
     
-        optimizer = torch.optim.SGD(model.parameters(), lr=learnRate)
+        optimizer = torch.optim.SGD(model.parameters(), lr=learnRate, momentum=0.8)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
     torch.save(model.state_dict(), "./AI/botModels/gen" + str(generation+1) + ".bot")
 
-#training(0, 0.2)
+#training(0, 0.5)

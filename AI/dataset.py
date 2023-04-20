@@ -10,7 +10,7 @@ import fnmatch
 class PositionDataset(Dataset):
     def __init__(self, positionDir):
         self.positionDir = positionDir
-        self.numPos = len(fnmatch.filter(os.listdir("./trainingData/"), '*.pickle'))
+        self.numPos = len(fnmatch.filter(os.listdir("./AI/trainingData/"), '*.pickle'))
 
     def __len__(self):
         return self.numPos

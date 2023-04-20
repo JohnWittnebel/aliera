@@ -13,13 +13,170 @@ TODO: before we can implement everything we need to implement:
 -rally
 -weiss with transform is kind of weird, might need to be implemented
 -num evolves used
+-double attack
 """
 
-
-
-
-
 ##### TOKENS
+
+class GildedGoblet(Spell):
+    def __init__(self):
+        spellName = "Goblet"
+        spellCost = 1
+        allyFollowerTargets = 1
+        enemyFollowerTargets = 0
+        Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
+        self.encoding = AppraisalVal
+        self.fanfareTargetFace = True
+        
+    def play(self, gameState, currSide, targets):
+        #TODO: need to implement monster healing
+
+class GildedNecklace(Spell):
+    def __init__(self):
+        spellName = "Necklace"
+        spellCost = 1
+        allyFollowerTargets = 1
+        enemyFollowerTargets = 0
+        Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
+        self.encoding = AppraisalVal
+        
+    def play(self, gameState, currSide, targets):
+        gameState.board.fullBoard[currSide][targets[0]].maxHP += 1
+        gameState.board.fullBoard[currSide][targets[0]].currHP += 1
+        gameState.board.fullBoard[currSide][targets[0]].currAttack += 1
+
+class Appraisal(Spell):
+    def __init__(self):
+        spellName = "Appraisal"
+        spellCost = 3
+        allyFollowerTargets = 0
+        enemyFollowerTargets = 0
+        Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
+        self.encoding = AppraisalVal
+        
+    def play(self, gameState, currSide):
+        gameState.activePlayer.hand.append(GildedNecklace())
+        gameState.activePlayer.hand.append(GildedGoblet())
+        if gameState.activePlayer.currEvos < gameState.activePlayer.maxEvos
+            gameState.activePlayer.currEvos += 1
+
+class GracefulManeuver(Spell):
+    def __init__(self):
+        spellName = "Maneuver"
+        spellCost = 3
+        allyFollowerTargets = 1
+        enemyFollowerTargets = 0
+        Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
+        self.encoding = ManeuverVal
+        
+    def play(self, gameState, currSide, target):
+        gameState.board.fullBoard[currSide][target[0]].onStrikeEffects.append(AoEAttack)
+
+class Dualblade(Spell):
+    def __init__(self):
+        spellName = "Dualblade"
+        spellCost = 5
+        allyFollowerTargets = 1
+        enemyFollowerTargets = 0
+        Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
+        self.encoding = GiftVal
+        
+    def play(self, gameState, currSide, target):
+        #TODO: double attack implementation
+
+
+##### MAINDECK FOLLOWERS
+
+def bumpkinDraw(val):
+    return lambda gameState, side: gameState.player1.draw(val) if side == 0 \
+    else gameState.player2.draw(val)
+
+class Bumpkin(Monster):
+    def __init__(self):
+        monsterName = "Bumpkin"
+        cost = 1
+        monsterAttack = 1
+        monsterMaxHP = 1
+        monsterCurrHP = 1
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        self.encoding = BumpkinVal
+        self.LWEffects.append(bumpkinDraw(1))
+        self.traits.append("officer")
+
+    def play(self, gameState, currSide):
+        genericPlay(self, gameState, currSide)
+        if not self.silenced:
+            if gameState.activePlayer.rally >= 7:
+                self.hasRush = 1
+                self.canAttack = 1
+        else:
+            self.silenced = false
+
+class Lyrala(Monster):
+    def __init__(self):
+        monsterName = "Lyrala"
+        cost = 2
+        monsterAttack = 2
+        monsterMaxHP = 2
+        monsterCurrHP = 2
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        self.encoding = LyralaVal
+        self.hasWard = 1
+        self.traits.append("officer")
+
+    def play(self, gameState, currSide):
+        genericPlay(self, gameState, currSide)
+        # self on play should only happen for effects like weiss atm
+        if not self.silenced:
+            gameState.activePlayer.restoreHP(gameState, 2)
+            commanderExists = 0
+            for ele in gameState.board.fullBoard[currSide]:
+                if len(ele.traits) > 0 and ("commander" in ele.traits[0]):
+                    commanderExists = 1
+                    break
+            if (commanderExists == 1):
+                gameState.activePlayer.immune = 1
+        else:
+            self.silenced = false
+
+def faceHeal(val):
+    return lambda gameState: gameState.activePlayer.restoreHP(val)
+
+def metatronRamp(gameState):
+    if gameState.activeplayer.playerNum == 1:
+        currPlayer = gameState.player1
+        enemPlayer = gameState.player2
+    else:
+        currPlayer = gameState.player2
+        enemPlayer = gameState.player1
+
+    if currPlayer.canEvolve and (currPlayer.currEvos > enemPlayer.currEvos or not enemPlayer.canEvolve):
+        gameState.activePlayer.maxPP += 1
+
+class Metatron(Monster):
+    def __init__(self):
+        monsterName = "Metatron"
+        cost = 2
+        monsterAttack = 1
+        monsterMaxHP = 4
+        monsterCurrHP = 4
+        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
+        self.encoding = LyralaVal
+        self.hasWard = 1
+        self.fanfare.append(enemyPing(1))
+        self.fanfare.append(faceHeal(1))
+
+    def setEvoProps(self, gameState):
+        self.onTurnEndEffects.append(metatronRamp)
+        
+
+##### AMULETS
+
+##### SPELLS
+
+
+
+
 
 class ForestBat(Monster):
     def __init__(self):

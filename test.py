@@ -1,6 +1,7 @@
 from monster import Monster
 from deck import Deck
 from game import Game
+import random
 import numpy as np
 import pickle
 import copy
@@ -105,23 +106,37 @@ def singleGame(botGame, currPosSave):
         myTree.runSimulations(50)
         myTree.printTree()
         
-        maxSims = -1
-        bestMove = [4]
+        #maxSims = -1
+        #bestMove = [4]
+        multinomArr = []
+        childArr = []
         for ele in myTree.moveArr:
-            if ele[2] > maxSims:
-                maxSims = ele[2]
-                bestMove = ele[0]
-                bestChild = myTree.children[ele[1]]
+            multinomArr.append(ele[2] / myTree.totalSims)
+            childArr.append(ele[0])
+            #if ele[2] > maxSims:
+            #    maxSims = ele[2]
+            #    bestMove = ele[0]
+            #    bestChild = myTree.children[ele[1]]
+
+        selectedMoveArr = np.random.multinomial(1, multinomArr)
+        index = 0
+        for ele in selectedMoveArr:
+            if ele == 1:
+                bestMove = childArr[index]
+                break
+            index += 1
         if (bestMove == [4] and botGame == 0):
             botTurn = 0
 
+        bestChild = myTree.children[index]
         myTree.cleanTreeExceptAction(bestMove)
-        myTree = bestChild
+        if not isinstance(bestChild, int):
+            myTree = bestChild
         x.initiateAction(bestMove)
     
     elif (botTurn == 1):
         model1 = NeuralNetwork().to("cpu")
-        model1.load_state_dict(torch.load("./AI/botModels/gen4.bot"))
+        model1.load_state_dict(torch.load("./AI/botModels/gen2.bot"))
         model1.eval()
         pos = y.gameDataToNN(x)
         z = pos.unsqueeze(dim=0)
@@ -186,7 +201,7 @@ def singleGame(botGame, currPosSave):
                     x.initiateAction([int(uinput1), [int(uinput2)]])
         if (uinput1 == "4"):
             x.endTurn()
-            #botTurn = 1
+            botTurn = 1
             continue
         if (uinput1 == "5"):
             myTree = AZMCTS(x, generation)
@@ -201,7 +216,6 @@ def singleGame(botGame, currPosSave):
             uinput2 = input("select card: ")
             uinput3 = input("rigged RNG: ")
             if (len(uinput2) > 0) and (len(uinput3) > 0):
-                x.activePlayer.hand[int(uinput2)].rigRNG = True
                 x.activePlayer.hand[int(uinput2)].riggedVal = int(uinput3)
         if (uinput1 == "9"):
             input2 = input("cheat how many cards? ")
@@ -222,14 +236,17 @@ def singleGame(botGame, currPosSave):
             input3 = input("spellboost how many times?")
 
 
-  currPosSave = myTree.recordResults(x.winner, currPosSave)
+  currPosSave = myTree.parent.recordResults(x.winner, currPosSave)
   return currPosSave, x.winner
   #return x.winner
 
 
-def botGenerationTest(bot1, bot2):  
+def botGenerationTest(bot1, bot2, deck1, deck2):  
     x = Game()
+    x.player1.deck = deck1
+    x.player2.deck = deck2
     x.gameStart()
+    x.startTurn()
     y = Transformer()
 
     while (x.winner == 0):
@@ -264,24 +281,24 @@ def botGenerationTest(bot1, bot2):
 
     return x.winner
 
-#currPosSave=0
+#currPosSave=15000
 #winner = singleGame(0,currPosSave)
 #print(winner)
 
-learningRate = 2
-generation = 1
+generation = 0
 currPosSave = 0
-for pepega in range(1):
+for pepega in range(10):
     # FOR GENERATING TRAINING DATA
     currNN = NeuralNetwork()
     setCurrNN(generation)
     thisRound = 0
     startingPoint = currPosSave
-    while thisRound < 10000:
-        currPosSave, recentWinner = singleGame(1,currPosSave)
-        print(recentWinner)
-        thisRound = currPosSave - startingPoint
-    learningRate = 1 / pow(2,pepega)
+    if (pepega < 100):
+        while thisRound < 5000:
+            currPosSave, recentWinner = singleGame(1,currPosSave)
+            print(recentWinner)
+            thisRound = currPosSave - startingPoint
+    learningRate = 0.1
     training(generation, learningRate)
     generation += 1
 
@@ -296,8 +313,22 @@ for pepega in range(1):
 
     result = [0,0]
     player1wins = 0
-    for _ in range(120):
-        winner = botGenerationTest(model1, model2)
+    for i in range(120):
+        seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
+        deckSeed = pickle.load(seed_file)
+        seed_file.close()
+        deck1 = Deck("deck1")
+        random.seed(deckSeed)
+        deck1.trueShuffle()
+        
+        seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
+        deckSeed = pickle.load(seed_file)
+        seed_file.close()
+        deck2 = Deck("deck2")
+        random.seed(deckSeed)
+        deck2.trueShuffle()
+
+        winner = botGenerationTest(model1, model2, deck1, deck2)
         if winner == 1:
             result[0] += 1
             player1wins += 1
@@ -305,7 +336,21 @@ for pepega in range(1):
             result[1] += 1
 
     for _ in range(120):
-        winner = botGenerationTest(model2, model1)
+        seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
+        deckSeed = pickle.load(seed_file)
+        seed_file.close()
+        deck1 = Deck("deck1")
+        random.seed(deckSeed)
+        deck1.trueShuffle()
+        
+        seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
+        deckSeed = pickle.load(seed_file)
+        seed_file.close()
+        deck2 = Deck("deck2")
+        random.seed(deckSeed)
+        deck2.trueShuffle()
+        
+        winner = botGenerationTest(model2, model1, deck1, deck2)
         if winner == 1:
             result[1] += 1
             player1wins += 1
@@ -314,7 +359,7 @@ for pepega in range(1):
 
     print(result)
     f = open("resultFile.txt", "a")
-    f.write(str(result[0]) + " v " + str(result[1]) + "\n")
+    f.write(str(result[0]) + " v " + str(result[1]) + " " + str(player1wins) + "\n")
     f.close()
     
     if result[1] < 123:

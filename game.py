@@ -47,8 +47,11 @@ class Game:
 
         deck1 = Deck("deck1")
         deck2 = Deck("deck2")
-        self.p1played = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-        self.p2played = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.p1played = []
+        self.p2played = []
+        for _ in range(28):
+            self.p1played.append(0)
+            self.p2played.append(0)
 
         self.player1 = Player(deck1, PLAYER_1_MAX_EVOS, PLAYER_1_MAX_EVOS, 1)
         self.player2 = Player(deck2, PLAYER_2_MAX_EVOS, PLAYER_2_MAX_EVOS, 2)
@@ -111,6 +114,7 @@ class Game:
             evolveTarget.evolve(self)
 
     def initiateAttack(self, allyMonster, enemyMonster):
+        self.clearQueue()
     
         # First, figure out what side is attacking
         attackingPlayer = self.activePlayer.playerNum - 1
@@ -223,6 +227,8 @@ class Game:
 
         if (cardToPlay.numTargets == 0):
             cardToPlay.play(self, currPlayer)
+        elif (len(action[1]) == 1) and (cardToPlay.targetOptional):
+            cardToPlay.play(self, currPlayer, [])
         else:
             cardToPlay.play(self, currPlayer, action[1][1:])
 
@@ -233,20 +239,12 @@ class Game:
         # Allow all followers to attack again
         for mons in self.board.player1side:
             mons.effActivations = 0
-            if (mons.isAmulet) and (mons.isCountdown) and (self.activePlayer.playerNum == 1):
-                mons.countdown -= 1
-                if mons.countdown == 0:
-                    mons.destroy(self)
-            elif (not mons.isAmulet):
+            if (not mons.isAmulet):
                 mons.canAttack = 1
                 mons.canAttackFace = 1
         for mons in self.board.player2side:
             mons.effActivations = 0
-            if (mons.isAmulet) and (mons.isCountdown) and (self.activePlayer.playerNum == 2):
-                mons.countdown -= 1
-                if mons.countdown == 0:
-                    mons.destroy(self)
-            elif (not mons.isAmulet):
+            if (not mons.isAmulet):
                 mons.canAttack = 1
                 mons.canAttackFace = 1
 
@@ -269,6 +267,15 @@ class Game:
     def startTurn(self):
         self.activateTurnStartEffects(None)
         self.clearQueue()
+        self.activateEnemyTurnStartEffects()
+        self.clearQueue()
+
+        for mons in self.board.fullBoard[self.activePlayer.playerNum - 1]:
+            if (mons.isAmulet) and (mons.isCountdown):
+                mons.countdown -= 1
+                if mons.countdown == 0:
+                    mons.destroy(self)
+
         # Increase max PP of the current player
         if (self.activePlayer.maxPP < MAX_EMPTY_PP):
           self.activePlayer.maxPP += 1
@@ -347,10 +354,15 @@ class Game:
             targets = wards
 
         return targets
-
+  
+    #TODO for disco and stuff
+    #def getLegalTargets(self, card, currIndex):
+        
     # Helper function for generating legal moves for playing cards
     def addLegalMovesForCard(self, card, moves, currIndex):
         allyBoard = self.activePlayer.playerNum - 1
+        #legalTargets = self.getLegalTargets(card, currIndex)
+
         if (card.numTargets == 0):
             moves.append([PLAY_ACTION, [currIndex]])
             # For now we only support battlecries that have a single target
@@ -361,9 +373,14 @@ class Game:
                 if isinstance(self.board.fullBoard[(allyBoard+1) % 2][targetIndex], Monster):
                     moves.append([PLAY_ACTION, [currIndex, targetIndex]])
         elif (card.numAllyFollowerTargets == 1):
+            if (card.targetOptional):
+                moves.append([PLAY_ACTION, [currIndex]])
             for targetIndex in range(len(self.board.fullBoard[allyBoard])):
                 if isinstance(self.board.fullBoard[allyBoard][targetIndex], Monster):
                     moves.append([PLAY_ACTION, [currIndex, targetIndex]])
+        elif (card.numChooseTargets > 0):
+            for targetIndex in range(card.numChooseTargets):
+                moves.append([PLAY_ACTION, [currIndex, targetIndex]])
 
     def generateLegalMoves(self):
         self.clearQueue()
@@ -484,16 +501,35 @@ class Game:
                 eff(self)
     
     def activateTurnEndEffects(self, placholder):
+        #TODO this is a bandage, pls fix the castle interactions
+        startPings = self.activePlayer.selfPings
+        tempPings = self.activePlayer.selfPings
         self.activePlayer.leaderEffects.activateTurnEndEffects(self)
         for card in self.board.fullBoard[self.activePlayer.playerNum - 1]:
             for eff in card.turnEndEffects:
                 eff(self)
+                if (startPings != self.activePlayer.selfPings):
+                    tempPings += (self.activePlayer.selfPings - startPings)
+                    self.activePlayer.selfPings = startPings
+        self.activePlayer.selfPings = tempPings
     
     def activateTurnStartEffects(self, placholder):
         self.activePlayer.leaderEffects.activateTurnStartEffects(self)
         for card in self.board.fullBoard[self.activePlayer.playerNum - 1]:
             for eff in card.turnStartEffects:
                 eff(self)
+
+    def activateEnemyTurnStartEffects(self):
+        for card in self.board.fullBoard[self.activePlayer.playerNum % 2]:
+            for eff in card.enemyTurnStartEffects:
+                eff(self)
+
+    def activateOnAllyEvoEffects(self, mons):
+        # TODO: leader effects?
+        for card in self.board.fullBoard[self.activePlayer.playerNum - 1]:
+            if (card != mons):
+                for eff in card.onAllyEvoEffects:
+                    eff(self)
 
     def clearQueue(self):
         queueIndex = 0

@@ -76,11 +76,11 @@ def AZLossFcn(predMCTS, actMCTS, predRes, actRes):
 
 def training(generation, learnRate):
     training_data = PositionDataset("./AI/trainingData")
-    loader = DataLoader(training_data, batch_size=32, shuffle=True)
+    loader = DataLoader(training_data, batch_size=16, shuffle=True)
     model = NeuralNetwork().to("cpu")
     model.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
     model.eval()
-    n_epochs = 200
+    n_epochs = 400
     for epoch in range(n_epochs):
         gamePos, train_MCTS, mask, train_result = next(iter(loader))
         gamePos.requires_grad = True
@@ -95,3 +95,5 @@ def training(generation, learnRate):
         optimizer.step()
 
     torch.save(model.state_dict(), "./AI/botModels/gen" + str(generation+1) + ".bot")
+
+#training(0, 0.2)

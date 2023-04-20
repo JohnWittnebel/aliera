@@ -8,6 +8,17 @@ import random
 import sys
 sys.path.insert(0, '..')
 
+"""
+TODO: before we can implement everything we need to implement:
+-rally
+-weiss with transform is kind of weird, might need to be implemented
+-num evolves used
+"""
+
+
+
+
+
 ##### TOKENS
 
 class ForestBat(Monster):
@@ -47,125 +58,6 @@ class SummonBloodKin(Spell):
     def play(self, gameState, currSide):
         genericSummon(ForestBat(), gameState, currSide)
         genericSummon(ForestBat(), gameState, currSide)
-
-class CatMaids(Monster):
-    def __init__(self):
-        monsterName = "Cat Maids"
-        cost = 2
-        monsterAttack = 2
-        monsterMaxHP = 2
-        monsterCurrHP = 2
-        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
-        self.encoding = MaidCatVal
-        self.targetOptional = True
-        self.numTargets = 1
-        self.numAllyFollowerTargets = 1
-        self.LWEffects.append(healFace(2))
-    
-    def play(self, gameState, currSide, targets):
-        genericPlay(self, gameState, currSide)
-        if (len(targets) > 0):
-            if gameState.board.fullBoard[currSide][targets[0]].name == "Trill":
-                gameState.board.fullBoard[currSide][targets[0]].freeEvolve = 1
-                gameState.board.fullBoard[currSide][targets[0]].autoEvolve = 1
-                gameState.board.fullBoard[currSide][targets[0]].evolve(gameState)
-            
-class DemonSong(Spell):
-    def __init__(self):
-        spellName = "Demon Song"
-        spellCost = 3
-        allyFollowerTargets = 0
-        enemyFollowerTargets = 0
-        Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
-        self.encoding = DemonSongVal
-        
-    def play(self, gameState, currSide):
-        TrillExists = 0
-        for ele in gameState.board.fullBoard[currSide]:
-            if isinstance(ele, Trill):
-                TrillExists = 1
-                break
-        if TrillExists == 1:
-            AoEEnemy3(gameState)
-        else:
-            AoEEnemy2(gameState)
-
-class Trill(Monster):
-    def __init__(self):
-        monsterName = "Trill"
-        cost = 0
-        monsterAttack = 3
-        monsterMaxHP = 3
-        monsterCurrHP = 3
-        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
-        self.encoding = TrillVal 
-        self.numTargets = 2
-        self.numChooseTargets = 2
-    
-    def play(self, gameState, currSide, targets):
-        genericPlay(self, gameState, currSide)
-        if targets[0] == 0:
-            gameState.activePlayer.hand.append(CatMaids())
-        else:
-            gameState.activePlayer.hand.append(DemonSong())
-
-def divaStrikeEffect(gameState, index):
-    selfPing(1)(gameState)
-    enemyPing(1)(gameState, gameState.activePlayer.playerNum - 1)
-    selfPing(1)(gameState)
-    enemyPing(1)(gameState, gameState.activePlayer.playerNum - 1)
-    selfPing(1)(gameState)
-    enemyPing(1)(gameState, gameState.activePlayer.playerNum - 1)
-    gameState.activePlayer.restoreHP(gameState, 5) 
-
-class Diva(Monster):
-    def __init__(self):
-        monsterName = "Diva"
-        cost = 0
-        monsterAttack = 3
-        monsterMaxHP = 3
-        monsterCurrHP = 3
-        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
-        self.encoding = DivaVal
-    
-    def play(self, gameState, currSide):
-        genericPlay(self, gameState, currSide)
-        if (gameState.activePlayer.selfPings >= 7):
-            self.freeEvolve = 1
-            self.evolve(gameState)
-    
-    def evolve(self, gameState):
-        self.strikeEffects.append(divaStrikeEffect)
-        genericEvolve(self, gameState)
-
-def liberteEffect(gameState):
-    enemyPing(1)(gameState, gameState.activePlayer.playerNum - 1)
-    gameState.activePlayer.restoreHP(gameState, 2)
-
-# TODO: FIX THIS IF YOU WANT TO IMPLEMENT SWORD!!!!
-class Liberte(Monster):
-    def __init__(self):
-        monsterName = "Liberte"
-        cost = 2
-        monsterAttack = 2
-        monsterMaxHP = 2
-        monsterCurrHP = 2
-        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
-        self.encoding = LiberteVal
-        self.onAllyEvoEffects.append(liberteEffect)
-
-class StormWolf(Monster):
-    def __init__(self):
-        monsterName = "Storm Wolf"
-        cost = 3
-        monsterAttack = 2
-        monsterMaxHP = 2
-        monsterCurrHP = 2
-        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
-        self.encoding = StormWolfVal
-        self.hasStorm = 1
-        self.canAttack = 1
-        self.canAttackFace = 1
 
 class Orchestration(Spell):
     def __init__(self):
@@ -208,12 +100,8 @@ def draw(val):
     return lambda gameState: gameState.activePlayer.draw(val)
 
 def givePlus1Bats(gameState):
-    if gameState.activePlayer.playerNum == 1:
-        otherPlayer = gameState.player2
-    else:
-        otherPlayer = gameState.player1
-    if otherPlayer.selfPings >= 7:
-        for card in gameState.board.fullBoard[otherPlayer.playerNum - 1]:
+    if gameState.activePlayer.selfPings >= 7:
+        for card in gameState.board.fullBoard[gameState.activePlayer.playerNum - 1]:
             if card.name == "Forest Bat":
                 card.maxHP += 1
                 card.currHP += 1
@@ -233,14 +121,6 @@ def drawCondemn(gameState):
 def AoEEnemy(placeholder, gameState):
     for card in gameState.board.fullBoard[gameState.activePlayer.playerNum % 2]:
         card.takeEffectDamage(gameState, 1)
-
-def AoEEnemy2(gameState):
-    for card in gameState.board.fullBoard[gameState.activePlayer.playerNum % 2]:
-        card.takeEffectDamage(gameState, 2)
-
-def AoEEnemy3(gameState):
-    for card in gameState.board.fullBoard[gameState.activePlayer.playerNum % 2]:
-        card.takeEffectDamage(gameState, 3)
 
 def AoEEnemy5(gameState):
     for card in gameState.board.fullBoard[gameState.activePlayer.playerNum % 2]:
@@ -266,7 +146,7 @@ class Veight(Monster):
         self.fanfareEffects.append(summonBat())
         self.fanfareEffects.append(draw(1))
     
-        self.enemyTurnStartEffects.append(givePlus1Bats)
+        self.turnEndEffects.append(givePlus1Bats)
 
     def evolve(self, gameState, target, *args, **kwargs):
         genericEvolve(self, gameState)
@@ -289,7 +169,6 @@ class Veight(Monster):
                 amuletSummoned = True
             deckIndex += 1
 
-#TODO: max 8 times
 class RagingCommander(Monster):
     def __init__(self):
         monsterName = "Raging Comm"
@@ -424,7 +303,6 @@ class HowlingDemon(Monster):
             gameState.activePlayer.takeEffectDamage(gameState, 3)
         else:
             self.freeEvolve = 1
-            self.autoEvolve = 1
             self.evolve(gameState) 
 
     def evolve(self, gameState):
@@ -441,7 +319,6 @@ def GaroEvoCon(card, gameState):
         for ele in gameState.board.fullBoard[gameState.activePlayer.playerNum-1]:
             if ele.name == "Garodeth":
                 ele.freeEvolve = 1
-                ele.autoEvolve = 1
                 ele.evolve(gameState)
                 ele.selfPingEffects = []
 
@@ -564,45 +441,6 @@ class Maestro(Monster):
             gameState.player2.leaderEffects.turnStartEffects.append([maestroLeaderEff, 1])
         genericDestroy(self, gameState)
 
-def lunelleStrike(gameState, index):
-    AoEEnemy(None,gameState)
-    selfPing(1)(gameState)
-    enemyPing(1)(gameState, gameState.activePlayer.playerNum - 1)
-    AoEEnemy(None,gameState)
-    selfPing(1)(gameState)
-    enemyPing(1)(gameState, gameState.activePlayer.playerNum - 1)
-
-class Lunelle(Monster):
-    def __init__(self):
-        monsterName = "Lunelle"
-        cost = 4
-        monsterAttack = 3
-        monsterMaxHP = 3
-        monsterCurrHP = 3
-        Monster.__init__(self, cost, monsterAttack, monsterMaxHP, monsterCurrHP, monsterName)
-        self.encoding = LunelleVal
-
-    def play(self, gameState, currSide):
-        genericPlay(self, gameState, currSide)
-        genericSummon(Liberte(), gameState, currSide)
-        if (gameState.activePlayer.currPP >= 3):
-            gameState.activePlayer.currPP -= 3
-            genericSummon(StormWolf(), gameState, currSide)
-            if (gameState.activePlayer.selfPings >= 7):
-                for ele in gameState.board.fullBoard[currSide]:
-                    if isinstance(ele,Monster) and ele.isEvolved == 0:
-                        ele.freeEvolve = 1
-                        ele.autoEvolve = 1
-                        #TODO: obviously this might be a problem in the future, figure out a better method
-                        if (ele.name == "Veight"):
-                            genericEvolve(ele, gameState)
-                        else:
-                            ele.evolve(gameState)
-
-    def evolve(self, gameState):
-        genericEvolve(self, gameState)
-        self.strikeEffects.append(lunelleStrike)
-
 ##### MAIN DECK AMULETS
 def castleEff(gameState):
     if gameState.activePlayer.selfPings >= 7:
@@ -665,18 +503,3 @@ class HowlingScream(Spell):
                 gameState.board.fullBoard[gameState.activePlayer.playerNum % 2][randomTarget].takeEffectDamage(gameState, 1)
         gameState.activePlayer.draw(1)
 
-class Rhapsody(Spell):
-    def __init__(self):
-        spellName = "Rhapsody"
-        spellCost = 5
-        allyFollowerTargets = 0
-        enemyFollowerTargets = 0
-        Spell.__init__(self, spellName, spellCost, allyFollowerTargets, enemyFollowerTargets)
-        self.encoding = RhapsodyVal
-
-    def play(self, gameState, currSide):
-        gameState.activePlayer.currPP -= self.cost
-        if (len(gameState.activePlayer.hand) < 9):
-            gameState.activePlayer.hand.append(Trill())
-        if (len(gameState.activePlayer.hand) < 9):
-            gameState.activePlayer.hand.append(Diva())

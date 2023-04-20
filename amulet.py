@@ -7,11 +7,13 @@ class Amulet(Card):
         self.cost = cost
         self.numAllyFollowerTargets = allyFollowerTargets
         self.numEnemyFollowerTargets = enemyFollowerTargets
+        self.numChooseTargets = 0
         self.numTargets = self.numAllyFollowerTargets + self.numEnemyFollowerTargets
         self.isCountdown = isCountdown
         self.countdown = countdown
         self.isAttackable = False
         self.fanfareTargetFace = False
+        self.targetOptional = False
         self.hasWard = 0
         self.canAttack = 0
         self.canEvolve = 0
@@ -28,6 +30,7 @@ class Amulet(Card):
         self.onAllyEvoEffects = []
         self.onPlayEffects = []  # for when an ally follower is played
         self.onSummonEffects = []
+        self.enemyTurnStartEffects = []
         self.turnEndEffects = []
         self.turnStartEffects = []
         self.selfPingEffects = []

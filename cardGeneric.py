@@ -34,10 +34,12 @@ def genericEvolve(mons, gameState):
         mons.canAttack = 1
     if (mons.turnPlayed == gameState.currTurn) and (mons.hasStorm == 0):
         mons.canAttackFace = 0
-
-    gameState.activePlayer.canEvolve = 0
+    
+    if (mons.autoEvolve != 1):
+        gameState.activePlayer.canEvolve = 0
     if (mons.freeEvolve != 1):
         gameState.activePlayer.currEvos -= 1
+    gameState.queue.append(gameState.activateOnAllyEvoEffects(mons))
 
 def genericPlay(mons, gameState, currPlayer):
     mons.turnPlayed = gameState.currTurn

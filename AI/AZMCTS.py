@@ -99,7 +99,7 @@ class AZMCTS():
         currMax = -1
         currActionIndex = 0
         for ele in self.moveArr:
-            currVal = ele[4] + (self.exploreParam * ele[5] * (math.sqrt(1 + float(self.totalSims)) / (0.00001 + float(ele[2]))))
+            currVal = ele[4] + (self.exploreParam * ele[5] * (math.sqrt(float(self.totalSims)) / (1 + float(ele[2]))))
             if currMax < currVal:
                 currMax = currVal
                 currMaxIndex = currActionIndex
@@ -170,7 +170,7 @@ class AZMCTS():
     def recordResults(self, result, posnum):
         MCTSRes = []
         for ele in self.moveArr:
-            MCTSRes.append(float(ele[2]) / float(self.totalSims))
+            MCTSRes.append(float(ele[2]) / max(1., float(self.totalSims)))
 
         if (result == self.gameState.activePlayer.playerNum):
             gameResult = 1

@@ -16,6 +16,7 @@ class Monster(Card):
         # These are various properties that a monster can have, maybe make this a bit more elegant
         self.canEvolve = 1
         self.isEvolved = 0
+        self.autoEvolve = 0
         self.hasStorm = 0
         self.hasRush = 0
         self.hasBane = 0
@@ -49,6 +50,7 @@ class Monster(Card):
         self.onSummonEffects = [] # for when an ally follower is summoned (not played)
         self.turnEndEffects = []
         self.turnStartEffects = []
+        self.enemyTurnStartEffects = []
         self.selfPingEffects = []
         self.selfHealEffects = []
 
@@ -56,8 +58,11 @@ class Monster(Card):
         
         # Battlecry targets
         self.numTargets = 0
+        self.targetOptional = False
         self.numEnemyFollowerTargets = 0
         self.numAllyFollowerTargets = 0
+        self.numChooseTargets = 0
+        self.chooseCards = []
         self.fanfareTargetFace = False
 
         # Evo targets

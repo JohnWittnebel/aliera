@@ -10,7 +10,7 @@ import fnmatch
 class PositionDataset(Dataset):
     def __init__(self, positionDir):
         self.positionDir = positionDir
-        self.numPos = len(fnmatch.filter(os.listdir("./AI/trainingData/"), '*.pickle'))
+        self.numPos = len(fnmatch.filter(os.listdir("./trainingData/"), '*.pickle'))
 
     def __len__(self):
         return self.numPos
@@ -24,6 +24,7 @@ class PositionDataset(Dataset):
         # TODO positions where the opponent is already dead are currently not returning a mask because the game is over
         #      fix this
         if type(posData[2]) == int:
+            print(idx)
             x = torch.zeros(onodes-1, dtype=bool)
             for i in range(onodes-1):
                 if i==onodes-2:

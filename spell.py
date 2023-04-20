@@ -9,8 +9,10 @@ class Spell(Card):
         self.numEnemyFollowerTargets = enemyFollowerTargets
         self.numTargets = self.numAllyFollowerTargets + self.numEnemyFollowerTargets
         self.fanfareTargetFace = False
+        self.targetOptional = False
         self.isAmulet = False
         self.traits = []
+        self.numChooseTargets = 0
         
         # For assist
         self.rigRNG = False

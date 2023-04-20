@@ -51,7 +51,9 @@ class Deck:
         deck_file.close()
 
         for ele in deckData:
-            for _ in range(ele[1]):
+            if (len(ele) > 1):
+                for _ in range(ele[1]):
+                    self.cards.append(ele[0]())
+            else:
                 self.cards.append(ele[0]())
-        self.trueShuffle()
 

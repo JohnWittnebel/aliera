@@ -148,7 +148,9 @@ class AZMCTS():
       
     def printTree(self):
         for ele in self.moveArr:
+            bonusExploreParam = self.exploreParam * 0.01 * math.sqrt(1+float(self.totalSims)) / (1+float(ele[2]))
             currVal = ele[4] + (self.exploreParam * ele[5] * (math.sqrt(1 + float(self.totalSims)) / (1 + float(ele[2]))))
+            currVal += bonusExploreParam
             print(ele)
             print(currVal)
             print(self.totalSims)

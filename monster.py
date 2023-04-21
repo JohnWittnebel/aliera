@@ -99,6 +99,7 @@ class Monster(Card):
         genericDestroy(self, gameState)
 
     def leaderStrike(self, gameState, myIndex, *args, **kwargs):
+        self.hasAttacked = 1
         if gameState.activePlayer.playerNum == 1:
             damagePlayer = gameState.player2
             myPlayer = gameState.player1
@@ -115,6 +116,7 @@ class Monster(Card):
             myPlayer.restoreHP(gameState, damageDealt)
 
     def followerStrike(self, gameState, allyIndex, activeSide, enemyMonster, enemyIndex, *args, **kwargs):
+        self.hasAttacked = 1
         #TODO: these should actually just queue instead of activating. Its ok for now tho I think
         for func in self.strikeEffects:
             func(gameState, allyIndex)

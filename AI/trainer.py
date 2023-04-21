@@ -80,7 +80,7 @@ def training(generation, learnRate):
     model = NeuralNetwork().to("cpu")
     model.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
     model.eval()
-    n_epochs = 400
+    n_epochs = 600
     for epoch in range(n_epochs):
         gamePos, train_MCTS, mask, train_result = next(iter(loader))
         gamePos.requires_grad = True
@@ -96,4 +96,4 @@ def training(generation, learnRate):
 
     torch.save(model.state_dict(), "./AI/botModels/gen" + str(generation+1) + ".bot")
 
-#training(0, 0.5)
+#training(4, 0.1)

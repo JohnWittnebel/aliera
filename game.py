@@ -8,6 +8,7 @@ from constants import *
 from deck import Deck
 import copy
 import random
+import sys
 
 # A Game is the primary class that controls the flow of the game
 # It has 2 players, a board, and keeps track of who is the current player and the current turn
@@ -60,6 +61,7 @@ class Game:
         self.activePlayer = self.player1
         self.currTurn = 1
         self.winner = 0
+        self.error = 0
         self.winString = ""
         self.queue = []
 
@@ -95,8 +97,15 @@ class Game:
             self.player2.printHand()
 
     def initiateEvolve(self, allyMonsterIndex):
-        if (not self.activePlayer.canEvolve): 
-            input("ERROR: this player cannot evolve")
+        if (not self.activePlayer.canEvolve):
+            with open('demo.txt', 'a') as f:
+                original_stdout = sys.stdout
+                sys.stdout = f
+                # Reset the standard output
+                self.printGameState()
+                print("ERROR: this player cannot evolve")
+                sys.stdout = original_stdout 
+            self.error = 1
             return
         
         if self.activePlayer == self.player1:
@@ -105,7 +114,14 @@ class Game:
             evolveTarget = self.board.fullBoard[1][allyMonsterIndex[0]]
             
         if ((self.activePlayer.currEvos == 0) and evolveTarget.freeEvolve == 0):
-            input("ERROR: not enough evolves")
+            with open('demo.txt', 'a') as f:
+                original_stdout = sys.stdout
+                sys.stdout = f
+                # Reset the standard output
+                self.printGameState()
+                print("ERROR: not enough evolves")
+                sys.stdout = original_stdout 
+            self.error = 1
             return
 
         if evolveTarget.evoEnemyFollowerTargets > 0 and len(self.board.fullBoard[(self.activePlayer.playerNum+1) % 2]) > 0:
@@ -123,32 +139,62 @@ class Game:
         # VALID TARGETS CHECKING
         # Make sure that the allyMonster attacking a valid target, and that the enemyMonster is a valid target
         if (allyMonster > len(self.board.fullBoard[attackingPlayer]) - 1):
-            self.printGameState()
-            print(allyMonster, enemyMonster)
-            input("ERROR: attempt to use a non-existent monster to attack")
+            with open('demo.txt', 'a') as f:
+                original_stdout = sys.stdout
+                sys.stdout = f
+                self.printGameState()
+                print(allyMonster, enemyMonster)
+                print("ERROR: attempt to use a non-existent monster to attack")
+                sys.stdout = original_stdout 
+            self.error = 1
             return
         elif (allyMonster < 0):
-            self.printGameState()
-            print(allyMonster, enemyMonster)
-            input("ERROR: attempt to use a non-existent monster to attack")
+            with open('demo.txt', 'a') as f:
+                original_stdout = sys.stdout
+                sys.stdout = f
+                self.printGameState()
+                print("ERROR: attempt to use a non-existent monster to attack")
+                sys.stdout = original_stdout 
+            self.error = 1
             return
         elif (enemyMonster > len(self.board.fullBoard[defendingPlayer]) - 1):
-            self.printGameState()
-            print(allyMonster, enemyMonster)
-            input("ERROR: attempt to attack a non-existent target")
+            with open('demo.txt', 'a') as f:
+                original_stdout = sys.stdout
+                sys.stdout = f
+                self.printGameState()
+                print("ERROR: attempt to attack a non-existent target")
+                sys.stdout = original_stdout 
+            self.error = 1
             return
         elif (enemyMonster < -1):
-            self.printGameState()
-            print(allyMonster, enemyMonster)
-            input("ERROR: attempt to attack a non-existent target")
+            with open('demo.txt', 'a') as f:
+                original_stdout = sys.stdout
+                sys.stdout = f
+                self.printGameState()
+                print(allyMonster, enemyMonster)
+                print("ERROR: attempt to attack a non-existent target")
+                sys.stdout = original_stdout 
+            self.error = 1
             return
         elif (not self.board.fullBoard[attackingPlayer][allyMonster].canAttack):
-            self.printGameState()
-            print(allyMonster, enemyMonster)
-            input("ERROR: attempt to attack with a monster that cannot attack")
+            with open('demo.txt', 'a') as f:
+                original_stdout = sys.stdout
+                sys.stdout = f
+                self.printGameState()
+                print(allyMonster, enemyMonster)
+                print("ERROR: attempt to attack with a monster that cannot attack")
+                sys.stdout = original_stdout 
+            self.error = 1
             return
         elif (enemyMonster == -1 and not self.board.fullBoard[attackingPlayer][allyMonster].canAttackFace):
-            input("ERROR: this monster cannot attack face")
+            with open('demo.txt', 'a') as f:
+                original_stdout = sys.stdout
+                sys.stdout = f
+                self.printGameState()
+                print(allyMonster, enemyMonster)
+                print("ERROR: this monster cannot attack face")
+                sys.stdout = original_stdout 
+            self.error = 1
             return
 
         # VALID TARGETS CHECKING FOR WARDS, this might need to become more general
@@ -157,7 +203,13 @@ class Game:
             if enem.hasWard:
                 wardExists = 1
         if wardExists and (enemyMonster == ENEMY_FACE or not self.board.fullBoard[defendingPlayer][enemyMonster].hasWard):
-            input("ERROR: attempt to attack through a ward")
+            with open('demo.txt', 'a') as f:
+                original_stdout = sys.stdout
+                sys.stdout = f
+                self.printGameState()
+                print("ERROR: attempt to attack through a ward")
+                sys.stdout = original_stdout 
+            self.error = 1
             return
 
         # Actual Fuction

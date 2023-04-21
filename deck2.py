@@ -10,7 +10,7 @@ from wrathCards import *
 deck1 = [[Tank, 3],
          [Flautist, 3],
          [HarmonicWolf, 3],
-         #[HowlingScream, 3],
+         [HowlingScream, 3],
          [Vampy, 3],
          [Maestro, 3],
          [VampireQueenCastle, 3],

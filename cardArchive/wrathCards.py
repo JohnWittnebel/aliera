@@ -214,7 +214,7 @@ def givePlus1Bats(gameState):
         otherPlayer = gameState.player1
     if otherPlayer.selfPings >= 7:
         for card in gameState.board.fullBoard[otherPlayer.playerNum - 1]:
-            if card.name == "Forest Bat":
+            if isinstance(card,ForestBat):
                 card.maxHP += 1
                 card.currHP += 1
                 card.currAttack += 1
@@ -352,6 +352,8 @@ class Drummer(Monster):
         for _ in range(4):
             genericSummon(Drummer(), gameState, currSide)
         if gameState.activePlayer.selfPings >= 7:
+            self.freeEvolve = 1
+            self.autoEvolve = 1
             self.evolve(gameState)
 
     
@@ -378,7 +380,7 @@ def vampyEffect(gameState, card):
         card.hasBane = 1
         card.hasStorm = 1
         card.canAttack = 1
-        if (card.side == 1):
+        if (card.side == 0):
             gameState.player2.takeEffectDamage(gameState, 1)
         else:
             gameState.player1.takeEffectDamage(gameState, 1)
@@ -429,7 +431,6 @@ class HowlingDemon(Monster):
 
     def evolve(self, gameState):
         self.hasStorm = 1
-        self.canAttack = 1
         self.hasDrain = 1
         genericEvolve(self, gameState)
         self.maxHP -= 2
@@ -474,7 +475,6 @@ class Garodeth(Monster):
 
     def evolve(self, gameState):
         self.hasStorm = 1
-        self.canAttack = 1
         genericEvolve(self, gameState)
         self.maxHP += 2
         self.currHP += 2

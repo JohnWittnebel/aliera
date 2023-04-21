@@ -7,6 +7,7 @@ import pickle
 import copy
 import torch
 import cProfile
+from deckGen import newDeckPool
 
 import sys
 sys.path.insert(0, './AI/')
@@ -21,6 +22,8 @@ from trainer import training
 def singleGame(botGame, currPosSave):
   x = Game()
   y = Transformer()
+  x.player1.deck.trueShuffle()
+  x.player2.deck.trueShuffle()
   x.gameStart()
 
   # mulligan phase
@@ -236,7 +239,8 @@ def singleGame(botGame, currPosSave):
             input3 = input("spellboost how many times?")
 
 
-  currPosSave = myTree.parent.recordResults(x.winner, currPosSave)
+  if x.error == 0:
+      currPosSave = myTree.parent.recordResults(x.winner, currPosSave)
   return currPosSave, x.winner
   #return x.winner
 
@@ -284,30 +288,32 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
 #currPosSave=0
 #winner = singleGame(0,currPosSave)
 #print(winner)
+#input("")
 
-generation = 1
+generation = 0
 currPosSave = 0
 numFails = 0
 for pepega in range(10):
-    """
     # FOR GENERATING TRAINING DATA
     currNN = NeuralNetwork()
     setCurrNN(generation)
     thisRound = 0
     startingPoint = currPosSave
-    if (pepega < 1000):
+    if (pepega < 10000):
         while thisRound < 20000:
             currPosSave, recentWinner = singleGame(1,currPosSave)
             print(recentWinner)
             thisRound = currPosSave - startingPoint
-    learningRate = 0.02
-    if (numFails > 1):
-        learningRate *= 0.4
-        numFails = 0
+    learningRate = 0.5
+   
+    if (numFails > 0):
+        if numFails > 4:
+            learningRate = 0.03
+        else:
+            learningRate = 0.1
     training(generation, learningRate)
     generation += 1
-    """
-
+    
     # FOR testing bot vs new gen
     model1 = NeuralNetwork().to("cpu")
     model1.load_state_dict(torch.load("./AI/botModels/gen" + str(generation-1) + ".bot"))
@@ -319,6 +325,7 @@ for pepega in range(10):
 
     result = [0,0]
     player1wins = 0
+    newDeckPool()
     for i in range(120):
         seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
         deckSeed = pickle.load(seed_file)
@@ -371,5 +378,3 @@ for pepega in range(10):
     if result[1] < 123:
         numFails += 1
         generation -= 1
-
-    break

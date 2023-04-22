@@ -19,29 +19,6 @@ import sys
 TRAINING = 1
 
 class Game:
-    def __init__(self, player1, player2):
-        self.activePlayer = player1
-        self.player1 = player1
-        self.player2 = player2
-        self.board = Board()
-        self.currTurn = 1
-
-        # this will become 1 or 2 once the game is over
-        self.winner = 0
-        self.winString = ""
-    
-    # This is meant to really only be used by the trueCopy function
-    def update(self, player1, player2, activePlayer, gameBoard, currTurn, winner):
-        self.activePlayer = activePlayer
-        self.player1 = player1
-        self.player2 = player2
-        self.board = gameBoard
-        self.currTurn = currTurn
-
-        # this will become 1 or 2 once the game is over
-        self.winner = winner
-        self.winString = ""
-    
     def __init__(self):
         # If we are initializing a board state without players already generated,
         # we need to generate the players and the decks that they will be using
@@ -57,6 +34,7 @@ class Game:
         self.player1 = Player(deck1, PLAYER_1_MAX_EVOS, PLAYER_1_MAX_EVOS, 1)
         self.player2 = Player(deck2, PLAYER_2_MAX_EVOS, PLAYER_2_MAX_EVOS, 2)
 
+        self.gameNum = -1
         self.board = Board()
         self.activePlayer = self.player1
         self.currTurn = 1
@@ -64,9 +42,35 @@ class Game:
         self.error = 0
         self.winString = ""
         self.queue = []
-
+    """
+    def __deepcopy__(self, memo):
+        # somehow this actually needs to be here, otherwise things happen like deepcopying the board
+        # before a follower is summoned by an effect and then it doesnt get summoned
+        self.clearQueue()
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.p1played = self.p1played
+        result.p2played = self.p2played
+        result.player1 = copy.deepcopy(self.player1)
+        result.player2 = copy.deepcopy(self.player2)
+        result.board = copy.deepcopy(self.board)
+        if (self.activePlayer == self.player1):
+            result.activePlayer = result.player1
+        else:
+            result.activePlayer = result.player2
+        result.currTurn = self.currTurn
+        result.winner = self.winner
+        result.error = self.error
+        result.winString = self.winString
+        # A new leaf node should never be created while there is still something in the queue, or something has gone
+        # seriously wrong
+        result.queue = []
+        return result
+    """
     def printGameState(self):
         os.system('clear')
+        if (self.gameNum > -1):
+            print("Game number: " + str(self.gameNum))) 
         if (self.activePlayer == self.player1):
             print("Active player: 1")
             print("HP: " + str(self.player2.currHP) + "/" + str(self.player2.maxHP))

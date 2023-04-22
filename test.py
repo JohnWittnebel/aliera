@@ -1,6 +1,7 @@
 from monster import Monster
 from deck import Deck
 from game import Game
+import math
 import time
 import random
 import numpy as np
@@ -11,7 +12,7 @@ import cProfile
 import os
 from deckGen import newDeckPool
 from concurrent.futures import ProcessPoolExecutor
-from multiprocessing import Pool, TimeoutError, Lock
+from multiprocessing import Pool, TimeoutError, Lock, Process
 
 import fnmatch
 import sys
@@ -31,6 +32,8 @@ def singleGame(botGame, currPosSave = 0):
   x.player2.deck.trueShuffle()
   x.gameStart()
 
+  x.gameNum = botGame[1]
+  botGame = botGame[0]
   # mulligan phase
   if botGame == 0:
       index = 0
@@ -111,7 +114,7 @@ def singleGame(botGame, currPosSave = 0):
     print("4 = end turn")
 
     if (botGame == 1):
-        myTree.runSimulations(50)
+        myTree.runSimulations(max(50, math.floor(math.log2(math.log2(len(myTree.moveArr)) + 0.01)*50)))
         myTree.printTree()
         
         #maxSims = -1
@@ -275,11 +278,15 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
         moves = x.generateLegalMoves()
         if (x.activePlayer.playerNum == 1):    
             pred = bot1(z)
+            enemypred = bot2(z)
         else:
-            pred = bot2(z) 
+            pred = bot2(z)
+            enemypred = bot1(z)
 
         moveProbs = y.normalizedVector(pred[0][0],x)[0]
+        enemyMoveProbs = y.normalizedVector(enemypred[0][0],x)[0]
         print(moveProbs)
+        print(enemyMoveProbs)
         currIndex = 0
         maxIndex = 0
         maxProb = 0
@@ -297,115 +304,106 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
 #print(winner)
 #input("")
 
-generation = 1
+generation = 2
 currPosSave = 0
 numFails = 0
-learningRate = 0.5
+learningRate = 0.2
 
 def init(lock_: Lock):
     global lock
     lock = lock_
 
-for pepega in range(1):
-    # FOR GENERATING TRAINING DATA
-    currNN = NeuralNetwork()
-    setCurrNN(generation)
-    thisRound = 0
-    startingPoint = currPosSave
-    if (pepega > -1):
-        if (pepega > 1):
-            learningRate = 0.1
-        if (pepega > 4):
-            learningRate = 0.02
-        if (pepega > 7):
-            learningRate = 0.01
-        if __name__ == "__main__":
+for pepega in range(8):
+    if __name__ == "__main__":
+        start_time = time.time()
+        # FOR GENERATING TRAINING DATA
+        currNN = NeuralNetwork()
+        setCurrNN(generation)
+        #thisRound = 0
+        startingPoint = currPosSave
+        if (pepega > 0):
+            if (pepega > 1):
+                learningRate = 0.1
+            if (pepega > 4):
+                learningRate = 0.02
+            if (pepega > 7):
+                learningRate = 0.01
+
             lock_ = Lock()
-            for _ in range(5):
-                with Pool(initializer=init, initargs=[lock_], processes=4) as exe:
-                    runs = []
-                    for _ in range(4):
-                        runs.append(1)
-                    exe.map(singleGame, runs)
-                    exe.close()
-"""
-            #currPosSave, recentWinner = singleGame(1, currPosSave)
-    #while thisRound < 20000:
-            #currPosSave, recentWinner = singleGame(1,currPosSave)
-            #print(recentWinner)
-            #thisRound = currPosSave - startingPoint
-    
-    #if (numFails > 0):
-    #    if numFails > 4:
-    #        learningRate = 0.03
-    #    else:
-    #        learningRate = 0.1
-    
-    training(generation, learningRate)
-    generation += 1
-    
-    # FOR testing bot vs new gen
-    model1 = NeuralNetwork().to("cpu")
-    model1.load_state_dict(torch.load("./AI/botModels/gen" + str(generation-1) + ".bot"))
-    model1.eval()
-
-    model2 = NeuralNetwork().to("cpu")
-    model2.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
-    model2.eval()
-
-    result = [0,0]
-    player1wins = 0
-    newDeckPool()
-    for i in range(120):
-        seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
-        deckSeed = pickle.load(seed_file)
-        seed_file.close()
-        deck1 = Deck("deck1")
-        random.seed(deckSeed)
-        deck1.trueShuffle()
+            runs = []
+            for j in range(200):
+                runs.append([1,j])
+            #    singleGame(1)
+            with Pool(initializer=init, initargs=[lock_], processes=2) as exe:
+                exe.map(singleGame, runs)
+                exe.close()
+            exe.join()
         
-        seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
-        deckSeed = pickle.load(seed_file)
-        seed_file.close()
-        deck2 = Deck("deck2")
-        random.seed(deckSeed)
-        deck2.trueShuffle()
-
-        winner = botGenerationTest(model1, model2, deck1, deck2)
-        if winner == 1:
-            result[0] += 1
-            player1wins += 1
-        else:
-            result[1] += 1
-
-    for _ in range(120):
-        seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
-        deckSeed = pickle.load(seed_file)
-        seed_file.close()
-        deck1 = Deck("deck1")
-        random.seed(deckSeed)
-        deck1.trueShuffle()
-        
-        seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
-        deckSeed = pickle.load(seed_file)
-        seed_file.close()
-        deck2 = Deck("deck2")
-        random.seed(deckSeed)
-        deck2.trueShuffle()
-        
-        winner = botGenerationTest(model2, model1, deck1, deck2)
-        if winner == 1:
-            result[1] += 1
-            player1wins += 1
-        else:
-            result[0] += 1
-
-    print(result)
-    f = open("resultFile.txt", "a")
-    f.write(str(result[0]) + " v " + str(result[1]) + " " + str(player1wins) + "\n")
-    f.close()
+        training(generation, learningRate)
+        generation += 1
     
-    if result[1] < 123:
-        numFails += 1
-        generation -= 1
-"""
+        # FOR testing bot vs new gen
+        model1 = NeuralNetwork().to("cpu")
+        model1.load_state_dict(torch.load("./AI/botModels/gen" + str(generation-1) + ".bot"))
+        model1.eval()
+
+        model2 = NeuralNetwork().to("cpu")
+        model2.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
+        model2.eval()
+
+        result = [0,0]
+        player1wins = 0
+        newDeckPool()
+        for i in range(120):
+            seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
+            deckSeed = pickle.load(seed_file)
+            seed_file.close()
+            deck1 = Deck("deck1")
+            random.seed(deckSeed)
+            deck1.trueShuffle()
+        
+            seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
+            deckSeed = pickle.load(seed_file)
+            seed_file.close()
+            deck2 = Deck("deck2")
+            random.seed(deckSeed)
+            deck2.trueShuffle()
+
+            winner = botGenerationTest(model1, model2, deck1, deck2)
+            if winner == 1:
+                result[0] += 1
+                player1wins += 1
+            else:
+                result[1] += 1
+
+        for i in range(120):
+            seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
+            deckSeed = pickle.load(seed_file)
+            seed_file.close()
+            deck1 = Deck("deck1")
+            random.seed(deckSeed)
+            deck1.trueShuffle()
+        
+            seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
+            deckSeed = pickle.load(seed_file)
+            seed_file.close()
+            deck2 = Deck("deck2")
+            random.seed(deckSeed)
+            deck2.trueShuffle()
+        
+            winner = botGenerationTest(model2, model1, deck1, deck2)
+            if winner == 1:
+                result[1] += 1
+                player1wins += 1
+            else:
+                result[0] += 1
+        print(result)
+        f = open("resultFile.txt", "a")
+        f.write(str(result[0]) + " v " + str(result[1]) + " " + str(player1wins) + "\n")
+        f.close()
+    
+        if result[1] < 123:
+            numFails += 1
+            generation -= 1
+        
+        print("--- %s seconds ---" % (time.time() - start_time))

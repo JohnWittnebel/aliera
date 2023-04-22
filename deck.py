@@ -9,8 +9,14 @@ class Deck:
     def __init__(self, deckname):
         self.deckName = deckname
         self.cards = []
-        self.deckFromFile()
-    
+        if (deckname != ""):
+           self.deckFromFile()
+    """
+    def __deepcopy__(self, info):
+        retVal = Deck("")
+        retVal.cards = copy.deepcopy(self.cards)
+        return retVal
+    """
     # This is between games so that the deck is different
     def trueShuffle(self):
         random.shuffle(self.cards)

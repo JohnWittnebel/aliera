@@ -11,6 +11,7 @@ import torch
 from transformer import Transformer
 from bot import NeuralNetwork
 from mycopy import trueCopy
+import _pickle as cPickle
 
 import sys
 #sys.path.insert(0, './botModels/')
@@ -118,6 +119,7 @@ class AZMCTS():
                 return 0
 
         if (self.children[childIndex] == 0):
+            #z = cPickle.loads(cPickle.dumps(self.gameState, -1))
             z = copy.deepcopy(self.gameState)
             z.initiateAction(self.moveArr[actionIndex][0])
             self.children[childIndex] = AZMCTS(z, self)

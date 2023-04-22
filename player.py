@@ -1,6 +1,7 @@
 from deck import Deck
 from constants import MAX_HAND_SIZE, DEFAULT_MAX_HP, DEFAULT_MAX_PP
 from leaderEffect import *
+import copy
 
 # A Player has an associated deck, that is a Deck type
 # A Player has a hand, and that is simply an array of Cards, we can specify a starting hand if we wish
@@ -31,6 +32,26 @@ class Player:
         self.immune = False
         self.effectImmune = False
         self.leaderEffects = LeaderEffectManager()
+
+    """
+    def __deepcopy__(self, info):
+        deckcopy = copy.deepcopy(self.deck)
+        retVal = Player(deckcopy, self.maxEvos, self.currEvos, self.playerNum)
+        retVal.hand = copy.deepcopy(self.hand)
+        retVal.currHP = self.currHP
+        retVal.maxHP = self.maxHP
+        retVal.currPP = self.currPP
+        retVal.maxPP = self.maxPP
+        retVal.damageProtection = self.damageProtection
+        retVal.canEvolve = self.canEvolve
+        retVal.effectProtection = self.effectProtection
+        retVal.selfPings = self.selfPings
+        retVal.selfPingsTurn = self.selfPingsTurn
+        retVal.immune = self.immune
+        retVal.effectImmune = self.effectImmune
+        retVal.leaderEffect = copy.deepcopy(self.leaderEffects)
+        return retVal
+    """
 
     def draw(self, count = 1):
         for _ in range(count):

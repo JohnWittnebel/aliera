@@ -10,14 +10,19 @@ import fnmatch
 class PositionDataset(Dataset):
     def __init__(self, positionDir):
         self.positionDir = positionDir
-        self.numPos = len(fnmatch.filter(os.listdir("./AI/trainingData/"), '*.pickle'))
+        #self.np1 = len(fnmatch.filter(os.listdir("./AI/trainingData2/trainingData/"), '*.pickle'))
+        self.numpos = len(fnmatch.filter(os.listdir("./AI/trainingData/"), '*.pickle'))
+        #self.np2 = self.numpos + self.np1
 
     def __len__(self):
-        return self.numPos
+        return self.numpos
 
     def __getitem__(self, idx):
         # Code to load training data
+        #if (idx < self.numpos):
         data_file = open(self.positionDir + "/pos" + str(idx) + ".pickle", "rb")
+        #else:
+        #    data_file = open("./AI/trainingData2/trainingData/pos" + str(idx-self.numpos) + ".pickle", "rb")
         posData = pickle.load(data_file)
         data_file.close()
   

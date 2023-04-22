@@ -96,4 +96,4 @@ def training(generation, learnRate):
 
     torch.save(model.state_dict(), "./AI/botModels/gen" + str(generation+1) + ".bot")
 
-#training(4, 0.1)
+#training(0, 0.5)

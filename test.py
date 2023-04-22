@@ -1,14 +1,19 @@
 from monster import Monster
 from deck import Deck
 from game import Game
+import time
 import random
 import numpy as np
 import pickle
 import copy
 import torch
 import cProfile
+import os
 from deckGen import newDeckPool
+from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import Pool, TimeoutError, Lock
 
+import fnmatch
 import sys
 sys.path.insert(0, './AI/')
 sys.path.insert(0, './cardArchive')
@@ -19,7 +24,7 @@ from AZMCTS import AZMCTS
 from AZMCTS import setCurrNN
 from trainer import training
 
-def singleGame(botGame, currPosSave):
+def singleGame(botGame, currPosSave = 0):
   x = Game()
   y = Transformer()
   x.player1.deck.trueShuffle()
@@ -238,9 +243,11 @@ def singleGame(botGame, currPosSave):
             input2 = input("spellboost what card index?")
             input3 = input("spellboost how many times?")
 
-
+  
   if x.error == 0:
-      currPosSave = myTree.parent.recordResults(x.winner, currPosSave)
+      with lock:
+          currPosSave = len(fnmatch.filter(os.listdir("./AI/trainingData/"), '*.pickle'))
+          currPosSave = myTree.parent.recordResults(x.winner, currPosSave)
   return currPosSave, x.winner
   #return x.winner
 
@@ -290,27 +297,50 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
 #print(winner)
 #input("")
 
-generation = 0
+generation = 1
 currPosSave = 0
 numFails = 0
-for pepega in range(10):
+learningRate = 0.5
+
+def init(lock_: Lock):
+    global lock
+    lock = lock_
+
+for pepega in range(1):
     # FOR GENERATING TRAINING DATA
     currNN = NeuralNetwork()
     setCurrNN(generation)
     thisRound = 0
     startingPoint = currPosSave
-    if (pepega < 10000):
-        while thisRound < 20000:
-            currPosSave, recentWinner = singleGame(1,currPosSave)
-            print(recentWinner)
-            thisRound = currPosSave - startingPoint
-    learningRate = 0.5
-   
-    if (numFails > 0):
-        if numFails > 4:
-            learningRate = 0.03
-        else:
+    if (pepega > -1):
+        if (pepega > 1):
             learningRate = 0.1
+        if (pepega > 4):
+            learningRate = 0.02
+        if (pepega > 7):
+            learningRate = 0.01
+        if __name__ == "__main__":
+            lock_ = Lock()
+            for _ in range(5):
+                with Pool(initializer=init, initargs=[lock_], processes=4) as exe:
+                    runs = []
+                    for _ in range(4):
+                        runs.append(1)
+                    exe.map(singleGame, runs)
+                    exe.close()
+"""
+            #currPosSave, recentWinner = singleGame(1, currPosSave)
+    #while thisRound < 20000:
+            #currPosSave, recentWinner = singleGame(1,currPosSave)
+            #print(recentWinner)
+            #thisRound = currPosSave - startingPoint
+    
+    #if (numFails > 0):
+    #    if numFails > 4:
+    #        learningRate = 0.03
+    #    else:
+    #        learningRate = 0.1
+    
     training(generation, learningRate)
     generation += 1
     
@@ -378,3 +408,4 @@ for pepega in range(10):
     if result[1] < 123:
         numFails += 1
         generation -= 1
+"""

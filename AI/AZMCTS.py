@@ -17,18 +17,13 @@ import sys
 #sys.path.insert(0, './botModels/')
 sys.path.insert(0, './..')
 
-#TODO: the training file should handle this
-currNN = NeuralNetwork()
-#currNN.load_state_dict(torch.load("./AI/botModels/gen0.bot"))
-#currNN.eval()
-GAMENUM = 1
-POSNUM = 1
-#gamePath = []
-transformer = Transformer()
-
-def setCurrNN(generation):
-    currNN.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
-    currNN.eval()
+def setCurrNN(generation, mct):
+    mct.currNN = NeuralNetwork()
+    dire = "./AI/botModels/gen" + str(generation) + ".bot"
+    temp1 = torch.load(dire, map_location=torch.device('cpu'))
+    mct.currNN.load_state_dict(temp1)
+    #currNN.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
+    mct.currNN.eval()
 
 class AZMCTS():
     def __init__(self, gameState, parent=None):
@@ -38,6 +33,8 @@ class AZMCTS():
         self.exploreParam = 1.4
         self.parent = parent
         self.mask = 0
+        self.currNN = 0
+        self.transformer = 0
         moves = gameState.generateLegalMoves()
 
         self.children = []
@@ -52,20 +49,26 @@ class AZMCTS():
     
     # the moveProbs are generated when the node is created during tree descent, but this doesnt occur for the root
     # so we do it manually here
-    def rootInit(self):
-        nnInput = transformer.gameDataToNN(self.gameState)
+    def rootInit(self, generation):
+        self.transformer = Transformer()
+        nnInput = self.transformer.gameDataToNN(self.gameState)
         nnInput = nnInput.unsqueeze(dim=0)
-            
-        logits = currNN(nnInput)[0]
-        val = currNN(nnInput)[1]
+
+        setCurrNN(generation, self)
+        logits = self.currNN(nnInput)[0]
+        val = self.currNN(nnInput)[1]
+
         #for ele in self.moveArr:
         #    ele[4] += val/4
         #print(logits)
-        probabilitiesNN, mask = transformer.normalizedVector(logits[0], self.gameState)
+
+        probabilitiesNN, mask = self.transformer.normalizedVector(logits[0], self.gameState)
+
         #print(mask)
         #print(probabilitiesNN)
         self.mask = mask
         self.setProbabilities(probabilitiesNN)
+
         return val
 
     def runSimulations(self, simulations):
@@ -124,6 +127,8 @@ class AZMCTS():
             z.initiateAction(self.moveArr[actionIndex][0])
             z.clearQueue()
             self.children[childIndex] = AZMCTS(z, self)
+            self.children[childIndex].currNN = self.currNN
+            self.children[childIndex].transformer = self.transformer
             #self.children[childIndex].gameState.printGameState()
   
             # game has ended
@@ -133,16 +138,16 @@ class AZMCTS():
                 else:
                     return -1
             # game is still in progress, return NN eval
-            nnInput = transformer.gameDataToNN(self.gameState)
+            nnInput = self.transformer.gameDataToNN(self.gameState)
             nnInput = nnInput.unsqueeze(dim=0)
         
-            logits = currNN(nnInput)
+            logits = self.currNN(nnInput)
             logitsProb = logits[0][0]
             logitsValuation = logits[1][0]
             #for ele in self.children[childIndex].moveArr:
             #    ele[4] += logitsValuation/4
 
-            probabilitiesNN, mask = transformer.normalizedVector(logitsProb, self.children[childIndex].gameState)
+            probabilitiesNN, mask = self.transformer.normalizedVector(logitsProb, self.children[childIndex].gameState)
             self.children[childIndex].mask = mask
             self.children[childIndex].setProbabilities(probabilitiesNN)
             return logitsValuation
@@ -185,7 +190,7 @@ class AZMCTS():
             gameResult = 1
         else:
             gameResult = -1
-        condensedResult = [transformer.gameDataToNN(self.gameState), MCTSRes, self.mask, gameResult]
+        condensedResult = [self.transformer.gameDataToNN(self.gameState), MCTSRes, self.mask, gameResult]
         with open("./AI/trainingData/pos" + str(posnum) + ".pickle", "wb") as f:
             pickle.dump(condensedResult, f)
 

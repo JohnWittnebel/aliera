@@ -34,6 +34,7 @@ def singleGame(botGame, currPosSave = 0):
 
   x.gameNum = botGame[1]
   botGame = botGame[0]
+  
   # mulligan phase
   if botGame == 0:
       index = 0
@@ -61,13 +62,16 @@ def singleGame(botGame, currPosSave = 0):
           for i in range(2):
               for j in range(2):
                   for k in range(2):
+
                       mull = x.player1.mulliganSample(i,j,k)
                       myTree = AZMCTS(x)
-                      val = myTree.rootInit()
+                      val = myTree.rootInit(generation)
                       totals[i][j][k] += val
+
                       if totals[i][j][k] > currMax:
                           currMax = totals[i][j][k]
                           currMaxIndices = [i,j,k]
+
                       x.player1.returnMulliganSample(mull)
 
       x.player1.mulligan(currMaxIndices[0], currMaxIndices[1], currMaxIndices[2])
@@ -81,7 +85,8 @@ def singleGame(botGame, currPosSave = 0):
                   for k in range(2):
                       mull = x.player2.mulliganSample(i,j,k)
                       myTree = AZMCTS(x)
-                      val = myTree.rootInit()
+                      with lock:
+                          val = myTree.rootInit(generation)
                       totals[i][j][k] += val
                       if totals[i][j][k] > currMax:
                           currMax = totals[i][j][k]
@@ -89,7 +94,7 @@ def singleGame(botGame, currPosSave = 0):
                       x.player2.returnMulliganSample(mull)
       x.player2.mulligan(currMaxIndices[0], currMaxIndices[1], currMaxIndices[2])
       x.activePlayer = x.player1
-
+  
   # Turn 1 start
   x.startTurn()
 
@@ -99,7 +104,7 @@ def singleGame(botGame, currPosSave = 0):
     botTurn = 0
 
   myTree = AZMCTS(x)
-  myTree.rootInit()
+  myTree.rootInit(generation)
   while (x.winner == 0):
     if (x.queue != []):
         x.clearQueue()
@@ -319,14 +324,14 @@ def botGenerationTestInit(generation, simulations):
     player1wins = 0
     newDeckPool(simulations)
     for i in range(simulations):
-        seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
+        seed_file = open("./constantDecks/P1deck" + str(i) + ".seed", "rb")
         deckSeed = pickle.load(seed_file)
         seed_file.close()
         deck1 = Deck("deck1")
         random.seed(deckSeed)
         deck1.trueShuffle()
         
-        seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
+        seed_file = open("./constantDecks/P2deck" + str(i) + ".seed", "rb")
         deckSeed = pickle.load(seed_file)
         seed_file.close()
         deck2 = Deck("deck2")
@@ -340,14 +345,14 @@ def botGenerationTestInit(generation, simulations):
         else:
             result[1] += 1
 
-        seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
+        seed_file = open("./constantDecks/P1deck" + str(i) + ".seed", "rb")
         deckSeed = pickle.load(seed_file)
         seed_file.close()
         deck1 = Deck("deck1")
         random.seed(deckSeed)
         deck1.trueShuffle()
         
-        seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
+        seed_file = open("./constantDecks/P2deck" + str(i) + ".seed", "rb")
         deckSeed = pickle.load(seed_file)
         seed_file.close()
         deck2 = Deck("deck2")
@@ -381,49 +386,42 @@ winner = singleGame([0,1],currPosSave)
 print(winner)
 input("")
 """
-generation = 4
+generation = 5
 currPosSave = 0
 numFails = 0
 learningRate = 0.02
 
-for pepega in range(8):
-    if __name__ == "__main__":
-        start_time = time.time()
-        # FOR GENERATING TRAINING DATA
-        currNN = NeuralNetwork()
-        setCurrNN(generation)
-        #thisRound = 0
-        startingPoint = currPosSave
-        if (pepega > -1):
-            if (pepega > 1):
-                learningRate = 0.1
-            if (pepega > 4):
-                learningRate = 0.02
-            if (pepega > 7):
-                learningRate = 0.01
+def testprint(inputval):
+    print(inputval)
 
-            lock_ = Lock()
-            runs = []
-            for j in range(200):
-                runs.append([1,j])
-            #    singleGame(1)
-            with Pool(initializer=init, initargs=[lock_], processes=2) as exe:
+lock_ = Lock()
+if __name__ == "__main__":
+    with Pool(initializer=init, initargs=[lock_], processes=2) as exe:
+        for pepega in range(8):
+            start_time = time.time()
+            # FOR GENERATING TRAINING DATA
+            #currNN = NeuralNetwork()
+            #setCurrNN(generation)
+            #thisRound = 0
+            startingPoint = currPosSave
+            if (pepega > -1):
+                runs = []
+                for j in range(200):
+                    runs.append([1,j])
+                    #singleGame([1,j])
                 exe.map(singleGame, runs)
-                exe.close()
-            exe.join()
         
-        training(generation, learningRate)
-        generation += 1
-        result = botGenerationTestInit(generation, 250)
+            training(generation, learningRate)
+            generation += 1
+            result = botGenerationTestInit(generation, 1)
         
-        if result[1] >= 250 and result[1] < 256:
-            result2 = botGenerationTestInit(generation, 250)
-            if (result2[1] < 250):
+            if result[1] >= 250 and result[1] < 256:
+                result2 = botGenerationTestInit(generation, 250)
+                if (result2[1] < 250):
+                    numFails += 1
+                    generation -= 1
+            elif result[1] < 250:
                 numFails += 1
                 generation -= 1
-        elif result[1] < 250:
-            numFails += 1
-            generation -= 1
         
-        print("--- %s seconds ---" % (time.time() - start_time))
-        break
+            print("--- %s seconds ---" % (time.time() - start_time))

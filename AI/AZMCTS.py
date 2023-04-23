@@ -59,7 +59,7 @@ class AZMCTS():
         logits = currNN(nnInput)[0]
         val = currNN(nnInput)[1]
         for ele in self.moveArr:
-            ele[4] += val
+            ele[4] += val/4
         #print(logits)
         probabilitiesNN, mask = transformer.normalizedVector(logits[0], self.gameState)
         #print(mask)
@@ -139,7 +139,7 @@ class AZMCTS():
             logitsProb = logits[0][0]
             logitsValuation = logits[1][0]
             for ele in self.children[childIndex].moveArr:
-                ele[4] += logitsValuation
+                ele[4] += logitsValuation/4
 
             probabilitiesNN, mask = transformer.normalizedVector(logitsProb, self.children[childIndex].gameState)
             self.children[childIndex].mask = mask

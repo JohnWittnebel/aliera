@@ -70,7 +70,7 @@ class Game:
     def printGameState(self):
         os.system('clear')
         if (self.gameNum > -1):
-            print("Game number: " + str(self.gameNum))) 
+            print("Game number: " + str(self.gameNum)) 
         if (self.activePlayer == self.player1):
             print("Active player: 1")
             print("HP: " + str(self.player2.currHP) + "/" + str(self.player2.maxHP))
@@ -270,11 +270,13 @@ class Game:
         # Check that board is not full
         if (len(self.board.fullBoard[currPlayer]) == MAX_BOARD_SIZE and (not isinstance(card,Spell)) and (not accelerating)):
             print("Attempted to play a follower when the board is full")
+            self.error = 1
             return
 
         # Make sure that we have the PP to play the follower/spell
         if self.activePlayer.currPP < self.activePlayer.hand[action[1][0]].cost and not accelerating:
             print("Attempted to play a card that costs more than our current PP")
+            self.error = 1
             return
         
         cardToPlay = self.activePlayer.hand.pop(action[1][0])
@@ -285,6 +287,9 @@ class Game:
             cardToPlay.play(self, currPlayer)
         elif (len(action[1]) == 1) and (cardToPlay.targetOptional):
             cardToPlay.play(self, currPlayer, [])
+        elif (len(action[1]) == 1):
+            print("ERROR: tried to play a non-optional target without a target")
+            self.error = 1
         else:
             cardToPlay.play(self, currPlayer, action[1][1:])
 

@@ -304,10 +304,10 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
 #print(winner)
 #input("")
 
-generation = 2
+generation = 3
 currPosSave = 0
 numFails = 0
-learningRate = 0.2
+learningRate = 0.1
 
 def init(lock_: Lock):
     global lock
@@ -321,7 +321,7 @@ for pepega in range(8):
         setCurrNN(generation)
         #thisRound = 0
         startingPoint = currPosSave
-        if (pepega > 0):
+        if (pepega > -1):
             if (pepega > 1):
                 learningRate = 0.1
             if (pepega > 4):
@@ -339,7 +339,7 @@ for pepega in range(8):
                 exe.close()
             exe.join()
         
-        training(generation, learningRate)
+        #training(generation, learningRate)
         generation += 1
     
         # FOR testing bot vs new gen
@@ -355,6 +355,7 @@ for pepega in range(8):
         player1wins = 0
         newDeckPool()
         for i in range(120):
+            #i=1
             seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
             deckSeed = pickle.load(seed_file)
             seed_file.close()
@@ -376,7 +377,6 @@ for pepega in range(8):
             else:
                 result[1] += 1
 
-        for i in range(120):
             seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
             deckSeed = pickle.load(seed_file)
             seed_file.close()
@@ -391,12 +391,20 @@ for pepega in range(8):
             random.seed(deckSeed)
             deck2.trueShuffle()
         
-            winner = botGenerationTest(model2, model1, deck1, deck2)
-            if winner == 1:
+            winner2 = botGenerationTest(model2, model1, deck1, deck2)
+            if winner2 == 1:
                 result[1] += 1
                 player1wins += 1
             else:
                 result[0] += 1
+            if (winner != winner2):
+                f = open("diffMakers.txt", "a")
+                if (winner == 1):
+                    f.write("Game: " + str(i) + ", double winner = old bot\n")
+                else:
+                    f.write("Game: " + str(i) + ", double winner = new bot\n")
+                f.close()
+
         print(result)
         f = open("resultFile.txt", "a")
         f.write(str(result[0]) + " v " + str(result[1]) + " " + str(player1wins) + "\n")

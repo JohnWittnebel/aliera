@@ -264,6 +264,8 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
     y = Transformer()
 
     while (x.winner == 0):
+        if (x.queue != []):
+            x.clearQueue()
 
         x.printGameState()
     
@@ -298,6 +300,81 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
         x.initiateAction(moves[maxIndex])
 
     return x.winner
+
+def init(lock_: Lock):
+    global lock
+    lock = lock_
+    
+def botGenerationTestInit(generation, simulations):
+    # FOR testing bot vs new gen
+    model1 = NeuralNetwork().to("cpu")
+    model1.load_state_dict(torch.load("./AI/botModels/gen" + str(generation-1) + ".bot"))
+    model1.eval()
+
+    model2 = NeuralNetwork().to("cpu")
+    model2.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
+    model2.eval()
+
+    result = [0,0]
+    player1wins = 0
+    newDeckPool(simulations)
+    for i in range(simulations):
+        seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
+        deckSeed = pickle.load(seed_file)
+        seed_file.close()
+        deck1 = Deck("deck1")
+        random.seed(deckSeed)
+        deck1.trueShuffle()
+        
+        seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
+        deckSeed = pickle.load(seed_file)
+        seed_file.close()
+        deck2 = Deck("deck2")
+        random.seed(deckSeed)
+        deck2.trueShuffle()
+
+        winner = botGenerationTest(model1, model2, deck1, deck2)
+        if winner == 1:
+            result[0] += 1
+            player1wins += 1
+        else:
+            result[1] += 1
+
+        seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
+        deckSeed = pickle.load(seed_file)
+        seed_file.close()
+        deck1 = Deck("deck1")
+        random.seed(deckSeed)
+        deck1.trueShuffle()
+        
+        seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
+        deckSeed = pickle.load(seed_file)
+        seed_file.close()
+        deck2 = Deck("deck2")
+        random.seed(deckSeed)
+        deck2.trueShuffle()
+        
+        winner2 = botGenerationTest(model2, model1, deck1, deck2)
+        if winner2 == 1:
+            result[1] += 1
+            player1wins += 1
+        else:
+            result[0] += 1
+        if (winner != winner2):
+            f = open("diffMakers.txt", "a")
+            if (winner == 1):
+                f.write("Game: " + str(i) + ", double winner = old bot\n")
+            else:
+                f.write("Game: " + str(i) + ", double winner = new bot\n")
+            f.close()
+
+    print(result)
+    f = open("resultFile.txt", "a")
+    f.write(str(result[0]) + " v " + str(result[1]) + " " + str(player1wins) + "\n")
+    f.close()
+    
+    return result
+    
 """
 currPosSave=0
 winner = singleGame([0,1],currPosSave)
@@ -307,11 +384,7 @@ input("")
 generation = 4
 currPosSave = 0
 numFails = 0
-learningRate = 0.2
-
-def init(lock_: Lock):
-    global lock
-    lock = lock_
+learningRate = 0.02
 
 for pepega in range(8):
     if __name__ == "__main__":
@@ -341,76 +414,14 @@ for pepega in range(8):
         
         training(generation, learningRate)
         generation += 1
-    
-        # FOR testing bot vs new gen
-        model1 = NeuralNetwork().to("cpu")
-        model1.load_state_dict(torch.load("./AI/botModels/gen" + str(generation-1) + ".bot"))
-        model1.eval()
-
-        model2 = NeuralNetwork().to("cpu")
-        model2.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
-        model2.eval()
-
-        result = [0,0]
-        player1wins = 0
-        newDeckPool()
-        for i in range(120):
-            #i=1
-            seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
-            deckSeed = pickle.load(seed_file)
-            seed_file.close()
-            deck1 = Deck("deck1")
-            random.seed(deckSeed)
-            deck1.trueShuffle()
+        result = botGenerationTestInit(generation, 250)
         
-            seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
-            deckSeed = pickle.load(seed_file)
-            seed_file.close()
-            deck2 = Deck("deck2")
-            random.seed(deckSeed)
-            deck2.trueShuffle()
-
-            winner = botGenerationTest(model1, model2, deck1, deck2)
-            if winner == 1:
-                result[0] += 1
-                player1wins += 1
-            else:
-                result[1] += 1
-
-            seed_file = open("./constantDecks/P1Deck" + str(i) + ".seed", "rb")
-            deckSeed = pickle.load(seed_file)
-            seed_file.close()
-            deck1 = Deck("deck1")
-            random.seed(deckSeed)
-            deck1.trueShuffle()
-        
-            seed_file = open("./constantDecks/P2Deck" + str(i) + ".seed", "rb")
-            deckSeed = pickle.load(seed_file)
-            seed_file.close()
-            deck2 = Deck("deck2")
-            random.seed(deckSeed)
-            deck2.trueShuffle()
-        
-            winner2 = botGenerationTest(model2, model1, deck1, deck2)
-            if winner2 == 1:
-                result[1] += 1
-                player1wins += 1
-            else:
-                result[0] += 1
-            if (winner != winner2):
-                f = open("diffMakers.txt", "a")
-                if (winner == 1):
-                    f.write("Game: " + str(i) + ", double winner = old bot\n")
-                else:
-                    f.write("Game: " + str(i) + ", double winner = new bot\n")
-                f.close()
-
-        print(result)
-        f = open("resultFile.txt", "a")
-        f.write(str(result[0]) + " v " + str(result[1]) + " " + str(player1wins) + "\n")
-        f.close()
-    
-        if result[1] < 123:
+        if result[1] >= 250 and result[1] < 256:
+            result2 = botGenerationTestInit(generation, 250)
+            if (result2[1] < 250):
+                numFails += 1
+                generation -= 1
+        elif result[1] < 250:
             numFails += 1
             generation -= 1
         

@@ -122,6 +122,7 @@ class AZMCTS():
             #z = cPickle.loads(cPickle.dumps(self.gameState, -1))
             z = copy.deepcopy(self.gameState)
             z.initiateAction(self.moveArr[actionIndex][0])
+            z.clearQueue()
             self.children[childIndex] = AZMCTS(z, self)
             #self.children[childIndex].gameState.printGameState()
   

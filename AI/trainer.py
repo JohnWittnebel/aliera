@@ -76,7 +76,7 @@ def AZLossFcn(predMCTS, actMCTS, predRes, actRes):
 
 def training(generation, learnRate):
     training_data = PositionDataset("./AI/trainingData")
-    loader = DataLoader(training_data, batch_size=64, shuffle=True)
+    loader = DataLoader(training_data, batch_size=32, shuffle=True)
     model = NeuralNetwork().to("cpu")
     model.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
     model.eval()

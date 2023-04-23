@@ -135,7 +135,6 @@ class Game:
             evolveTarget.evolve(self)
 
     def initiateAttack(self, allyMonster, enemyMonster):
-        self.clearQueue()
     
         # First, figure out what side is attacking
         attackingPlayer = self.activePlayer.playerNum - 1
@@ -296,6 +295,7 @@ class Game:
         elif (len(action[1]) == 1):
             print("ERROR: tried to play a non-optional target without a target")
             self.error = 1
+            #TODO: in theory this can cause a bug with acceleration
             self.activePlayer.hand.append(cardToPlay)
             return
         else:
@@ -526,6 +526,7 @@ class Game:
         else:
             print("ERROR: Invalid action:")
             input(action)
+        return self.error
 
     # This is used for rollouts on a MCTS, but we dont actually do this with our AZ implementation
     def runToCompletion(self):

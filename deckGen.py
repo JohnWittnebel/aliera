@@ -4,14 +4,14 @@ import time
 import random
 import math
 
-def newDeckPool():
-    for i in range(120):
+def newDeckPool(simulations):
+    for i in range(simulations):
         seedVal = random.randint(0, math.floor(time.time()))
         with open("./constantDecks/P1deck" + str(i) + ".seed", "wb") as f:
             pickle.dump(seedVal, f)
             f.close()
 
-    for i in range(120):
+    for i in range(simulations):
         seedVal = random.randint(0, math.floor(time.time()))
         with open("./constantDecks/P2deck" + str(i) + ".seed", "wb") as f:
             pickle.dump(seedVal, f)

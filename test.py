@@ -298,16 +298,16 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
         x.initiateAction(moves[maxIndex])
 
     return x.winner
-
-#currPosSave=0
-#winner = singleGame(0,currPosSave)
-#print(winner)
-#input("")
-
-generation = 3
+"""
+currPosSave=0
+winner = singleGame([0,1],currPosSave)
+print(winner)
+input("")
+"""
+generation = 4
 currPosSave = 0
 numFails = 0
-learningRate = 0.1
+learningRate = 0.2
 
 def init(lock_: Lock):
     global lock
@@ -339,7 +339,7 @@ for pepega in range(8):
                 exe.close()
             exe.join()
         
-        #training(generation, learningRate)
+        training(generation, learningRate)
         generation += 1
     
         # FOR testing bot vs new gen
@@ -415,3 +415,4 @@ for pepega in range(8):
             generation -= 1
         
         print("--- %s seconds ---" % (time.time() - start_time))
+        break

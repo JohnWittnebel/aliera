@@ -31,7 +31,7 @@ class NeuralNetwork(nn.Module):
         x = self.flatten(x)
         logits = self.linear_relu_stack(x)
         pred, valuation = logits.split(onodes-1,dim=1)
-        valuation = nn.Sigmoid()(valuation)
+        valuation = nn.Tanh()(valuation)
         #pred = nn.Softmax(dim=1)(pred)
         return pred, valuation
 

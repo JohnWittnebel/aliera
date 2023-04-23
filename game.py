@@ -112,10 +112,11 @@ class Game:
             self.error = 1
             return
         
-        if self.activePlayer == self.player1:
-            evolveTarget = self.board.fullBoard[0][allyMonsterIndex[0]]
-        else:
-            evolveTarget = self.board.fullBoard[1][allyMonsterIndex[0]]
+        if len(self.board.fullBoard[self.activePlayer.playerNum-1]) <= allyMonsterIndex[0]:
+            print("ERROR: non-existant evo target")
+            self.error = 1
+            return
+        evolveTarget = self.board.fullBoard[self.activePlayer.playerNum-1][allyMonsterIndex[0]]
             
         if ((self.activePlayer.currEvos == 0) and evolveTarget.freeEvolve == 0):
             with open('demo.txt', 'a') as f:
@@ -255,6 +256,11 @@ class Game:
         # First, figure out what side is playing cards
         currPlayer = self.activePlayer.playerNum - 1
 
+        if (action[1][0] >= len(self.activePlayer.hand)):
+            print("ERROR: played card out of range")
+            self.error = 1
+            return
+
         card = self.activePlayer.hand[action[1][0]]
         if (currPlayer == 0):
             self.p1played[card.encoding] += 1
@@ -290,6 +296,8 @@ class Game:
         elif (len(action[1]) == 1):
             print("ERROR: tried to play a non-optional target without a target")
             self.error = 1
+            self.activePlayer.hand.append(cardToPlay)
+            return
         else:
             cardToPlay.play(self, currPlayer, action[1][1:])
 

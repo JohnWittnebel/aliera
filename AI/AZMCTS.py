@@ -58,8 +58,8 @@ class AZMCTS():
             
         logits = currNN(nnInput)[0]
         val = currNN(nnInput)[1]
-        for ele in self.moveArr:
-            ele[4] += val/4
+        #for ele in self.moveArr:
+        #    ele[4] += val/4
         #print(logits)
         probabilitiesNN, mask = transformer.normalizedVector(logits[0], self.gameState)
         #print(mask)
@@ -81,13 +81,13 @@ class AZMCTS():
             if self.gameState.winner == self.gameState.activePlayer.playerNum:
                 return 1
             else:
-                return 0
+                return -1
         actionIndex = self.selectAction()
         #input(self.printTree())
         updateValue = self.takeAction(actionIndex, self.moveArr[actionIndex][1])
         # if the previous action was a pass, then we invert the valuation
         if self.moveArr[actionIndex][0][0] == 4:
-            updateValue = 1 - updateValue
+            updateValue = -1 * updateValue
 
         # update the action info
         self.moveArr[actionIndex][2] += 1
@@ -116,7 +116,7 @@ class AZMCTS():
             if self.gameState.winner == self.gameState.activePlayer.playerNum:
                 return 1
             else:
-                return 0
+                return -1
 
         if (self.children[childIndex] == 0):
             #z = cPickle.loads(cPickle.dumps(self.gameState, -1))
@@ -130,7 +130,7 @@ class AZMCTS():
                 if self.children[childIndex].gameState.winner == self.children[childIndex].gameState.activePlayer.playerNum:
                     return 1
                 else:
-                    return 0
+                    return -1
             # game is still in progress, return NN eval
             nnInput = transformer.gameDataToNN(self.gameState)
             nnInput = nnInput.unsqueeze(dim=0)
@@ -138,8 +138,8 @@ class AZMCTS():
             logits = currNN(nnInput)
             logitsProb = logits[0][0]
             logitsValuation = logits[1][0]
-            for ele in self.children[childIndex].moveArr:
-                ele[4] += logitsValuation/4
+            #for ele in self.children[childIndex].moveArr:
+            #    ele[4] += logitsValuation/4
 
             probabilitiesNN, mask = transformer.normalizedVector(logitsProb, self.children[childIndex].gameState)
             self.children[childIndex].mask = mask
@@ -183,7 +183,7 @@ class AZMCTS():
         if (result == self.gameState.activePlayer.playerNum):
             gameResult = 1
         else:
-            gameResult = 0
+            gameResult = -1
         condensedResult = [transformer.gameDataToNN(self.gameState), MCTSRes, self.mask, gameResult]
         with open("./AI/trainingData/pos" + str(posnum) + ".pickle", "wb") as f:
             pickle.dump(condensedResult, f)

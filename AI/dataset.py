@@ -10,8 +10,14 @@ import fnmatch
 class PositionDataset(Dataset):
     def __init__(self, positionDir):
         self.positionDir = positionDir
-        #self.np1 = len(fnmatch.filter(os.listdir("./AI/trainingData2/trainingData/"), '*.pickle'))
-        self.numpos = len(fnmatch.filter(os.listdir("./AI/trainingData/"), '*.pickle'))
+        self.numpos = 0
+        self.subfolderLens = []
+        numdirs = len(os.listdir("./AI/trainingData"))
+        for i in range(numdirs):
+            self.subfolderLens.append(len(fnmatch.filter(os.listdir("./AI/trainingData/trainingDataSubfolder" + str(i)), '*.pickle')))
+            self.numpos += self.subfolderLens[i]
+ 
+        #self.numpos = len(fnmatch.filter(os.listdir("./AI/trainingData/"), '*.pickle'))
         #self.np2 = self.numpos + self.np1
 
     def __len__(self):
@@ -19,8 +25,14 @@ class PositionDataset(Dataset):
 
     def __getitem__(self, idx):
         # Code to load training data
+        currLimit = self.subfolderLens[0]
+        currFolder = 0
+        while (idx >= currLimit):
+            currFolder += 1
+            currLimit += self.subfolderLens[currFolder]
+
         #if (idx < self.numpos):
-        data_file = open(self.positionDir + "/pos" + str(idx) + ".pickle", "rb")
+        data_file = open(self.positionDir + "/trainingDataSubfolder" + str(currFolder) + "/pos" + str(idx) + ".pickle", "rb")
         #else:
         #    data_file = open("./AI/trainingData2/trainingData/pos" + str(idx-self.numpos) + ".pickle", "rb")
         posData = pickle.load(data_file)

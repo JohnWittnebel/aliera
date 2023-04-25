@@ -102,7 +102,7 @@ def singleGame(botGame, currPosSave = 0):
   if (botGame == 1):
     botTurn = 1
   else:
-    botTurn = 0
+    botTurn = 1
 
   myTree = AZMCTS(x)
   myTree.rootInit()
@@ -218,7 +218,7 @@ def singleGame(botGame, currPosSave = 0):
                     x.initiateAction([int(uinput1), [int(uinput2)]])
         if (uinput1 == "4"):
             x.endTurn()
-            #botTurn = 1
+            botTurn = 1
             continue
         if (uinput1 == "5"):
             myTree = AZMCTS(x)
@@ -253,7 +253,7 @@ def singleGame(botGame, currPosSave = 0):
             input3 = input("spellboost how many times?")
 
   
-  if x.error == 0:
+  if x.error == 0 and botGame == 1:
       with lock:
           currPosSave = len(fnmatch.filter(os.listdir("./AI/trainingData/"), '*.pickle'))
           currPosSave = myTree.parent.recordResults(x.winner, currPosSave)
@@ -383,21 +383,21 @@ def botGenerationTestInit(simulations):
     
 generation = len(fnmatch.filter(os.listdir("./AI/botModels/botArchive"), '*.bot')) - 1
 
-#currPosSave=0
-#winner = singleGame([0,1])
-#print(winner)
-#input("")
+currPosSave=0
+winner = singleGame([0,1])
+print(winner)
+input("")
 
 currPosSave = 0
 numFails = 0
-learningRate = 0.2
+learningRate = 0.02
 
 def testprint(inputval):
     print(inputval)
 
 lock_ = Lock()
 if __name__ == "__main__":
-    with Pool(initializer=init, initargs=[lock_], processes=4) as exe:
+    with Pool(initializer=init, initargs=[lock_], processes=2) as exe:
         for pepega in range(1):
             start_time = time.time()
             startingPoint = currPosSave            

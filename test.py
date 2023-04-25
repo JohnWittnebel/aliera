@@ -3,6 +3,7 @@ from deck import Deck
 from game import Game
 import math
 import time
+import shutil
 import random
 import numpy as np
 import pickle
@@ -65,7 +66,7 @@ def singleGame(botGame, currPosSave = 0):
 
                       mull = x.player1.mulliganSample(i,j,k)
                       myTree = AZMCTS(x)
-                      val = myTree.rootInit(generation)
+                      val = myTree.rootInit()
                       totals[i][j][k] += val
 
                       if totals[i][j][k] > currMax:
@@ -86,7 +87,7 @@ def singleGame(botGame, currPosSave = 0):
                       mull = x.player2.mulliganSample(i,j,k)
                       myTree = AZMCTS(x)
                       with lock:
-                          val = myTree.rootInit(generation)
+                          val = myTree.rootInit()
                       totals[i][j][k] += val
                       if totals[i][j][k] > currMax:
                           currMax = totals[i][j][k]
@@ -104,7 +105,7 @@ def singleGame(botGame, currPosSave = 0):
     botTurn = 0
 
   myTree = AZMCTS(x)
-  myTree.rootInit(generation)
+  myTree.rootInit()
   while (x.winner == 0):
     if (x.queue != []):
         x.clearQueue()
@@ -152,7 +153,7 @@ def singleGame(botGame, currPosSave = 0):
     
     elif (botTurn == 1):
         model1 = NeuralNetwork().to("cpu")
-        model1.load_state_dict(torch.load("./AI/botModels/gen2.bot"))
+        model1.load_state_dict(torch.load("./AI/botModels/currbot.bot"))
         model1.eval()
         pos = y.gameDataToNN(x)
         z = pos.unsqueeze(dim=0)
@@ -220,10 +221,10 @@ def singleGame(botGame, currPosSave = 0):
             #botTurn = 1
             continue
         if (uinput1 == "5"):
-            myTree = AZMCTS(x, generation)
+            myTree = AZMCTS(x)
             myTree.rootInit()
             myTree.runSimulations(50)
-            myTree.printTree()
+            #myTree.printTree()
             input("")
         if (uinput1 == "6"):
             myTree.rootInit()
@@ -310,14 +311,14 @@ def init(lock_: Lock):
     global lock
     lock = lock_
     
-def botGenerationTestInit(generation, simulations):
+def botGenerationTestInit(simulations):
     # FOR testing bot vs new gen
     model1 = NeuralNetwork().to("cpu")
-    model1.load_state_dict(torch.load("./AI/botModels/gen" + str(generation-1) + ".bot"))
+    model1.load_state_dict(torch.load("./AI/botModels/currbot.bot"))
     model1.eval()
 
     model2 = NeuralNetwork().to("cpu")
-    model2.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
+    model2.load_state_dict(torch.load("./AI/botModels/nextbot.bot"))
     model2.eval()
 
     result = [0,0]
@@ -380,48 +381,57 @@ def botGenerationTestInit(generation, simulations):
     
     return result
     
-"""
-currPosSave=0
-winner = singleGame([0,1],currPosSave)
-print(winner)
-input("")
-"""
-generation = 5
+generation = len(fnmatch.filter(os.listdir("./AI/botModels/botArchive"), '*.bot')) - 1
+
+#currPosSave=0
+#winner = singleGame([0,1])
+#print(winner)
+#input("")
+
 currPosSave = 0
 numFails = 0
-learningRate = 0.02
+learningRate = 0.2
 
 def testprint(inputval):
     print(inputval)
 
 lock_ = Lock()
 if __name__ == "__main__":
-    with Pool(initializer=init, initargs=[lock_], processes=2) as exe:
-        for pepega in range(8):
+    with Pool(initializer=init, initargs=[lock_], processes=4) as exe:
+        for pepega in range(1):
             start_time = time.time()
-            # FOR GENERATING TRAINING DATA
-            #currNN = NeuralNetwork()
-            #setCurrNN(generation)
-            #thisRound = 0
-            startingPoint = currPosSave
-            if (pepega > -1):
+            startingPoint = currPosSave            
+            if (pepega > -1) and (sys.argv[1] != 'train'):
                 runs = []
-                for j in range(200):
-                    runs.append([1,j])
+                # if we are doing a fresh run
+                if (pepega == 0):
+                    for j in range(int(sys.argv[1])):
+                        runs.append([1,j])
                     #singleGame([1,j])
                 exe.map(singleGame, runs)
+
+            if (len(sys.argv) > 2):
+                break
         
-            training(generation, learningRate)
+            training(learningRate)
             generation += 1
-            result = botGenerationTestInit(generation, 1)
+            result = botGenerationTestInit(250)
         
             if result[1] >= 250 and result[1] < 256:
-                result2 = botGenerationTestInit(generation, 250)
-                if (result2[1] < 250):
+                result2 = botGenerationTestInit(250)
+                if (result2[1] + result[1] < 502):
                     numFails += 1
+                    os.remove("./AI/botModels/nextbot.bot")
                     generation -= 1
+                else:
+                    shutil.copy("./AI/botModels/nextbot.bot", "./AI/botModels/botArchive/gen" + str(generation) + ".bot")
+                    shutil.move("./AI/botModels/nextbot.bot", "./AI/botModels/currbot.bot")
             elif result[1] < 250:
                 numFails += 1
+                os.remove("./AI/botModels/nextbot.bot")
                 generation -= 1
+            else:
+                shutil.copy("./AI/botModels/nextbot.bot", "./AI/botModels/botArchive/gen" + str(generation) + ".bot")
+                shutil.move("./AI/botModels/nextbot.bot", "./AI/botModels/currbot.bot")
         
             print("--- %s seconds ---" % (time.time() - start_time))

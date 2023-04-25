@@ -74,11 +74,11 @@ def AZLossFcn(predMCTS, actMCTS, predRes, actRes):
     loss2 = nn.MSELoss()(predRes, actRes.unsqueeze(dim=1))
     return (loss1 + loss2).sum()
 
-def training(generation, learnRate):
+def training(learnRate):
     training_data = PositionDataset("./AI/trainingData")
     loader = DataLoader(training_data, batch_size=32, shuffle=True)
     model = NeuralNetwork().to("cpu")
-    model.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
+    model.load_state_dict(torch.load("./AI/botModels/currbot.bot"))
     model.eval()
     n_epochs = 400
     for epoch in range(n_epochs):
@@ -94,6 +94,6 @@ def training(generation, learnRate):
         loss.backward()
         optimizer.step()
 
-    torch.save(model.state_dict(), "./AI/botModels/gen" + str(generation+1) + ".bot")
+    torch.save(model.state_dict(), "./AI/botModels/nextbot.bot")
 
 #training(1, 0.3)

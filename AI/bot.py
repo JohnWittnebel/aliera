@@ -6,7 +6,7 @@ from torch.masked import masked_tensor
 import torch
 
 hiddennodes = 10
-inodes = 1519
+inodes = 1715
 #inodes=6
 onodes = 130
 #onodes=7
@@ -17,6 +17,8 @@ class NeuralNetwork(nn.Module):
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
             nn.Linear(inodes, 512),
+            nn.ReLU(),
+            nn.Linear(512, 512),
             nn.ReLU(),
             nn.Linear(512, 512),
             nn.ReLU(),

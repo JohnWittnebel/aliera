@@ -17,13 +17,21 @@ import sys
 #sys.path.insert(0, './botModels/')
 sys.path.insert(0, './..')
 
-def setCurrNN(generation, mct):
+def setCurrNN(mct):
     mct.currNN = NeuralNetwork()
-    dire = "./AI/botModels/gen" + str(generation) + ".bot"
+    dire = "./AI/botModels/currbot.bot"
     temp1 = torch.load(dire, map_location=torch.device('cpu'))
     mct.currNN.load_state_dict(temp1)
-    #currNN.load_state_dict(torch.load("./AI/botModels/gen" + str(generation) + ".bot"))
     mct.currNN.eval()
+
+def moveCmp(item):
+    #print(item)
+    if (item[0][0] == 4):
+        return 100000
+    val1 = 7*item[0][1][0]
+    if (len(item[0][1]) > 1):
+        val1 += (7*item[0][1][1] + 2)
+    return val1
 
 class AZMCTS():
     def __init__(self, gameState, parent=None):
@@ -49,12 +57,12 @@ class AZMCTS():
     
     # the moveProbs are generated when the node is created during tree descent, but this doesnt occur for the root
     # so we do it manually here
-    def rootInit(self, generation):
+    def rootInit(self):
         self.transformer = Transformer()
         nnInput = self.transformer.gameDataToNN(self.gameState)
         nnInput = nnInput.unsqueeze(dim=0)
 
-        setCurrNN(generation, self)
+        setCurrNN(self)
         logits = self.currNN(nnInput)[0]
         val = self.currNN(nnInput)[1]
 
@@ -71,10 +79,10 @@ class AZMCTS():
 
         return val
 
-    def runSimulations(self, simulations):
+    def runSimulations(self, simulations):        
         for _ in range(simulations):
             self.descendTree()
-        #    self.totalSims += 1
+        #self.shuffleHandBoard()
 
     def descendTree(self):
         self.totalSims += 1
@@ -182,22 +190,50 @@ class AZMCTS():
             input(probabilities)
 
     def recordResults(self, result, posnum):
-        MCTSRes = []
-        for ele in self.moveArr:
-            MCTSRes.append(float(ele[2]) / max(1., float(self.totalSims)))
+        for _ in range(8):
+            self.shuffleHandBoard()
+            _, mask = self.transformer.normalizedVector(0, self.gameState)
+            MCTSRes = []
+            for ele in self.moveArr:
+                MCTSRes.append(float(ele[2]) / max(1., float(self.totalSims)))
 
-        if (result == self.gameState.activePlayer.playerNum):
-            gameResult = 1
-        else:
-            gameResult = -1
-        condensedResult = [self.transformer.gameDataToNN(self.gameState), MCTSRes, self.mask, gameResult]
-        with open("./AI/trainingData/pos" + str(posnum) + ".pickle", "wb") as f:
-            pickle.dump(condensedResult, f)
+            if (result == self.gameState.activePlayer.playerNum):
+                gameResult = 1
+            else:
+                gameResult = -1
+            condensedResult = [self.transformer.gameDataToNN(self.gameState), MCTSRes, self.mask, gameResult]
+            with open("./AI/trainingData/pos" + str(posnum) + ".pickle", "wb") as f:
+                pickle.dump(condensedResult, f)
+
+            posnum += 1
 
         if (self.parent != None):
-            return self.parent.recordResults(result, posnum+1)
+            return self.parent.recordResults(result, posnum)
         else:
-            return posnum+1
+            return posnum
+
+    # shuffles hand and board positions to eliminate biases, changes mask and mcts array accordingly
+    def shuffleHandBoard(self):
+        handShuffle = list(range(len(self.gameState.activePlayer.hand)))
+        random.shuffle(handShuffle)
+
+        for action in self.moveArr:
+            if (action[0][0] == 1):
+                if (len(handShuffle) <= action[0][1][0]):
+                    #this occurs on evolve effects and stuff
+                    print(handShuffle)
+                    print(action)
+                    print(":)")
+                    continue
+                action[0][1][0] = handShuffle[action[0][1][0]]
+
+        newHand = []
+        for handIndex in range(len(self.gameState.activePlayer.hand)):
+            for i in range(len(self.gameState.activePlayer.hand)):
+                if (handShuffle[i] == handIndex):
+                    newHand.append(self.gameState.activePlayer.hand[i])
+        self.gameState.activePlayer.hand = newHand
+        self.moveArr.sort(key=moveCmp)
 
     def cleanTreeExceptAction(self, action):
         for move in self.moveArr:

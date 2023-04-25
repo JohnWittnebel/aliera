@@ -88,8 +88,14 @@ class Transformer:
             if loopIndex < len(currPlayer.hand):
                 currLayer[currPlayer.hand[loopIndex].encoding // 7] = pow(2, (currPlayer.hand[loopIndex].encoding % 7))
             generatedData.append(currLayer)
+        
+        # Layers 13-16, in-hand contents:
+        currLayer = [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]]
+        for loopIndex in range(len(gameState.activePlayer.hand)):
+            currLayer[currPlayer.hand[loopIndex].encoding // 7][currPlayer.hand[loopIndex].encoding % 7] += 1
+        generatedData += currLayer
 
-        # Layers 13-20, played contents, note that this is always in order P1 then P2, not active player, inactive player
+        # Layers 17-24, played contents, note that this is always in order P1 then P2, not active player, inactive player
         # TODO: this can be done a LOT better
         for i in range(4):
             currLayer = [0,0,0,0,0,0,0]
@@ -103,7 +109,7 @@ class Transformer:
                 currLayer[loopIndex] = gameState.p2played[i*len(currLayer) + loopIndex]
             generatedData.append(currLayer)    
   
-        # Layers 21-30, board contents
+        # Layers 25-34, board contents
         for loopIndex in range(MAX_BOARD_SIZE):
             currLayer = [0,0,0,0,0,0,0]
             if loopIndex < len(allyBoard):
@@ -134,7 +140,7 @@ class Transformer:
                     currLayer[5] = 32*currMon.countdown
             generatedData.append(currLayer)
 
-        # Layer 31, player turn
+        # Layer 35, player turn
         if currPlayer.playerNum == 1:
             currLayer = [127,127,127,127,127,127,127]
         else:
@@ -171,8 +177,12 @@ class Transformer:
                 else:
                     legalBinaryMask[93 + 7*move[1][0] + move[1][1] + 2] = True
 
-        legalMasked = NNoutput[legalBinaryMask]
-        legalMoveProbs = nn.Softmax(dim=0)(legalMasked)
+        # crummy hack for shuffling the data being recorded
+        if (isinstance(NNoutput,torch.Tensor)):
+            legalMasked = NNoutput[legalBinaryMask]
+            legalMoveProbs = nn.Softmax(dim=0)(legalMasked)
+        else:
+            legalMoveProbs = 0
         #print(legalMoveProbs)
         #binaryTensor = torch.Tensor(legalBinaryArray)
         #legalMoveProbs = legalBinaryArray * NNoutput

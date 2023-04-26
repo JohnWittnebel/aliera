@@ -132,6 +132,7 @@ class Diva(Monster):
         genericPlay(self, gameState, currSide)
         if (gameState.activePlayer.selfPings >= 7):
             self.freeEvolve = 1
+            self.autoEvolve = 1
             self.evolve(gameState)
     
     def evolve(self, gameState):
@@ -350,12 +351,12 @@ class Drummer(Monster):
     def play(self, gameState, currSide):
         genericPlay(self, gameState, currSide)
         for _ in range(4):
-            genericSummon(Drummer(), gameState, currSide)
+            x = Drummer()
+            genericSummon(x, gameState, currSide)
         if gameState.activePlayer.selfPings >= 7:
             self.freeEvolve = 1
             self.autoEvolve = 1
             self.evolve(gameState)
-
     
     # TODO: this is a bit scuffed and doesnt work with silence and probably work work with other protections
     def takeCombatDamage(self, gameState, damage):
@@ -372,7 +373,6 @@ class Drummer(Monster):
     
     def evolve(self, gameState):
         self.LWEffects = [healFace(2)]
-        self.freeEvolve = 1
         genericEvolve(self, gameState)
 
 def vampyEffect(gameState, card):

@@ -8,6 +8,7 @@ import copy
 import math
 import pickle
 import torch
+import os
 from transformer import Transformer
 from bot import NeuralNetwork
 from mycopy import trueCopy
@@ -43,6 +44,7 @@ class AZMCTS():
         self.mask = 0
         self.currNN = 0
         self.transformer = 0
+        self.val = 0
         moves = gameState.generateLegalMoves()
 
         self.children = []
@@ -65,7 +67,7 @@ class AZMCTS():
         setCurrNN(self)
         logits = self.currNN(nnInput)[0]
         val = self.currNN(nnInput)[1]
-
+        self.val = val
         #for ele in self.moveArr:
         #    ele[4] += val/4
         #print(logits)
@@ -158,6 +160,7 @@ class AZMCTS():
             probabilitiesNN, mask = self.transformer.normalizedVector(logitsProb, self.children[childIndex].gameState)
             self.children[childIndex].mask = mask
             self.children[childIndex].setProbabilities(probabilitiesNN)
+            self.val = logitsValuation
             return logitsValuation
 
         return self.children[actionIndex].descendTree()
@@ -190,8 +193,9 @@ class AZMCTS():
             input(probabilities)
 
     def recordResults(self, result, posnum):
-        for _ in range(8):
+        for _ in range(10):
             self.shuffleHandBoard()
+
             _, mask = self.transformer.normalizedVector(0, self.gameState)
             MCTSRes = []
             for ele in self.moveArr:
@@ -202,9 +206,10 @@ class AZMCTS():
             else:
                 gameResult = -1
             condensedResult = [self.transformer.gameDataToNN(self.gameState), MCTSRes, self.mask, gameResult]
-            with open("./AI/trainingData/pos" + str(posnum) + ".pickle", "wb") as f:
-                pickle.dump(condensedResult, f)
+            currDir = len(os.listdir("./AI/trainingData")) - 1
 
+            with open("./AI/trainingData/trainingDataSubfolder" + str(currDir) + "/pos" + str(posnum) + ".pickle", "wb") as f:
+                pickle.dump(condensedResult, f)
             posnum += 1
 
         if (self.parent != None):

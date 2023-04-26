@@ -6,7 +6,7 @@ from torch.masked import masked_tensor
 import torch
 
 hiddennodes = 10
-inodes = 1715
+inodes = 2891
 #inodes=6
 onodes = 130
 #onodes=7
@@ -17,8 +17,6 @@ class NeuralNetwork(nn.Module):
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
             nn.Linear(inodes, 512),
-            nn.ReLU(),
-            nn.Linear(512, 512),
             nn.ReLU(),
             nn.Linear(512, 512),
             nn.ReLU(),
@@ -37,12 +35,11 @@ class NeuralNetwork(nn.Module):
         #pred = nn.Softmax(dim=1)(pred)
         return pred, valuation
 
-
 #Saving code
 #model = NeuralNetwork().to("cpu")
 #for name, param in model.named_parameters():
 #    print(f"Layer: {name} | Size: {param.size()} | Values : {param[:2]} \n")
-#torch.save(model.state_dict(), "./botModels/gen0.bot")
+#torch.save(model.state_dict(), "./botModels/currbot.bot")
 
 #Mask
 #Y = torch.tensor([0.1,-0.1,0.5,-0.2,0.2,-0.3], dtype=torch.float)

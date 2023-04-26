@@ -41,10 +41,12 @@ class Transformer:
             allyBoard = gameState.board.fullBoard[0]
             enemyBoard = gameState.board.fullBoard[1]
         else:
+            #NOTE: we are setting allyboard to p1 board now that we are transitioning to the oracle idea,
+            #      so that the AI has a coherent idea of how passing effects the board
             currPlayer = gameState.player2
             enemyPlayer = gameState.player1
-            allyBoard = gameState.board.fullBoard[1]
-            enemyBoard = gameState.board.fullBoard[0]
+            allyBoard = gameState.board.fullBoard[0]
+            enemyBoard = gameState.board.fullBoard[1]
 
         generatedData = []
 
@@ -54,21 +56,21 @@ class Transformer:
         currLayer.append(enemyPlayer.currHP)
         currLayer.append(currPlayer.currPP)
         currLayer.append(currPlayer.maxPP)
+        currLayer.append(enemyPlayer.maxPP)
         #currLayer.append(0) #turn number, implement later
         currLayer.append(currPlayer.canEvolve)
-        currLayer.append(currPlayer.selfPings)
-        currLayer.append(currPlayer.selfPingsTurn)
+        currLayer.append(len(enemyPlayer.hand))
         generatedData.append(currLayer)
 
         # Layer 2, basic data
         currLayer = []
-        currLayer.append(enemyPlayer.maxPP)
-        currLayer.append(len(enemyPlayer.hand))
+        currLayer.append(currPlayer.selfPings)
+        currLayer.append(enemyPlayer.selfPings)
+        currLayer.append(currPlayer.selfPingsTurn)
         currLayer.append(len(currPlayer.leaderEffects.turnStartEffects))
         currLayer.append(len(enemyPlayer.leaderEffects.turnStartEffects))
         currLayer.append(currPlayer.currEvos)
         currLayer.append(enemyPlayer.currEvos)
-        currLayer.append(enemyPlayer.selfPings)
         generatedData.append(currLayer)
 
         # Layer 3, basic data
@@ -81,7 +83,7 @@ class Transformer:
         currLayer.append(0)
         currLayer.append(0)
         generatedData.append(currLayer)
-        
+
         # Layers 4-12, hand contents
         for loopIndex in range(MAX_HAND_SIZE):
             currLayer = [0,0,0,0,0,0,0]
@@ -89,27 +91,50 @@ class Transformer:
                 currLayer[currPlayer.hand[loopIndex].encoding // 7] = pow(2, (currPlayer.hand[loopIndex].encoding % 7))
             generatedData.append(currLayer)
         
-        # Layers 13-16, in-hand contents:
+        # Layers 13-16, in-hand P1 contents:
         currLayer = [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]]
-        for loopIndex in range(len(gameState.activePlayer.hand)):
-            currLayer[currPlayer.hand[loopIndex].encoding // 7][currPlayer.hand[loopIndex].encoding % 7] += 1
+        for loopIndex in range(len(gameState.player1.hand)):
+            #This is where we need a random variable for when P2 plays
+            currLayer[gameState.player1.hand[loopIndex].encoding // 7][gameState.player1.hand[loopIndex].encoding % 7] += 1
         generatedData += currLayer
 
-        # Layers 17-24, played contents, note that this is always in order P1 then P2, not active player, inactive player
+        # Layer 17-20, in-hand P2 contents:
+        currLayer = [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]]
+        for loopIndex in range(len(gameState.player2.hand)):
+            #This is where we need a random variable for when P1 plays
+            currLayer[gameState.player2.hand[loopIndex].encoding // 7][gameState.player2.hand[loopIndex].encoding % 7] += 1
+        generatedData += currLayer
+
+        # Layer 21-40, the next 10 cards in each deck
+        for loopIndex in range(10):
+            currLayer = [0,0,0,0,0,0,0]
+            if (len(gameState.player1.deck.cards) > loopIndex):
+                nextCard = gameState.player1.deck.cards[len(gameState.player1.deck.cards) - 1 - loopIndex]
+                currLayer[nextCard.encoding // 7] += pow(2,nextCard.encoding % 7)
+            generatedData.append(currLayer)
+        
+        for loopIndex in range(10):
+            currLayer = [0,0,0,0,0,0,0]
+            if (len(gameState.player2.deck.cards) > loopIndex):
+                nextCard = gameState.player2.deck.cards[len(gameState.player2.deck.cards) - 1 - loopIndex]
+                currLayer[nextCard.encoding // 7] += pow(2,nextCard.encoding % 7)
+            generatedData.append(currLayer)
+
+        # Layers 41-48, played contents, note that this is always in order P1 then P2, not active player, inactive player
         # TODO: this can be done a LOT better
         for i in range(4):
             currLayer = [0,0,0,0,0,0,0]
             for loopIndex in range(len(currLayer)):
-                currLayer[loopIndex] = gameState.p1played[i*len(currLayer) + loopIndex]
+                currLayer[loopIndex] = pow(2,gameState.p1played[i*len(currLayer) + loopIndex])
             generatedData.append(currLayer)
         
         for i in range(4):
             currLayer = [0,0,0,0,0,0,0]
             for loopIndex in range(len(currLayer)):
-                currLayer[loopIndex] = gameState.p2played[i*len(currLayer) + loopIndex]
+                currLayer[loopIndex] = pow(2,gameState.p2played[i*len(currLayer) + loopIndex])
             generatedData.append(currLayer)    
   
-        # Layers 25-34, board contents
+        # Layers 49-58, board contents
         for loopIndex in range(MAX_BOARD_SIZE):
             currLayer = [0,0,0,0,0,0,0]
             if loopIndex < len(allyBoard):
@@ -140,7 +165,7 @@ class Transformer:
                     currLayer[5] = 32*currMon.countdown
             generatedData.append(currLayer)
 
-        # Layer 35, player turn
+        # Layer 59, player turn
         if currPlayer.playerNum == 1:
             currLayer = [127,127,127,127,127,127,127]
         else:

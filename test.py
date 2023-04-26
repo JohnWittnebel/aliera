@@ -224,10 +224,11 @@ def singleGame(botGame, currPosSave = 0):
             myTree = AZMCTS(x)
             myTree.rootInit()
             myTree.runSimulations(50)
-            #myTree.printTree()
-            input("")
+            myTree.printTree()
+            print(myTree.val)
+            #input("")
         if (uinput1 == "6"):
-            myTree.rootInit()
+            print(myTree.rootInit())
         if (uinput1 == "8"):
             print("Rig RNG for card")
             uinput2 = input("select card: ")
@@ -255,7 +256,8 @@ def singleGame(botGame, currPosSave = 0):
   
   if x.error == 0 and botGame == 1:
       with lock:
-          currPosSave = len(fnmatch.filter(os.listdir("./AI/trainingData/"), '*.pickle'))
+          currDir = len(os.listdir("./AI/trainingData")) - 1
+          currPosSave = len(fnmatch.filter(os.listdir("./AI/trainingData/trainingDataSubfolder" + str(currDir)),'*.pickle'))
           currPosSave = myTree.parent.recordResults(x.winner, currPosSave)
   return currPosSave, x.winner
   #return x.winner
@@ -290,7 +292,7 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
         else:
             pred = bot2(z)
             enemypred = bot1(z)
-
+        
         moveProbs = y.normalizedVector(pred[0][0],x)[0]
         enemyMoveProbs = y.normalizedVector(enemypred[0][0],x)[0]
         print(moveProbs)
@@ -383,14 +385,14 @@ def botGenerationTestInit(simulations):
     
 generation = len(fnmatch.filter(os.listdir("./AI/botModels/botArchive"), '*.bot')) - 1
 
-currPosSave=0
-winner = singleGame([0,1])
-print(winner)
-input("")
+#currPosSave=0
+#winner = singleGame([0,1])
+#print(winner)
+#input("")
 
 currPosSave = 0
 numFails = 0
-learningRate = 0.02
+learningRate = 0.05
 
 def testprint(inputval):
     print(inputval)

@@ -26,13 +26,15 @@ class PositionDataset(Dataset):
     def __getitem__(self, idx):
         # Code to load training data
         currLimit = self.subfolderLens[0]
+        prevLimit = 0
         currFolder = 0
         while (idx >= currLimit):
             currFolder += 1
+            prevLimit = currLimit
             currLimit += self.subfolderLens[currFolder]
 
         #if (idx < self.numpos):
-        data_file = open(self.positionDir + "/trainingDataSubfolder" + str(currFolder) + "/pos" + str(idx) + ".pickle", "rb")
+        data_file = open(self.positionDir + "/trainingDataSubfolder" + str(currFolder) + "/pos" + str(idx-prevLimit) + ".pickle", "rb")
         #else:
         #    data_file = open("./AI/trainingData2/trainingData/pos" + str(idx-self.numpos) + ".pickle", "rb")
         posData = pickle.load(data_file)

@@ -102,7 +102,7 @@ def singleGame(botGame, currPosSave = 0):
   if (botGame == 1):
     botTurn = 1
   else:
-    botTurn = 1
+    botTurn = 0
 
   myTree = AZMCTS(x)
   myTree.rootInit()
@@ -123,17 +123,11 @@ def singleGame(botGame, currPosSave = 0):
         myTree.runSimulations(max(50, math.floor(math.log2(math.log2(len(myTree.moveArr)) + 0.01)*50)))
         myTree.printTree()
         
-        #maxSims = -1
-        #bestMove = [4]
         multinomArr = []
         childArr = []
         for ele in myTree.moveArr:
             multinomArr.append(ele[2] / myTree.totalSims)
             childArr.append(ele[0])
-            #if ele[2] > maxSims:
-            #    maxSims = ele[2]
-            #    bestMove = ele[0]
-            #    bestChild = myTree.children[ele[1]]
 
         selectedMoveArr = np.random.multinomial(1, multinomArr)
         index = 0
@@ -218,7 +212,7 @@ def singleGame(botGame, currPosSave = 0):
                     x.initiateAction([int(uinput1), [int(uinput2)]])
         if (uinput1 == "4"):
             x.endTurn()
-            botTurn = 1
+            #botTurn = 1
             continue
         if (uinput1 == "5"):
             myTree = AZMCTS(x)
@@ -228,7 +222,10 @@ def singleGame(botGame, currPosSave = 0):
             print(myTree.val)
             #input("")
         if (uinput1 == "6"):
-            print(myTree.rootInit())
+            myTree = AZMCTS(x)
+            myTree.rootInit()
+            myTree.shuffleHandBoard()
+            myTree.printTree()
         if (uinput1 == "8"):
             print("Rig RNG for card")
             uinput2 = input("select card: ")
@@ -263,7 +260,7 @@ def singleGame(botGame, currPosSave = 0):
   #return x.winner
 
 
-def botGenerationTest(bot1, bot2, deck1, deck2):  
+def botGenerationTest(bot1, bot2, deck1, deck2, newmodel):  
     x = Game()
     x.player1.deck = deck1
     x.player2.deck = deck2
@@ -275,6 +272,7 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
         if (x.queue != []):
             x.clearQueue()
 
+        myTree = AZMCTS(x)
         x.printGameState()
     
         print("Input action:")
@@ -286,24 +284,21 @@ def botGenerationTest(bot1, bot2, deck1, deck2):
         pos = y.gameDataToNN(x)
         z = pos.unsqueeze(dim=0)
         moves = x.generateLegalMoves()
-        if (x.activePlayer.playerNum == 1):    
-            pred = bot1(z)
-            enemypred = bot2(z)
+
+        if (x.activePlayer.playerNum == newmodel):
+            myTree.rootInit("new")
         else:
-            pred = bot2(z)
-            enemypred = bot1(z)
+            myTree.rootInit("curr")
         
-        moveProbs = y.normalizedVector(pred[0][0],x)[0]
-        enemyMoveProbs = y.normalizedVector(enemypred[0][0],x)[0]
-        print(moveProbs)
-        print(enemyMoveProbs)
+        myTree.runSimulations(max(50, math.floor(math.log2(math.log2(len(myTree.moveArr)) + 0.01)*50)))
+        
         currIndex = 0
         maxIndex = 0
-        maxProb = 0
-        for _ in range(len(moves)):
-            if maxProb < moveProbs[currIndex]:
+        maxSims = 0
+        for i in range(len(moves)):
+            if maxSims < myTree.moveArr[i][2]:
                 maxIndex = currIndex
-                maxProb = moveProbs[currIndex]
+                maxSims = myTree.moveArr[i][2]
             currIndex += 1
         x.initiateAction(moves[maxIndex])
 
@@ -341,7 +336,7 @@ def botGenerationTestInit(simulations):
         random.seed(deckSeed)
         deck2.trueShuffle()
 
-        winner = botGenerationTest(model1, model2, deck1, deck2)
+        winner = botGenerationTest(model1, model2, deck1, deck2, 1)
         if winner == 1:
             result[0] += 1
             player1wins += 1
@@ -362,7 +357,7 @@ def botGenerationTestInit(simulations):
         random.seed(deckSeed)
         deck2.trueShuffle()
         
-        winner2 = botGenerationTest(model2, model1, deck1, deck2)
+        winner2 = botGenerationTest(model2, model1, deck1, deck2, 2)
         if winner2 == 1:
             result[1] += 1
             player1wins += 1
@@ -392,7 +387,7 @@ generation = len(fnmatch.filter(os.listdir("./AI/botModels/botArchive"), '*.bot'
 
 currPosSave = 0
 numFails = 0
-learningRate = 0.05
+learningRate = 0.02
 
 def testprint(inputval):
     print(inputval)
@@ -415,7 +410,7 @@ if __name__ == "__main__":
             if (len(sys.argv) > 2):
                 break
         
-            training(learningRate)
+            #training(learningRate)
             generation += 1
             result = botGenerationTestInit(250)
         

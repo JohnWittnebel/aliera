@@ -18,9 +18,12 @@ import sys
 #sys.path.insert(0, './botModels/')
 sys.path.insert(0, './..')
 
-def setCurrNN(mct):
+def setCurrNN(mct, currOrNew = "curr"):
     mct.currNN = NeuralNetwork()
-    dire = "./AI/botModels/currbot.bot"
+    if (currOrNew == "new"):
+        dire = "./AI/botModels/nextbot.bot"
+    else:
+        dire = "./AI/botModels/currbot.bot"
     temp1 = torch.load(dire, map_location=torch.device('cpu'))
     mct.currNN.load_state_dict(temp1)
     mct.currNN.eval()
@@ -59,12 +62,12 @@ class AZMCTS():
     
     # the moveProbs are generated when the node is created during tree descent, but this doesnt occur for the root
     # so we do it manually here
-    def rootInit(self):
+    def rootInit(self, new = "curr"):
         self.transformer = Transformer()
         nnInput = self.transformer.gameDataToNN(self.gameState)
         nnInput = nnInput.unsqueeze(dim=0)
 
-        setCurrNN(self)
+        setCurrNN(self, new)
         logits = self.currNN(nnInput)[0]
         val = self.currNN(nnInput)[1]
         self.val = val
@@ -193,7 +196,8 @@ class AZMCTS():
             input(probabilities)
 
     def recordResults(self, result, posnum):
-        for _ in range(10):
+        self.gameState.clearQueue()
+        for _ in range(20):
             self.shuffleHandBoard()
 
             _, mask = self.transformer.normalizedVector(0, self.gameState)
@@ -221,22 +225,46 @@ class AZMCTS():
     def shuffleHandBoard(self):
         handShuffle = list(range(len(self.gameState.activePlayer.hand)))
         random.shuffle(handShuffle)
+        boardShuffle1 = list(range(len(self.gameState.board.fullBoard[0])))
+        boardShuffle2 = list(range(len(self.gameState.board.fullBoard[1])))
+        random.shuffle(boardShuffle1)
+        random.shuffle(boardShuffle2)
 
         for action in self.moveArr:
             if (action[0][0] == 1):
                 if (len(handShuffle) <= action[0][1][0]):
-                    #this occurs on evolve effects and stuff
                     print(handShuffle)
                     print(action)
                     print(":)")
                     continue
                 action[0][1][0] = handShuffle[action[0][1][0]]
+            if (action[0][0] == 2) or (action[0][0] == 3):
+                if (self.gameState.activePlayer.playerNum == 1):
+                    action[0][1][0] = boardShuffle1[action[0][1][0]]
+                else:
+                    action[0][1][0] = boardShuffle2[action[0][1][0]]
 
         newHand = []
         for handIndex in range(len(self.gameState.activePlayer.hand)):
             for i in range(len(self.gameState.activePlayer.hand)):
                 if (handShuffle[i] == handIndex):
                     newHand.append(self.gameState.activePlayer.hand[i])
+
+        newBoardp1 = []
+        for boardIndex in range(len(self.gameState.board.fullBoard[0])):
+            for i in range(len(self.gameState.board.fullBoard[0])):
+                if (boardShuffle1[i] == boardIndex):
+                    newBoardp1.append(self.gameState.board.fullBoard[0][i])
+        
+        newBoardp2 = []
+        for boardIndex in range(len(self.gameState.board.fullBoard[1])):
+            for i in range(len(self.gameState.board.fullBoard[1])):
+                if (boardShuffle2[i] == boardIndex):
+                    newBoardp2.append(self.gameState.board.fullBoard[1][i])
+        
+        self.gameState.board.player1side = newBoardp1
+        self.gameState.board.player2side = newBoardp2
+        self.gameState.board.updateFullBoard()
         self.gameState.activePlayer.hand = newHand
         self.moveArr.sort(key=moveCmp)
 

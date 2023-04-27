@@ -85,11 +85,11 @@ def training(learnRate):
         gamePos, train_MCTS, mask, train_result = next(iter(loader))
         gamePos.requires_grad = True
         NNpred, NNvaluation = model(gamePos)
-        myCoolTensor = torch.where(mask, NNpred, float('-inf'))
-        predictedOutput = nn.Softmax(dim=1)(myCoolTensor)
+        predictedOutput = torch.where(mask, NNpred, float('-inf'))
+        #predictedOutput = nn.Softmax(dim=1)(predictedOutput)
         loss = AZLossFcn(predictedOutput, train_MCTS, NNvaluation, train_result.float())
     
-        optimizer = torch.optim.SGD(model.parameters(), lr=learnRate, momentum=0.8)
+        optimizer = torch.optim.SGD(model.parameters(), lr=learnRate, momentum=0.9)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()

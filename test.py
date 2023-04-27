@@ -148,21 +148,23 @@ def singleGame(botGame, currPosSave = 0):
     elif (botTurn == 1):
         model1 = NeuralNetwork().to("cpu")
         model1.load_state_dict(torch.load("./AI/botModels/currbot.bot"))
-        model1.eval()
-        pos = y.gameDataToNN(x)
-        z = pos.unsqueeze(dim=0)
+        myTree = AZMCTS(x)
+        x.printGameState()
+    
         moves = x.generateLegalMoves()
-        pred = model1(z)
 
-        moveProbs = y.normalizedVector(pred[0][0],x)[0]
+        myTree.rootInit("curr")
+        
+        myTree.runSimulations(max(50, math.floor(math.log2(math.log2(len(myTree.moveArr)) + 0.01)*50)))
         currIndex = 0
         maxIndex = 0
-        maxProb = 0
-        for _ in range(len(moves)):
-            if maxProb < moveProbs[currIndex]:
+        maxSims = 0
+        for i in range(len(moves)):
+            if maxSims < myTree.moveArr[i][2]:
                 maxIndex = currIndex
-                maxProb = moveProbs[currIndex]
+                maxSims = myTree.moveArr[i][2]
             currIndex += 1
+
         x.initiateAction(moves[maxIndex])
 
         if (moves[maxIndex] == [4]):
@@ -220,12 +222,53 @@ def singleGame(botGame, currPosSave = 0):
             myTree.runSimulations(50)
             myTree.printTree()
             print(myTree.val)
+            del(myTree)
             #input("")
         if (uinput1 == "6"):
-            myTree = AZMCTS(x)
-            myTree.rootInit()
-            myTree.shuffleHandBoard()
-            myTree.printTree()
+            model1 = NeuralNetwork().to("cpu")
+            model1.load_state_dict(torch.load("./AI/botModels/currbot.bot"))
+            model1.eval()
+
+            pos = y.gameDataToNN(x)
+            pos = pos.unsqueeze(dim=0)
+            _, valuation = model1(pos)
+            print(valuation)
+            z = copy.deepcopy(x)
+            z.endTurn()
+            while (z.activePlayer.playerNum != x.activePlayer.playerNum):
+                newpos = y.gameDataToNN(z)
+                newpos = newpos.unsqueeze(dim=0)
+                distrib, val = model1(newpos)
+                currMax = 0
+                maxIndex = 0
+                currIndex = 0
+                for ele in distrib:
+                    if ele[5] > currMax:
+                        currMax = ele[5]
+                        maxIndex = currIndex
+                moves = z.generateLegalMoves()
+                z.initiateAction(moves[maxIndex])
+            newpos = y.gameDataToNN(z)
+            newpos = newpos.unsqueeze(dim=0)
+            distrib, val = model1(newpos)
+            print(val)
+            
+            worstVal = 1.
+            for _ in range(100):
+                z = copy.deepcopy(x)
+                z.endTurn()
+                z.miniRollout()
+                newpos = y.gameDataToNN(z)
+                newpos = newpos.unsqueeze(dim=0)
+                _, val = model1(newpos)
+                if val < worstVal:
+                    worstVal = val
+            print(worstVal)
+
+            #myTree = AZMCTS(x)
+            #myTree.rootInit()
+            #myTree.shuffleHandBoard()
+            #myTree.printTree()
         if (uinput1 == "8"):
             print("Rig RNG for card")
             uinput2 = input("select card: ")
@@ -292,6 +335,9 @@ def botGenerationTest(bot1, bot2, deck1, deck2, newmodel):
         
         myTree.runSimulations(max(50, math.floor(math.log2(math.log2(len(myTree.moveArr)) + 0.01)*50)))
         
+        myTree.printTree()
+        print(newmodel)
+
         currIndex = 0
         maxIndex = 0
         maxSims = 0
@@ -380,14 +426,14 @@ def botGenerationTestInit(simulations):
     
 generation = len(fnmatch.filter(os.listdir("./AI/botModels/botArchive"), '*.bot')) - 1
 
-#currPosSave=0
-#winner = singleGame([0,1])
-#print(winner)
-#input("")
+currPosSave=0
+winner = singleGame([0,1])
+print(winner)
+input("")
 
 currPosSave = 0
 numFails = 0
-learningRate = 0.02
+learningRate = 0.01
 
 def testprint(inputval):
     print(inputval)
@@ -398,7 +444,7 @@ if __name__ == "__main__":
         for pepega in range(1):
             start_time = time.time()
             startingPoint = currPosSave            
-            if (pepega > -1) and (sys.argv[1] != 'train'):
+            if (pepega > -1) and (sys.argv[1] != 'train') and (sys.argv[1] != 'verify'):
                 runs = []
                 # if we are doing a fresh run
                 if (pepega == 0):
@@ -410,20 +456,23 @@ if __name__ == "__main__":
             if (len(sys.argv) > 2):
                 break
         
-            #training(learningRate)
+            if (sys.argv[1] == 'train'):
+                training(learningRate)
+                break
+
             generation += 1
-            result = botGenerationTestInit(250)
+            result = botGenerationTestInit(40)
         
-            if result[1] >= 250 and result[1] < 256:
-                result2 = botGenerationTestInit(250)
-                if (result2[1] + result[1] < 502):
+            if result[1] >= 40 and result[1] < 42:
+                result2 = botGenerationTestInit(40)
+                if (result2[1] + result[1] < 82):
                     numFails += 1
                     os.remove("./AI/botModels/nextbot.bot")
                     generation -= 1
                 else:
                     shutil.copy("./AI/botModels/nextbot.bot", "./AI/botModels/botArchive/gen" + str(generation) + ".bot")
                     shutil.move("./AI/botModels/nextbot.bot", "./AI/botModels/currbot.bot")
-            elif result[1] < 250:
+            elif result[1] < 40:
                 numFails += 1
                 os.remove("./AI/botModels/nextbot.bot")
                 generation -= 1

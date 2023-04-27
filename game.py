@@ -537,6 +537,13 @@ class Game:
             self.initiateAction(moves[selection])
         return self.winner
 
+    def miniRollout(self):
+        currPlayer = self.activePlayer.playerNum
+        while (self.activePlayer.playerNum == currPlayer):
+            moves = self.generateLegalMoves()
+            selection = random.randrange(len(moves))
+            self.initiateAction(moves[selection])
+
     def removeFollowerLambda(self, mons):
         for side in self.board.fullBoard:
             for item in side:

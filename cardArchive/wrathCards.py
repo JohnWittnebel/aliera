@@ -260,14 +260,17 @@ class Veight(Monster):
         self.encoding = VeightVal
 
         self.evoEnemyFollowerTargets = 1
-        self.fanfareEffects.append(selfPing(1))
-        self.fanfareEffects.append(summonBat())
-        self.fanfareEffects.append(draw(1))
-        self.fanfareEffects.append(selfPing(1))
-        self.fanfareEffects.append(summonBat())
-        self.fanfareEffects.append(draw(1))
-    
         self.enemyTurnStartEffects.append(givePlus1Bats)
+    
+    def play(self, gameState, currSide):
+        genericPlay(self, gameState, currSide)
+        selfPing(1)(gameState)
+        genericSummon(ForestBat(), gameState, currSide)
+        gameState.activePlayer.draw(1)
+        selfPing(1)(gameState)
+        genericSummon(ForestBat(), gameState, currSide)
+        gameState.activePlayer.draw(1)
+
 
     def evolve(self, gameState, target, *args, **kwargs):
         genericEvolve(self, gameState)

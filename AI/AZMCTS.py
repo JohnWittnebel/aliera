@@ -56,7 +56,11 @@ class AZMCTS():
         # each element of moveArr is [move, childIndex, timesTaken, totalValue, meanValue, moveProb (according to NN),
         #                             move indices (for training)]
         for ele in moves:
-            self.moveArr.append([ele, rollIndex, 0, 0., 0., 0.])
+            #FOR V2
+            if ele[0] == 4:
+                self.moveArr.append([ele,rollIndex, 0, 0., 0., 1/max(1,len(moves)-1)])
+            else:
+                self.moveArr.append([ele, rollIndex, 0, 0., 0., 0.])
             self.children.append(0)
             rollIndex += 1
     
@@ -78,7 +82,6 @@ class AZMCTS():
         probabilitiesNN, mask = self.transformer.normalizedVector(logits[0], self.gameState)
 
         #print(mask)
-        #print(probabilitiesNN)
         self.mask = mask
         self.setProbabilities(probabilitiesNN)
 
@@ -178,8 +181,13 @@ class AZMCTS():
             print(self.totalSims)
 
     def setProbabilities(self, probabilities):
+        #this happens in V2 when pass action is the only action
+        #if (len(probabilities) == 0):
+        #    return
         currIndex = 0
         for ele in self.moveArr:
+            if (ele[0] == [4]):
+                continue
             ele[5] = probabilities[currIndex]
             currIndex += 1
         #moveInd = 0
@@ -197,13 +205,15 @@ class AZMCTS():
 
     def recordResults(self, result, posnum):
         self.gameState.clearQueue()
-        for _ in range(20):
+        for _ in range(10):
             self.shuffleHandBoard()
 
             _, mask = self.transformer.normalizedVector(0, self.gameState)
             MCTSRes = []
             for ele in self.moveArr:
-                MCTSRes.append(float(ele[2]) / max(1., float(self.totalSims)))
+                # commented out for V2
+                # MCTSRes.append(float(ele[2]) / max(1., float(self.totalSims)))
+                MCTSRes.append(float(ele[2]) / max(1., float(self.totalSims - self.moveArr[len(self.moveArr)-1][2])))
 
             if (result == self.gameState.activePlayer.playerNum):
                 gameResult = 1

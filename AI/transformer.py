@@ -188,8 +188,10 @@ class Transformer:
         legalMoves = gameState.generateLegalMoves()
         for move in legalMoves:
             if move[0] == 4:
-                legalBinaryMask[onodes-2] = True
-            elif move[0] == 1:
+                #V2
+                legalBinaryMask[onodes-2] = False
+                #legalBinaryMask[onodes-2] = True
+            if move[0] == 1:
                 if (len(move[1]) == 1):
                     legalBinaryMask[7*move[1][0]] = True
                 else:

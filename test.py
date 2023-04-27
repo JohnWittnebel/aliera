@@ -426,10 +426,10 @@ def botGenerationTestInit(simulations):
     
 generation = len(fnmatch.filter(os.listdir("./AI/botModels/botArchive"), '*.bot')) - 1
 
-currPosSave=0
-winner = singleGame([0,1])
-print(winner)
-input("")
+#currPosSave=0
+#winner = singleGame([0,1])
+#print(winner)
+#input("")
 
 currPosSave = 0
 numFails = 0

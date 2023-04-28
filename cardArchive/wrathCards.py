@@ -45,6 +45,7 @@ class SummonBloodKin(Spell):
         self.encoding = BloodkinVal
         
     def play(self, gameState, currSide):
+        gameState.activePlayer.currPP -= self.cost
         genericSummon(ForestBat(), gameState, currSide)
         genericSummon(ForestBat(), gameState, currSide)
 
@@ -80,6 +81,7 @@ class DemonSong(Spell):
         self.encoding = DemonSongVal
         
     def play(self, gameState, currSide):
+        gameState.activePlayer.currPP -= self.cost
         TrillExists = 0
         for ele in gameState.board.fullBoard[currSide]:
             if isinstance(ele, Trill):

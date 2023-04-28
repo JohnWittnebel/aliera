@@ -303,7 +303,7 @@ def singleGame(botGame, currPosSave = 0):
   #return x.winner
 
 
-def botGenerationTest(bot1, bot2, deck1, deck2, newmodel):  
+def botGenerationTest(deck1, deck2, newmodel):  
     x = Game()
     x.player1.deck = deck1
     x.player2.deck = deck2
@@ -311,11 +311,20 @@ def botGenerationTest(bot1, bot2, deck1, deck2, newmodel):
     x.startTurn()
     y = Transformer()
 
+    p1Tree = AZMCTS(x)
+    p2Tree = AZMCTS(x)
+
+    if (newmodel == 1):
+        p1Tree.rootInit("new")
+        p2Tree.rootInit("curr")
+    else:
+        p1Tree.rootInit("curr")
+        p2Tree.rootInit("new")
+
     while (x.winner == 0):
         if (x.queue != []):
             x.clearQueue()
 
-        myTree = AZMCTS(x)
         x.printGameState()
     
         print("Input action:")
@@ -328,25 +337,42 @@ def botGenerationTest(bot1, bot2, deck1, deck2, newmodel):
         z = pos.unsqueeze(dim=0)
         moves = x.generateLegalMoves()
 
-        if (x.activePlayer.playerNum == newmodel):
-            myTree.rootInit("new")
+        if (x.activePlayer.playerNum == 1):
+            activeTree = p1Tree
+            p1Tree.runSimulations(max(50, math.floor(math.log2(math.log2(len(p1Tree.moveArr)) + 0.01)*50)))
         else:
-            myTree.rootInit("curr")
+            activeTree = p2Tree
+            p2Tree.runSimulations(max(50, math.floor(math.log2(math.log2(len(p2Tree.moveArr)) + 0.01)*50)))
         
-        myTree.runSimulations(max(50, math.floor(math.log2(math.log2(len(myTree.moveArr)) + 0.01)*50)))
-        
-        myTree.printTree()
-        print(newmodel)
+        activeTree.printTree()
 
         currIndex = 0
         maxIndex = 0
         maxSims = 0
         for i in range(len(moves)):
-            if maxSims < myTree.moveArr[i][2]:
+            if maxSims < activeTree.moveArr[i][2]:
                 maxIndex = currIndex
-                maxSims = myTree.moveArr[i][2]
+                maxSims = activeTree.moveArr[i][2]
             currIndex += 1
-        x.initiateAction(moves[maxIndex])
+
+        bestMove = moves[maxIndex]
+
+        if (activeTree == p1Tree):
+            p2Tree.takeAction(maxIndex, maxIndex)
+        else:
+            p1Tree.takeAction(maxIndex, maxIndex)
+        
+        bestChild1 = p1Tree.children[maxIndex]
+        bestChild2 = p2Tree.children[maxIndex]
+        
+        p1Tree.cleanTreeExceptAction(bestMove)
+        p2Tree.cleanTreeExceptAction(bestMove)
+
+        if not isinstance(bestChild1, int):
+            p1Tree = bestChild1
+            p2Tree = bestChild2
+
+        x.initiateAction(bestMove)
 
     return x.winner
 
@@ -354,75 +380,58 @@ def init(lock_: Lock):
     global lock
     lock = lock_
     
-def botGenerationTestInit(simulations):
-    # FOR testing bot vs new gen
-    model1 = NeuralNetwork().to("cpu")
-    model1.load_state_dict(torch.load("./AI/botModels/currbot.bot"))
-    model1.eval()
-
-    model2 = NeuralNetwork().to("cpu")
-    model2.load_state_dict(torch.load("./AI/botModels/nextbot.bot"))
-    model2.eval()
-
+def botGenerationTestInit(simulationNum): 
     result = [0,0]
-    player1wins = 0
-    newDeckPool(simulations)
-    for i in range(simulations):
-        seed_file = open("./constantDecks/P1deck" + str(i) + ".seed", "rb")
-        deckSeed = pickle.load(seed_file)
-        seed_file.close()
-        deck1 = Deck("deck1")
-        random.seed(deckSeed)
-        deck1.trueShuffle()
         
-        seed_file = open("./constantDecks/P2deck" + str(i) + ".seed", "rb")
-        deckSeed = pickle.load(seed_file)
-        seed_file.close()
-        deck2 = Deck("deck2")
-        random.seed(deckSeed)
-        deck2.trueShuffle()
+    seed_file = open("./constantDecks/P1deck" + str(simulationNum) + ".seed", "rb")
+    deckSeed = pickle.load(seed_file)
+    seed_file.close()
+    deck1 = Deck("deck1")
+    random.seed(deckSeed)
+    deck1.trueShuffle()
+        
+    seed_file = open("./constantDecks/P2deck" + str(simulationNum) + ".seed", "rb")
+    deckSeed = pickle.load(seed_file)
+    seed_file.close()
+    deck2 = Deck("deck2")
+    random.seed(deckSeed)
+    deck2.trueShuffle()
 
-        winner = botGenerationTest(model1, model2, deck1, deck2, 1)
-        if winner == 1:
-            result[0] += 1
-            player1wins += 1
-        else:
-            result[1] += 1
+    winner = botGenerationTest(deck1, deck2, 1)
+    if winner == 1:
+        result[0] += 1
+    else:
+        result[1] += 1
 
-        seed_file = open("./constantDecks/P1deck" + str(i) + ".seed", "rb")
-        deckSeed = pickle.load(seed_file)
-        seed_file.close()
-        deck1 = Deck("deck1")
-        random.seed(deckSeed)
-        deck1.trueShuffle()
+    seed_file = open("./constantDecks/P1deck" + str(simulationNum) + ".seed", "rb")
+    deckSeed = pickle.load(seed_file)
+    seed_file.close()
+    deck1 = Deck("deck1")
+    random.seed(deckSeed)
+    deck1.trueShuffle()
         
-        seed_file = open("./constantDecks/P2deck" + str(i) + ".seed", "rb")
-        deckSeed = pickle.load(seed_file)
-        seed_file.close()
-        deck2 = Deck("deck2")
-        random.seed(deckSeed)
-        deck2.trueShuffle()
+    seed_file = open("./constantDecks/P2deck" + str(simulationNum) + ".seed", "rb")
+    deckSeed = pickle.load(seed_file)
+    seed_file.close()
+    deck2 = Deck("deck2")
+    random.seed(deckSeed)
+    deck2.trueShuffle()
         
-        winner2 = botGenerationTest(model2, model1, deck1, deck2, 2)
-        if winner2 == 1:
-            result[1] += 1
-            player1wins += 1
-        else:
-            result[0] += 1
-        if (winner != winner2):
+    winner2 = botGenerationTest(deck1, deck2, 2)
+    if winner2 == 1:
+        result[1] += 1
+    else:
+        result[0] += 1
+    if (winner != winner2):
+        with lock:
             f = open("diffMakers.txt", "a")
             if (winner == 1):
-                f.write("Game: " + str(i) + ", double winner = old bot\n")
+                f.write("Game: " + str(simulationNum) + ", double winner = new bot\n")
             else:
-                f.write("Game: " + str(i) + ", double winner = new bot\n")
+                f.write("Game: " + str(simulationNum) + ", double winner = old bot\n")
             f.close()
 
-    print(result)
-    f = open("resultFile.txt", "a")
-    f.write(str(result[0]) + " v " + str(result[1]) + " " + str(player1wins) + "\n")
-    f.close()
-    
-    return result
+    return result[0]
     
 generation = len(fnmatch.filter(os.listdir("./AI/botModels/botArchive"), '*.bot')) - 1
 
@@ -431,6 +440,8 @@ generation = len(fnmatch.filter(os.listdir("./AI/botModels/botArchive"), '*.bot'
 #print(winner)
 #input("")
 
+oldbotwins = 0
+newbotwins = 0
 currPosSave = 0
 numFails = 0
 learningRate = 0.01
@@ -461,18 +472,38 @@ if __name__ == "__main__":
                 break
 
             generation += 1
-            result = botGenerationTestInit(40)
+
+            newDeckPool(40)
+            tests = []
+            for j in range(40):
+                tests.append(j)
+            
+            results = exe.map(botGenerationTestInit, tests)
+            
+            newbotwins = 0
+            for item in results:
+                newbotwins += item
+            
+            f = open("resultFile.txt", "a")
+            f.write(str(newbotwins) + " v " + str(80-newbotswins) + "\n")
+            f.close()
         
-            if result[1] >= 40 and result[1] < 42:
-                result2 = botGenerationTestInit(40)
-                if (result2[1] + result[1] < 82):
+            if newbotwins >= 40 and newbotwins < 42:
+                newDeckPool(40)
+                result2 = exe.map(botGenerationTestInit, tests)
+                for item in results2:
+                    newbotwins += item
+                f = open("resultFile.txt", "a")
+                f.write(str(newbotwins) + " v " + str(160-newbotswins) + "\n")
+                f.close()
+                if (newbotwins < 82):
                     numFails += 1
                     os.remove("./AI/botModels/nextbot.bot")
                     generation -= 1
                 else:
                     shutil.copy("./AI/botModels/nextbot.bot", "./AI/botModels/botArchive/gen" + str(generation) + ".bot")
                     shutil.move("./AI/botModels/nextbot.bot", "./AI/botModels/currbot.bot")
-            elif result[1] < 40:
+            elif newbotwins < 40:
                 numFails += 1
                 os.remove("./AI/botModels/nextbot.bot")
                 generation -= 1

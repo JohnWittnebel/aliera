@@ -32,6 +32,7 @@ def singleGame(botGame, currPosSave = 0):
   x.player1.deck.trueShuffle()
   x.player2.deck.trueShuffle()
   x.gameStart()
+  hashtable = {}
 
   x.gameNum = botGame[1]
   botGame = botGame[0]
@@ -66,7 +67,7 @@ def singleGame(botGame, currPosSave = 0):
 
                       mull = x.player1.mulliganSample(i,j,k)
                       myTree = AZMCTS(x)
-                      val = myTree.rootInit()
+                      val = myTree.rootInit(hashtable)
                       totals[i][j][k] += val
 
                       if totals[i][j][k] > currMax:
@@ -86,8 +87,8 @@ def singleGame(botGame, currPosSave = 0):
                   for k in range(2):
                       mull = x.player2.mulliganSample(i,j,k)
                       myTree = AZMCTS(x)
-                      with lock:
-                          val = myTree.rootInit()
+                      #with lock:
+                      val = myTree.rootInit(hashtable)
                       totals[i][j][k] += val
                       if totals[i][j][k] > currMax:
                           currMax = totals[i][j][k]
@@ -105,7 +106,7 @@ def singleGame(botGame, currPosSave = 0):
     botTurn = 0
 
   myTree = AZMCTS(x)
-  myTree.rootInit()
+  myTree.rootInit(hashtable)
   while (x.winner == 0):
     if (x.queue != []):
         x.clearQueue()
@@ -153,7 +154,7 @@ def singleGame(botGame, currPosSave = 0):
     
         moves = x.generateLegalMoves()
 
-        myTree.rootInit("curr")
+        myTree.rootInit(hashtable,"curr")
         
         myTree.runSimulations(max(50, math.floor(math.log2(math.log2(len(myTree.moveArr)) + 0.01)*50)))
         currIndex = 0
@@ -218,7 +219,7 @@ def singleGame(botGame, currPosSave = 0):
             continue
         if (uinput1 == "5"):
             myTree = AZMCTS(x)
-            myTree.rootInit()
+            myTree.rootInit(hashtable)
             myTree.runSimulations(50)
             myTree.printTree()
             print(myTree.val)
@@ -266,9 +267,16 @@ def singleGame(botGame, currPosSave = 0):
             print(worstVal)
 
             #myTree = AZMCTS(x)
-            #myTree.rootInit()
+            #myTree.rootInit(hashtable)
             #myTree.shuffleHandBoard()
             #myTree.printTree()
+        if (uinput1 == "7"):
+            myTree = AZMCTS(x)
+            myTree.rootInit(hashtable)
+            myTree.runSimulations(50)
+            myTree.printTree()
+            myTree.shuffleHandBoard()
+            myTree.printTree()
         if (uinput1 == "8"):
             print("Rig RNG for card")
             uinput2 = input("select card: ")
@@ -298,28 +306,31 @@ def singleGame(botGame, currPosSave = 0):
       with lock:
           currDir = len(os.listdir("./AI/trainingData")) - 1
           currPosSave = len(fnmatch.filter(os.listdir("./AI/trainingData/trainingDataSubfolder" + str(currDir)),'*.pickle'))
-          currPosSave = myTree.parent.recordResults(x.winner, currPosSave)
+          currPosSave = myTree.head.recordResults(x.winner, currPosSave)
   return currPosSave, x.winner
   #return x.winner
 
 
-def botGenerationTest(deck1, deck2, newmodel):  
+def botGenerationTest(deck1, deck2, newmodel, gameNum):  
     x = Game()
     x.player1.deck = deck1
     x.player2.deck = deck2
+    x.gameNum = gameNum
     x.gameStart()
     x.startTurn()
     y = Transformer()
+    hashtable1 = {}
+    hashtable2 = {}
 
     p1Tree = AZMCTS(x)
     p2Tree = AZMCTS(x)
 
     if (newmodel == 1):
-        p1Tree.rootInit("new")
-        p2Tree.rootInit("curr")
+        p1Tree.rootInit(hashtable1, "new")
+        p2Tree.rootInit(hashtable2, "curr")
     else:
-        p1Tree.rootInit("curr")
-        p2Tree.rootInit("new")
+        p1Tree.rootInit(hashtable2, "curr")
+        p2Tree.rootInit(hashtable1, "new")
 
     while (x.winner == 0):
         if (x.queue != []):
@@ -397,7 +408,7 @@ def botGenerationTestInit(simulationNum):
     random.seed(deckSeed)
     deck2.trueShuffle()
 
-    winner = botGenerationTest(deck1, deck2, 1)
+    winner = botGenerationTest(deck1, deck2, 1, simulationNum)
     if winner == 1:
         result[0] += 1
     else:
@@ -417,7 +428,7 @@ def botGenerationTestInit(simulationNum):
     random.seed(deckSeed)
     deck2.trueShuffle()
         
-    winner2 = botGenerationTest(deck1, deck2, 2)
+    winner2 = botGenerationTest(deck1, deck2, 2, simulationNum)
     if winner2 == 1:
         result[1] += 1
     else:
@@ -434,9 +445,10 @@ def botGenerationTestInit(simulationNum):
     return result[0]
     
 generation = len(fnmatch.filter(os.listdir("./AI/botModels/botArchive"), '*.bot')) - 1
+lock_ = Lock()
 
 #currPosSave=0
-#winner = singleGame([0,1])
+#winner = singleGame([1,1])
 #print(winner)
 #input("")
 
@@ -444,12 +456,12 @@ oldbotwins = 0
 newbotwins = 0
 currPosSave = 0
 numFails = 0
-learningRate = 0.01
+learningRate = 0.02
 
 def testprint(inputval):
     print(inputval)
 
-lock_ = Lock()
+
 if __name__ == "__main__":
     with Pool(initializer=init, initargs=[lock_], processes=2) as exe:
         for pepega in range(1):
@@ -473,9 +485,9 @@ if __name__ == "__main__":
 
             generation += 1
 
-            newDeckPool(40)
+            newDeckPool(50)
             tests = []
-            for j in range(40):
+            for j in range(50):
                 tests.append(j)
             
             results = exe.map(botGenerationTestInit, tests)
@@ -485,25 +497,25 @@ if __name__ == "__main__":
                 newbotwins += item
             
             f = open("resultFile.txt", "a")
-            f.write(str(newbotwins) + " v " + str(80-newbotswins) + "\n")
+            f.write(str(newbotwins) + " v " + str(100-newbotwins) + "\n")
             f.close()
         
-            if newbotwins >= 40 and newbotwins < 42:
-                newDeckPool(40)
+            if newbotwins >= 50 and newbotwins < 52:
+                newDeckPool(50)
                 result2 = exe.map(botGenerationTestInit, tests)
                 for item in results2:
                     newbotwins += item
                 f = open("resultFile.txt", "a")
-                f.write(str(newbotwins) + " v " + str(160-newbotswins) + "\n")
+                f.write(str(newbotwins) + " v " + str(100-newbotswins) + "\n")
                 f.close()
-                if (newbotwins < 82):
+                if (newbotwins < 102):
                     numFails += 1
                     os.remove("./AI/botModels/nextbot.bot")
                     generation -= 1
                 else:
                     shutil.copy("./AI/botModels/nextbot.bot", "./AI/botModels/botArchive/gen" + str(generation) + ".bot")
                     shutil.move("./AI/botModels/nextbot.bot", "./AI/botModels/currbot.bot")
-            elif newbotwins < 40:
+            elif newbotwins < 50:
                 numFails += 1
                 os.remove("./AI/botModels/nextbot.bot")
                 generation -= 1

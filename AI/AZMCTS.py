@@ -32,22 +32,24 @@ def moveCmp(item):
     #print(item)
     if (item[0][0] == 4):
         return 100000
-    val1 = 7*item[0][1][0]
+    val1 = 100*item[0][0]
+    val1 += 10*item[0][1][0]
     if (len(item[0][1]) > 1):
-        val1 += (7*item[0][1][1] + 2)
+        val1 += (item[0][1][1] + 2)
     return val1
 
 class AZMCTS():
-    def __init__(self, gameState, parent=None):
+    def __init__(self, gameState, head=None):
         self.gameState = gameState
         self.moveArr = []
         self.totalSims = 0
         self.exploreParam = 1.4
-        self.parent = parent
+        self.head = head
         self.mask = 0
         self.currNN = 0
         self.transformer = 0
         self.val = 0
+        self.hashtable = {}
         moves = gameState.generateLegalMoves()
 
         self.children = []
@@ -66,7 +68,7 @@ class AZMCTS():
     
     # the moveProbs are generated when the node is created during tree descent, but this doesnt occur for the root
     # so we do it manually here
-    def rootInit(self, new = "curr"):
+    def rootInit(self, hashtable, new = "curr"):
         self.transformer = Transformer()
         nnInput = self.transformer.gameDataToNN(self.gameState)
         nnInput = nnInput.unsqueeze(dim=0)
@@ -75,6 +77,8 @@ class AZMCTS():
         logits = self.currNN(nnInput)[0]
         val = self.currNN(nnInput)[1]
         self.val = val
+        self.head = self
+        self.hashtable = hashtable
         #for ele in self.moveArr:
         #    ele[4] += val/4
         #print(logits)
@@ -142,7 +146,15 @@ class AZMCTS():
             z = copy.deepcopy(self.gameState)
             z.initiateAction(self.moveArr[actionIndex][0])
             z.clearQueue()
-            self.children[childIndex] = AZMCTS(z, self)
+            #TODO: hashtable insert/check, this is not currently correct
+            hashval = hash((z.activePlayer.currHP, z.activePlayer.currEvos,z.activePlayer.currPP,tuple(z.board.fullBoard[0]), tuple(z.board.fullBoard[1]), z.currTurn, z.activePlayer.playerNum))
+            if hashval in self.hashtable:
+                print("PEPEGA")
+            else:
+                self.hashtable[hashval] = 1
+            #self.hashtable[hash((z.activePlayer.currHP, z.activePlayer.numEvos, self.activePlayer.currPP,
+            self.children[childIndex] = AZMCTS(z, self.head)
+            self.children[childIndex].hashtable = self.hashtable
             self.children[childIndex].currNN = self.currNN
             self.children[childIndex].transformer = self.transformer
             #self.children[childIndex].gameState.printGameState()
@@ -225,11 +237,10 @@ class AZMCTS():
             with open("./AI/trainingData/trainingDataSubfolder" + str(currDir) + "/pos" + str(posnum) + ".pickle", "wb") as f:
                 pickle.dump(condensedResult, f)
             posnum += 1
-
-        if (self.parent != None):
-            return self.parent.recordResults(result, posnum)
-        else:
-            return posnum
+        
+        for child in self.children:
+            if child != None and isinstance(child,AZMCTS) and child.gameState.winner == 0:
+                return child.recordResults(result, posnum)
 
     # shuffles hand and board positions to eliminate biases, changes mask and mcts array accordingly
     def shuffleHandBoard(self):

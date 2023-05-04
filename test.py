@@ -317,6 +317,7 @@ def botGenerationTest(deck1, deck2, newmodel, gameNum):
     x.player1.deck = deck1
     x.player2.deck = deck2
     x.gameNum = gameNum
+    x.sortGame()
     x.gameStart()
     x.startTurn()
     y = Transformer()
@@ -385,6 +386,7 @@ def botGenerationTest(deck1, deck2, newmodel, gameNum):
             p2Tree = bestChild2
 
         x.initiateAction(bestMove)
+        x.sortGame()
 
     return x.winner
 
@@ -464,7 +466,7 @@ def testprint(inputval):
 
 
 if __name__ == "__main__":
-    with Pool(initializer=init, initargs=[lock_], processes=1) as exe:
+    with Pool(initializer=init, initargs=[lock_], processes=2) as exe:
         for pepega in range(1):
             start_time = time.time()
             startingPoint = currPosSave            

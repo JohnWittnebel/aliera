@@ -97,6 +97,7 @@ def singleGame(botGame, currPosSave = 0):
       x.player2.mulligan(currMaxIndices[0], currMaxIndices[1], currMaxIndices[2])
       x.activePlayer = x.player1
   
+
   # Turn 1 start
   x.startTurn()
 
@@ -105,6 +106,7 @@ def singleGame(botGame, currPosSave = 0):
   else:
     botTurn = 0
 
+  x.sortGame()
   myTree = AZMCTS(x)
   myTree.rootInit(hashtable)
   while (x.winner == 0):
@@ -145,6 +147,7 @@ def singleGame(botGame, currPosSave = 0):
         if not isinstance(bestChild, int):
             myTree = bestChild
         x.initiateAction(bestMove)
+        x.sortGame()
     
     elif (botTurn == 1):
         model1 = NeuralNetwork().to("cpu")
@@ -266,17 +269,15 @@ def singleGame(botGame, currPosSave = 0):
                     worstVal = val
             print(worstVal)
 
+        if (uinput1 == "7"):
+            x.sortGame()
+
             #myTree = AZMCTS(x)
             #myTree.rootInit(hashtable)
+            #myTree.runSimulations(50)
+            #myTree.printTree()
             #myTree.shuffleHandBoard()
             #myTree.printTree()
-        if (uinput1 == "7"):
-            myTree = AZMCTS(x)
-            myTree.rootInit(hashtable)
-            myTree.runSimulations(50)
-            myTree.printTree()
-            myTree.shuffleHandBoard()
-            myTree.printTree()
         if (uinput1 == "8"):
             print("Rig RNG for card")
             uinput2 = input("select card: ")
@@ -448,7 +449,7 @@ generation = len(fnmatch.filter(os.listdir("./AI/botModels/botArchive"), '*.bot'
 lock_ = Lock()
 
 #currPosSave=0
-#winner = singleGame([1,1])
+#winner = singleGame([0,1])
 #print(winner)
 #input("")
 

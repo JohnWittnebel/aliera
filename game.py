@@ -615,3 +615,12 @@ class Game:
                 self.queue[queueIndex](self)
             queueIndex += 1
         self.queue = []
+
+    # sorts the active player's hand and the monsters on board. Mostly used to handle transpositions that have
+    # position differences but everything else is the same. WARNING: there are rare cases where board position actually does matter
+    # so use with caution
+    def sortGame(self):
+        self.activePlayer.hand.sort(key=lambda x: x.encoding)
+        self.board.fullBoard[0].sort(key=lambda x: 100*x.encoding + 10*x.isEvolved + x.canAttack)
+        self.board.fullBoard[1].sort(key=lambda x: 100*x.encoding + 10*x.isEvolved + x.canAttack)
+

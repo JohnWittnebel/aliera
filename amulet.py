@@ -15,6 +15,7 @@ class Amulet(Card):
         self.fanfareTargetFace = False
         self.targetOptional = False
         self.hasWard = 0
+        self.isEvolved = 0
         self.canAttack = 0
         self.canEvolve = 0
         self.maxEffPerTurn = 8

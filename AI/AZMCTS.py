@@ -148,6 +148,7 @@ class AZMCTS():
             z = copy.deepcopy(self.gameState)
             z.initiateAction(self.moveArr[actionIndex][0])
             z.clearQueue()
+            z.sortGame()
             gameStateVal = createGameStateVal(z)
             hashval = hash(gameStateVal)
             if hashval in self.hashtable:
@@ -331,12 +332,12 @@ def createGameStateVal(gameState):
         if (isinstance(ele, Amulet)):
             board1.append((ele.encoding, ele.countdown))
         else:
-            board1.append((ele.encoding, ele.currHP, ele.currAttack))
+            board1.append((ele.encoding, ele.currHP, ele.currAttack, ele.hasBane, ele.canAttack))
     for ele in gameState.board.fullBoard[1]:
         if (isinstance(ele,Amulet)):
             board2.append((ele.encoding, ele.countdown))
         else:
-            board2.append((ele.encoding, ele.currHP, ele.currAttack))
+            board2.append((ele.encoding, ele.currHP, ele.currAttack, ele.hasBane, ele.canAttack))
     board1 = fms(board1)
     board2 = fms(board2)
 

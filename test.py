@@ -141,7 +141,7 @@ def singleGame(botGame, currPosSave = 0):
             botTurn = 0
 
         bestChild = myTree.children[index]
-        myTree.cleanTreeExceptAction(bestMove)
+        #myTree.cleanTreeExceptAction(bestMove)
         if not isinstance(bestChild, int):
             myTree = bestChild
         x.initiateAction(bestMove)
@@ -463,7 +463,7 @@ def testprint(inputval):
 
 
 if __name__ == "__main__":
-    with Pool(initializer=init, initargs=[lock_], processes=2) as exe:
+    with Pool(initializer=init, initargs=[lock_], processes=1) as exe:
         for pepega in range(1):
             start_time = time.time()
             startingPoint = currPosSave            

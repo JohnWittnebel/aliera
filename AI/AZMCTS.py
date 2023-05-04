@@ -3,6 +3,7 @@
 # Each node has a gamestate, number of games ran, and winrate from that node
 
 from allmoves import ALLMOVES
+from multiset import FrozenMultiset as fms
 import random
 import copy
 import math
@@ -17,6 +18,7 @@ import _pickle as cPickle
 import sys
 #sys.path.insert(0, './botModels/')
 sys.path.insert(0, './..')
+from amulet import Amulet
 
 def setCurrNN(mct, currOrNew = "curr"):
     mct.currNN = NeuralNetwork()
@@ -146,14 +148,28 @@ class AZMCTS():
             z = copy.deepcopy(self.gameState)
             z.initiateAction(self.moveArr[actionIndex][0])
             z.clearQueue()
-            #TODO: hashtable insert/check, this is not currently correct
-            hashval = hash((z.activePlayer.currHP, z.activePlayer.currEvos,z.activePlayer.currPP,tuple(z.board.fullBoard[0]), tuple(z.board.fullBoard[1]), z.currTurn, z.activePlayer.playerNum))
+            gameStateVal = createGameStateVal(z)
+            hashval = hash(gameStateVal)
             if hashval in self.hashtable:
-                print("PEPEGA")
-            else:
-                self.hashtable[hashval] = 1
-            #self.hashtable[hash((z.activePlayer.currHP, z.activePlayer.numEvos, self.activePlayer.currPP,
-            self.children[childIndex] = AZMCTS(z, self.head)
+                if z.winner != 0:
+                    if z.winner == z.activePlayer.playerNum:
+                        return 1
+                    else:
+                        return -1
+                if hash(gameStateVal) == hash(createGameStateVal(self.gameState)):
+                    print("ERROR: illegal move")
+                    return 0
+                self.children[childIndex] = self.hashtable[hashval]
+                #TODO: the below line is for debugging purposes. The bug atm is that even though we end up in symmetric
+                #      positions, our hand order (and thus legal moves that generated at the time of creation of AZMCTS)
+                #      may not be the same. Consider playing maestro -> vampy or vampy -> maestro for ex.
+                #self.children[childIndex].gameState = z
+                #print("PEPEGA")
+                #self.hashtable[hashval].printTree()
+                return 0 #self.hashtable[hashval].descendTree()
+                
+            newAZMCTS = AZMCTS(z, self.head)
+            self.children[childIndex] = newAZMCTS
             self.children[childIndex].hashtable = self.hashtable
             self.children[childIndex].currNN = self.currNN
             self.children[childIndex].transformer = self.transformer
@@ -168,6 +184,7 @@ class AZMCTS():
             # game is still in progress, return NN eval
             nnInput = self.transformer.gameDataToNN(self.gameState)
             nnInput = nnInput.unsqueeze(dim=0)
+            self.hashtable[hashval] = newAZMCTS 
         
             logits = self.currNN(nnInput)
             logitsProb = logits[0][0]
@@ -301,3 +318,26 @@ class AZMCTS():
             if child != 0:
                 child.cleanTree()
                 child = None
+
+def createGameStateVal(gameState):
+    board1 = []
+    board2 = []
+    currPlayer = gameState.activePlayer
+    if (currPlayer.playerNum == 1):
+        enemyPlayer = gameState.player2
+    else:
+        enemyPlayer = gameState.player1
+    for ele in gameState.board.fullBoard[0]:
+        if (isinstance(ele, Amulet)):
+            board1.append((ele.encoding, ele.countdown))
+        else:
+            board1.append((ele.encoding, ele.currHP, ele.currAttack))
+    for ele in gameState.board.fullBoard[1]:
+        if (isinstance(ele,Amulet)):
+            board2.append((ele.encoding, ele.countdown))
+        else:
+            board2.append((ele.encoding, ele.currHP, ele.currAttack))
+    board1 = fms(board1)
+    board2 = fms(board2)
+
+    return (currPlayer.currHP, enemyPlayer.currHP, len(currPlayer.hand), len(enemyPlayer.hand), enemyPlayer.currEvos, currPlayer.currEvos, currPlayer.currPP, board1, board2, 3*gameState.currTurn+currPlayer.playerNum, len(currPlayer.deck.cards), len(enemyPlayer.deck.cards))

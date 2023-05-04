@@ -19,7 +19,7 @@ class Amulet(Card):
         self.canAttack = 0
         self.canEvolve = 0
         self.maxEffPerTurn = 8
-        self.currHP = countdown
+        self.currHP = 7
         self.effActivations = 0
         self.traits = []
         self.isAmulet = True

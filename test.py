@@ -147,6 +147,7 @@ def singleGame(botGame, currPosSave = 0):
         if not isinstance(bestChild, int):
             myTree = bestChild
         x.initiateAction(bestMove)
+        x.clearQueue()
         x.sortGame()
     
     elif (botTurn == 1):
@@ -386,6 +387,7 @@ def botGenerationTest(deck1, deck2, newmodel, gameNum):
             p2Tree = bestChild2
 
         x.initiateAction(bestMove)
+        x.clearQueue()
         x.sortGame()
 
     return x.winner
@@ -466,7 +468,7 @@ def testprint(inputval):
 
 
 if __name__ == "__main__":
-    with Pool(initializer=init, initargs=[lock_], processes=2) as exe:
+    with Pool(initializer=init, initargs=[lock_], processes=1) as exe:
         for pepega in range(1):
             start_time = time.time()
             startingPoint = currPosSave            

@@ -157,7 +157,7 @@ class AZMCTS():
                         return 1
                     else:
                         return -1
-                print("PEPEGA")
+                #print("PEPEGA")
                 self.children[childIndex] = self.hashtable[hashval]
                 #TODO: the below line is for debugging purposes. The bug atm is that even though we end up in symmetric
                 #      positions, our hand order (and thus legal moves that generated at the time of creation of AZMCTS)
@@ -165,7 +165,7 @@ class AZMCTS():
                 #self.children[childIndex].gameState = z
                 #print("PEPEGA")
                 #self.hashtable[hashval].printTree()
-                return 0 #self.hashtable[hashval].descendTree()
+                return self.hashtable[hashval].descendTree()
                 
             newAZMCTS = AZMCTS(z, self.head)
             self.children[childIndex] = newAZMCTS
@@ -330,19 +330,31 @@ def createGameStateVal(gameState):
         if (isinstance(ele, Amulet)):
             board1.append((ele.encoding, ele.countdown))
         else:
-            board1.append((ele.encoding, ele.currHP, ele.currAttack, ele.hasBane, ele.canAttack))
+            board1.append((ele.encoding, ele.currHP, ele.currAttack, ele.hasBane, ele.canAttack, ele.hasWard))
     for ele in gameState.board.fullBoard[1]:
         if (isinstance(ele,Amulet)):
             board2.append((ele.encoding, ele.countdown))
         else:
-            board2.append((ele.encoding, ele.currHP, ele.currAttack, ele.hasBane, ele.canAttack))
+            board2.append((ele.encoding, ele.currHP, ele.currAttack, ele.hasBane, ele.canAttack, ele.hasWard))
 
     activedeck = []
     for ele in gameState.activePlayer.deck.cards:
-        activedeck.append((ele.encoding))
+        activedeck.append(ele.encoding)
+    for ele in enemyPlayer.deck.cards:
+        activedeck.append(ele.encoding)
+    index = 0
+    for ele in gameState.activePlayer.hand:
+        activedeck.append((ele.encoding, index))
+        index += 1
+    index = 0
+    for ele in enemyPlayer.hand:
+        activedeck.append((ele.encoding, index))
+        index += 1
+
+
 
     board1 = fms(board1)
     board2 = fms(board2)
     activedeck = tuple(activedeck)
 
-    return (currPlayer.currHP, enemyPlayer.currHP, len(currPlayer.hand), len(enemyPlayer.hand), enemyPlayer.currEvos, currPlayer.currEvos, currPlayer.currPP, board1, board2, 3*gameState.currTurn+currPlayer.playerNum, len(currPlayer.deck.cards), len(enemyPlayer.deck.cards), activedeck)
+    return (currPlayer.currHP, enemyPlayer.currHP, len(currPlayer.hand), len(enemyPlayer.hand), enemyPlayer.currEvos, currPlayer.currEvos, currPlayer.currPP, board1, board2, 3*gameState.currTurn+currPlayer.playerNum, activedeck, len(currPlayer.leaderEffects.turnEndEffects), len(enemyPlayer.leaderEffects.turnEndEffects))

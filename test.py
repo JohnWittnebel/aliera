@@ -25,6 +25,7 @@ from allmoves import ALLMOVES
 from AZMCTS import AZMCTS
 from AZMCTS import setCurrNN
 from trainer import training
+from AZMCTS import createGameStateVal
 
 def singleGame(botGame, currPosSave = 0):
   x = Game()
@@ -123,8 +124,13 @@ def singleGame(botGame, currPosSave = 0):
     print("4 = end turn")
 
     if (botGame == 1):
+        treehash = hash(createGameStateVal(myTree.gameState))
+        currhash = hash(createGameStateVal(x))
+
         myTree.runSimulations(max(50, math.floor(math.log2(math.log2(len(myTree.moveArr)) + 0.01)*50)))
         myTree.printTree()
+        if (treehash != currhash):
+            raise Exception("AZMCTS out of sync with current game")
         
         multinomArr = []
         childArr = []
@@ -304,11 +310,11 @@ def singleGame(botGame, currPosSave = 0):
             input3 = input("spellboost how many times?")
 
   
-  if x.error == 0 and botGame == 1:
-      with lock:
-          currDir = len(os.listdir("./AI/trainingData")) - 1
-          currPosSave = len(fnmatch.filter(os.listdir("./AI/trainingData/trainingDataSubfolder" + str(currDir)),'*.pickle'))
-          currPosSave = myTree.head.recordResults(x.winner, currPosSave)
+  #if x.error == 0 and botGame == 1:
+      #with lock:
+      #    currDir = len(os.listdir("./AI/trainingData")) - 1
+      #    currPosSave = len(fnmatch.filter(os.listdir("./AI/trainingData/trainingDataSubfolder" + str(currDir)),'*.pickle'))
+      #    currPosSave = myTree.head.recordResults(x.winner, currPosSave)
   return currPosSave, x.winner
   #return x.winner
 
@@ -468,7 +474,8 @@ def testprint(inputval):
 
 
 if __name__ == "__main__":
-    with Pool(initializer=init, initargs=[lock_], processes=1) as exe:
+    for _ in range(1):
+    #with Pool(initializer=init, initargs=[lock_], processes=2) as exe:
         for pepega in range(1):
             start_time = time.time()
             startingPoint = currPosSave            
@@ -478,8 +485,8 @@ if __name__ == "__main__":
                 if (pepega == 0):
                     for j in range(int(sys.argv[1])):
                         runs.append([1,j])
-                    #singleGame([1,j])
-                exe.map(singleGame, runs)
+                        singleGame([1,j])
+                #exe.map(singleGame, runs)
 
             if (len(sys.argv) > 2):
                 break

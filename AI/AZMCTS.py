@@ -157,9 +157,7 @@ class AZMCTS():
                         return 1
                     else:
                         return -1
-                if hash(gameStateVal) == hash(createGameStateVal(self.gameState)):
-                    print("ERROR: illegal move")
-                    return 0
+                print("PEPEGA")
                 self.children[childIndex] = self.hashtable[hashval]
                 #TODO: the below line is for debugging purposes. The bug atm is that even though we end up in symmetric
                 #      positions, our hand order (and thus legal moves that generated at the time of creation of AZMCTS)
@@ -338,7 +336,13 @@ def createGameStateVal(gameState):
             board2.append((ele.encoding, ele.countdown))
         else:
             board2.append((ele.encoding, ele.currHP, ele.currAttack, ele.hasBane, ele.canAttack))
+
+    activedeck = []
+    for ele in gameState.activePlayer.deck.cards:
+        activedeck.append((ele.encoding))
+
     board1 = fms(board1)
     board2 = fms(board2)
+    activedeck = tuple(activedeck)
 
-    return (currPlayer.currHP, enemyPlayer.currHP, len(currPlayer.hand), len(enemyPlayer.hand), enemyPlayer.currEvos, currPlayer.currEvos, currPlayer.currPP, board1, board2, 3*gameState.currTurn+currPlayer.playerNum, len(currPlayer.deck.cards), len(enemyPlayer.deck.cards))
+    return (currPlayer.currHP, enemyPlayer.currHP, len(currPlayer.hand), len(enemyPlayer.hand), enemyPlayer.currEvos, currPlayer.currEvos, currPlayer.currPP, board1, board2, 3*gameState.currTurn+currPlayer.playerNum, len(currPlayer.deck.cards), len(enemyPlayer.deck.cards), activedeck)

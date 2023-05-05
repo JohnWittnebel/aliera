@@ -621,6 +621,6 @@ class Game:
     # so use with caution
     def sortGame(self):
         self.activePlayer.hand.sort(key=lambda x: x.encoding)
-        self.board.fullBoard[0].sort(key=lambda x: 1000*x.encoding + 100*x.isEvolved + 20*x.canAttack + x.currHP)
-        self.board.fullBoard[1].sort(key=lambda x: 1000*x.encoding + 100*x.isEvolved + 20*x.canAttack + x.currHP)
+        self.board.fullBoard[0].sort(key=lambda x: 1000*x.encoding + 300*x.isEvolved + 200*x.canAttack + 10*x.currAttack + x.currHP)
+        self.board.fullBoard[1].sort(key=lambda x: 1000*x.encoding + 300*x.isEvolved + 200*x.canAttack + 10*x.currAttack + x.currHP)
 

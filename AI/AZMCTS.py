@@ -51,6 +51,7 @@ class AZMCTS():
         self.currNN = 0
         self.transformer = 0
         self.val = 0
+        self.truePath = 0
         self.hashtable = {}
         moves = gameState.generateLegalMoves()
 
@@ -81,6 +82,7 @@ class AZMCTS():
         self.val = val
         self.head = self
         self.hashtable = hashtable
+        self.truePath = 1
         #for ele in self.moveArr:
         #    ele[4] += val/4
         #print(logits)
@@ -255,7 +257,7 @@ class AZMCTS():
             posnum += 1
         
         for child in self.children:
-            if child != None and isinstance(child,AZMCTS) and child.gameState.winner == 0:
+            if child != None and child.truePath == 1 and isinstance(child,AZMCTS) and child.gameState.winner == 0:
                 return child.recordResults(result, posnum)
 
     # shuffles hand and board positions to eliminate biases, changes mask and mcts array accordingly

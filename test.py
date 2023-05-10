@@ -161,6 +161,7 @@ def singleGame(botGame, currPosSave = 0):
         #myTree.cleanTreeExceptAction(bestMove)
         if not isinstance(bestChild, int):
             myTree = bestChild
+            myTree.truePath = 1
         x.initiateAction(bestMove)
         x.clearQueue()
         x.sortGame()
@@ -506,9 +507,9 @@ if __name__ == "__main__":
 
             generation += 1
 
-            newDeckPool(50)
+            newDeckPool(15)
             tests = []
-            for j in range(50):
+            for j in range(15):
                 tests.append(j)
             
             results = exe.map(botGenerationTestInit, tests)
@@ -518,9 +519,9 @@ if __name__ == "__main__":
                 newbotwins += item
             
             f = open("resultFile.txt", "a")
-            f.write(str(newbotwins) + " v " + str(100-newbotwins) + "\n")
+            f.write(str(newbotwins) + " v " + str(30-newbotwins) + "\n")
             f.close()
-        
+            """
             if newbotwins >= 50 and newbotwins < 52:
                 newDeckPool(50)
                 result2 = exe.map(botGenerationTestInit, tests)
@@ -545,3 +546,4 @@ if __name__ == "__main__":
                 shutil.move("./AI/botModels/nextbot.bot", "./AI/botModels/currbot.bot")
         
             print("--- %s seconds ---" % (time.time() - start_time))
+            """

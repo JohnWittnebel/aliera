@@ -34,6 +34,7 @@ class Game:
         self.player1 = Player(deck1, PLAYER_1_MAX_EVOS, PLAYER_1_MAX_EVOS, 1)
         self.player2 = Player(deck2, PLAYER_2_MAX_EVOS, PLAYER_2_MAX_EVOS, 2)
 
+        self.deterministic = 1
         self.gameNum = -1
         self.board = Board()
         self.activePlayer = self.player1

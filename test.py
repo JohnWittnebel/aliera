@@ -380,6 +380,10 @@ def botGenerationTest(deck1, deck2, newmodel, gameNum):
         maxIndex = 0
         maxSims = 0
         for i in range(len(moves)):
+            if (len(activeTree.moveArr) <= i):
+                activeTree.printTree()
+                x.printGameState()
+                raise Exception("something went wrong, out of sync?")
             if maxSims < activeTree.moveArr[i][2]:
                 maxIndex = currIndex
                 maxSims = activeTree.moveArr[i][2]
@@ -387,6 +391,7 @@ def botGenerationTest(deck1, deck2, newmodel, gameNum):
 
         bestMove = moves[maxIndex]
 
+        # this is just so that if the inactive tree hasnt visited the node we are going to, it becomes an AZMCTS node
         if (activeTree == p1Tree):
             p2Tree.takeAction(maxIndex, maxIndex)
         else:
@@ -394,9 +399,14 @@ def botGenerationTest(deck1, deck2, newmodel, gameNum):
         
         bestChild1 = p1Tree.children[maxIndex]
         bestChild2 = p2Tree.children[maxIndex]
+
+        if (hash(createGameStateVal(p1Tree.gameState)) != hash(createGameStateVal(p2Tree.gameState))):
+            p1Tree.printTree()
+            p2Tree.printTree()
+            raise Exception("P1 and P2 tree out of sync")
         
-        p1Tree.cleanTreeExceptAction(bestMove)
-        p2Tree.cleanTreeExceptAction(bestMove)
+        #p1Tree.cleanTreeExceptAction(bestMove)
+        #p2Tree.cleanTreeExceptAction(bestMove)
 
         if not isinstance(bestChild1, int):
             p1Tree = bestChild1
@@ -507,9 +517,9 @@ if __name__ == "__main__":
 
             generation += 1
 
-            newDeckPool(15)
+            newDeckPool(4)
             tests = []
-            for j in range(15):
+            for j in range(4):
                 tests.append(j)
             
             results = exe.map(botGenerationTestInit, tests)

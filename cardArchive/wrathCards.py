@@ -352,7 +352,6 @@ class Drummer(Monster):
         self.accelCard = DrummerAccel()
         self.LWEffects.append(healFace(1))
 
-    # TODO: should probably move this to fanfare effects
     def play(self, gameState, currSide):
         genericPlay(self, gameState, currSide)
         for _ in range(4):

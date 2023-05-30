@@ -257,7 +257,7 @@ class AZMCTS():
             posnum += 1
         
         for child in self.children:
-            if child != None and child.truePath == 1 and isinstance(child,AZMCTS) and child.gameState.winner == 0:
+            if child != None and isinstance(child,AZMCTS) and child.truePath == 1 and child.gameState.winner == 0:
                 return child.recordResults(result, posnum)
 
     # shuffles hand and board positions to eliminate biases, changes mask and mcts array accordingly

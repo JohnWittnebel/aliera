@@ -80,7 +80,7 @@ def training(learnRate):
     model = NeuralNetwork().to("cpu")
     model.load_state_dict(torch.load("./AI/botModels/currbot.bot"))
     model.eval()
-    n_epochs = 2000
+    n_epochs = 500
     for epoch in range(n_epochs):
         gamePos, train_MCTS, mask, train_result = next(iter(loader))
         gamePos.requires_grad = True

@@ -38,67 +38,6 @@ def singleGame(botGame, currPosSave = 0):
   x.gameNum = botGame[1]
   botGame = botGame[0]
   
-  # mulligan phase
-  if botGame == 0:
-      index = 0
-      for item in x.player1.hand:
-          print(str(index) + ": " + str(item))
-          index += 1
-      mull1 = int(input("mulligan card 0? "))
-      mull2 = int(input("mulligan card 1? "))
-      mull3 = int(input("mulligan card 2? "))
-      x.player1.mulligan(mull1,mull2,mull3)
-      
-      index = 0
-      for item in x.player2.hand:
-          print(str(index) + ": " + str(item))
-          index += 1
-      mull1 = int(input("mulligan card 0? "))
-      mull2 = int(input("mulligan card 1? "))
-      mull3 = int(input("mulligan card 2? "))
-      x.player2.mulligan(mull1,mull2,mull3)
-  else:
-      totals = [[[0,0],[0,0]],[[0,0],[0,0]]]
-      currMax = 0
-      currMaxIndices = [0,0,0]
-      for _ in range(10):
-          for i in range(2):
-              for j in range(2):
-                  for k in range(2):
-
-                      mull = x.player1.mulliganSample(i,j,k)
-                      myTree = AZMCTS(x)
-                      val = myTree.rootInit(hashtable)
-                      totals[i][j][k] += val
-
-                      if totals[i][j][k] > currMax:
-                          currMax = totals[i][j][k]
-                          currMaxIndices = [i,j,k]
-
-                      x.player1.returnMulliganSample(mull)
-
-      x.player1.mulligan(currMaxIndices[0], currMaxIndices[1], currMaxIndices[2])
-      x.activePlayer = x.player2
-      totals = [[[0,0],[0,0]],[[0,0],[0,0]]]
-      currMax = 0
-      currMaxIndices = [0,0,0]
-      for _ in range(10):
-          for i in range(2):
-              for j in range(2):
-                  for k in range(2):
-                      mull = x.player2.mulliganSample(i,j,k)
-                      myTree = AZMCTS(x)
-                      #with lock:
-                      val = myTree.rootInit(hashtable)
-                      totals[i][j][k] += val
-                      if totals[i][j][k] > currMax:
-                          currMax = totals[i][j][k]
-                          currMaxIndices = [i,j,k]
-                      x.player2.returnMulliganSample(mull)
-      x.player2.mulligan(currMaxIndices[0], currMaxIndices[1], currMaxIndices[2])
-      x.activePlayer = x.player1
-  
-
   # Turn 1 start
   x.startTurn()
 

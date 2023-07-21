@@ -47,8 +47,6 @@ def singleGame(botGame, currPosSave = 0):
     botTurn = 0
 
   x.sortGame()
-  myTree = AZMCTS(x)
-  myTree.rootInit(hashtable)
   while (x.winner == 0):
     if (x.queue != []):
         x.clearQueue()
@@ -63,51 +61,20 @@ def singleGame(botGame, currPosSave = 0):
     print("4 = end turn")
 
     if (botGame == 1):
-        treehash = hash(createGameStateVal(myTree.gameState))
-        currhash = hash(createGameStateVal(x))
+        moves = x.generateLegalMoves()
+        model1 = NeuralNetwork().to("cpu")
+        model1.load_state_dict(torch.load("./DQN/botModels/currbot.bot"))
+        pos = y.gameDataToNN(x)
+        NNoutput = model1(pos)
 
-        myTree.runSimulations(max(50, math.floor(math.log2(math.log2(len(myTree.moveArr)) + 0.01)*50)))
-        myTree.printTree()
-        if (treehash != currhash):
-            print("ERROR: out of sync, aborting game")
-            #print("OUT OF SYNC, PRINTING GAME STATE AND TREE GAME STATE:")
-            #x.printGameState()
-            #print(createGameStateVal(x))
-            #myTree.gameState.printGameState()
-            #print(createGameStateVal(myTree.gameState))
-            x.error = 1
-            break
-            #raise Exception("AZMCTS out of sync with current game")
-
-        
-        multinomArr = []
-        childArr = []
-        for ele in myTree.moveArr:
-            multinomArr.append(ele[2] / myTree.totalSims)
-            childArr.append(ele[0])
-
-        selectedMoveArr = np.random.multinomial(1, multinomArr)
-        index = 0
-        for ele in selectedMoveArr:
-            if ele == 1:
-                bestMove = childArr[index]
-                break
-            index += 1
-        if (bestMove == [4] and botGame == 0):
-            botTurn = 0
-
-        bestChild = myTree.children[index]
-        #myTree.cleanTreeExceptAction(bestMove)
-        if not isinstance(bestChild, int):
-            myTree = bestChild
-            myTree.truePath = 1
+        #TODO
         x.initiateAction(bestMove)
         x.clearQueue()
         x.sortGame()
     
     elif (botTurn == 1):
         model1 = NeuralNetwork().to("cpu")
-        model1.load_state_dict(torch.load("./AI/botModels/currbot.bot"))
+        model1.load_state_dict(torch.load("./DQN/botModels/currbot.bot"))
         myTree = AZMCTS(x)
         x.printGameState()
     
@@ -186,7 +153,7 @@ def singleGame(botGame, currPosSave = 0):
             #input("")
         if (uinput1 == "6"):
             model1 = NeuralNetwork().to("cpu")
-            model1.load_state_dict(torch.load("./AI/botModels/currbot.bot"))
+            model1.load_state_dict(torch.load("./DQN/botModels/currbot.bot"))
             model1.eval()
 
             pos = y.gameDataToNN(x)
@@ -261,8 +228,8 @@ def singleGame(botGame, currPosSave = 0):
   
   if x.error == 0 and botGame == 1:
       with lock:
-          currDir = len(os.listdir("./AI/trainingData")) - 1
-          currPosSave = len(fnmatch.filter(os.listdir("./AI/trainingData/trainingDataSubfolder" + str(currDir)),'*.pickle'))
+          currDir = len(os.listdir("./DQN/trainingData")) - 1
+          currPosSave = len(fnmatch.filter(os.listdir("./DQN/trainingData/trainingDataSubfolder" + str(currDir)),'*.pickle'))
           currPosSave = myTree.head.recordResults(x.winner, currPosSave)
   return currPosSave, x.winner
   #return x.winner
@@ -414,7 +381,7 @@ def botGenerationTestInit(simulationNum):
 
     return result[0]
     
-generation = len(fnmatch.filter(os.listdir("./AI/botModels/botArchive"), '*.bot')) - 1
+generation = len(fnmatch.filter(os.listdir("./DQN/botModels/botArchive"), '*.bot')) - 1
 lock_ = Lock()
 
 #currPosSave=0

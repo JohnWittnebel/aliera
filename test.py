@@ -17,7 +17,7 @@ from multiprocessing import Pool, TimeoutError, Lock, Process
 
 import fnmatch
 import sys
-sys.path.insert(0, './AI/')
+sys.path.insert(0, './DQN/')
 sys.path.insert(0, './cardArchive')
 from transformer import Transformer
 from bot import NeuralNetwork

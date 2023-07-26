@@ -88,14 +88,14 @@ class Orchestration(Spell):
 ##### EFFECT FUNCTIONS
 
 def healFace(val):
-    return lambda gameState, side: gameState.player1.restoreHP(gameState, val) if side == 0 \
+    return lambda gameState, side: gameState.player1.restoreHP(gameState, val) if side == 1 \
     else gameState.player2.restoreHP(gameState, val)
 
 def selfPing(val):
     return lambda gameState: gameState.activePlayer.takeEffectDamage(gameState, val)
 
 def enemyPing(val):
-    return lambda gameState, side: gameState.player2.takeEffectDamage(gameState, val) if side == 0 \
+    return lambda gameState, side: gameState.player2.takeEffectDamage(gameState, val) if side == 1 \
     else gameState.player1.takeEffectDamage(gameState, val)
 
 def summonBat():
